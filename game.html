@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O Mestre - Final Mobile</title>
+    <style>
+        /* --- CORE THEME --- */
+        :root {
+            --gold: #D4AF37;
+            --bg-app: #0f0f0f;
+            --bg-panel: #1a1a1a;
+            --green-chat: #005c4b;
+            --green-bright: #00ff41;
+            --red-alert: #ff3333;
+            --blue-highlight: #4da6ff;
+            --text-muted: #888;
+        }
+
+        * { box-sizing: border-box; user-select: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+        body { background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: white; overflow: hidden; }
+
+        #phone {
+            width: 100%; height: 100%; max-width: 450px; background-color: var(--bg-app); position: relative; overflow: hidden; display: flex; flex-direction: column;
+        }
+
+        /* --- HEADER --- */
+        .status-bar { padding: 15px 20px; background: rgba(20,20,20,0.95); border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+        .app-name { font-weight: 900; letter-spacing: 1px; color: var(--gold); font-size: 14px; }
+        .day-badge { background: #333; padding: 4px 8px; border-radius: 4px; font-size: 12px; color: #fff; font-weight: bold; }
+
+        /* --- SCREENS --- */
+        .screen { flex: 1; display: none; flex-direction: column; overflow: hidden; position: relative; }
+        .screen.active { display: flex; }
+
+        /* --- DASHBOARD --- */
+        .dash-panel { padding: 15px 20px; display: flex; flex-direction: column; gap: 12px; }
+        .gauge-wrap { display: flex; flex-direction: column; gap: 4px; }
+        .gauge-info { display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; color: var(--text-muted); }
+        .gauge-bar { height: 8px; background: #222; border-radius: 4px; overflow: hidden; }
+        .gauge-fill { height: 100%; width: 0%; transition: width 0.5s; }
+        .bg-green { background: var(--green-bright); }
+        .bg-blue { background: var(--blue-highlight); }
+        .bg-red { background: var(--red-alert); }
+
+        /* --- QUEUE --- */
+        .queue-container { flex: 1; margin: 0 20px; background: #111; border: 1px solid #333; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+        .queue-header { background: #222; padding: 8px; font-size: 11px; text-align: center; color: #aaa; text-transform: uppercase; border-bottom: 1px solid #333; }
+        .queue-list { flex: 1; overflow-y: auto; padding: 5px; }
+        .queue-item { background: #181818; border-bottom: 1px solid #222; padding: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+        .queue-item.critical { border-left: 3px solid var(--red-alert); background: rgba(255, 50, 50, 0.1); }
+        .q-timer { background: #333; padding: 3px 6px; border-radius: 4px; color: white; font-weight: bold; }
+
+        /* --- MONEY --- */
+        .money-display { display: flex; justify-content: space-between; padding: 15px 20px; background: #111; border-top: 1px solid #333; align-items: center; }
+        .money-col { display: flex; flex-direction: column; align-items: center; width: 33%; }
+        .m-label { font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 2px; }
+        .m-val { font-size: 14px; font-weight: bold; color: white; }
+        .val-gold { color: var(--gold); }
+        .val-green { color: var(--green-bright); }
+
+        /* --- CONTROLS --- */
+        .action-row { padding: 20px; display: flex; gap: 15px; background: #000; }
+        .big-btn { flex: 1; height: 60px; border: 1px solid #333; border-radius: 12px; background: #1a1a1a; color: white; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; transition: 0.1s; }
+        .big-btn:active { transform: scale(0.98); background: #222; }
+        .btn-pay { border-color: var(--green-chat); background: rgba(0, 92, 75, 0.2); }
+
+        /* --- ZEP --- */
+        .zep-list { list-style: none; padding: 0; margin: 0; }
+        .zep-item { padding: 15px 20px; border-bottom: 1px solid #222; display: flex; align-items: center; cursor: pointer; transition: 0.2s; }
+        .zep-item.new-contact { animation: flash-green 2s infinite; background: rgba(0, 255, 65, 0.1); }
+        .avatar { width: 45px; height: 45px; border-radius: 50%; background: #333; margin-right: 15px; border: 2px solid #444; object-fit: cover; }
+        .zep-info { flex: 1; }
+        .zep-name { font-weight: bold; font-size: 15px; margin-bottom: 3px; display: block; }
+        .zep-sub { font-size: 13px; color: #888; }
+        
+        .chat-view { display: flex; flex-direction: column; height: 100%; background: #0b141a; }
+        .chat-header { padding: 10px 15px; background: #202c33; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #333;}
+        .chat-msgs { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .bubble { background: #202c33; padding: 10px 14px; border-radius: 10px; color: #e9edef; max-width: 80%; font-size: 14px; line-height: 1.4; }
+        .bubble.me { background: #005c4b; align-self: flex-end; }
+        .chat-actions { padding: 15px; background: #202c33; display: flex; flex-direction: column; gap: 8px; }
+        
+        .preset-btn { width:100%; padding:15px; margin-bottom:10px; background:#1f2c34; color:var(--green-bright); border:1px solid #333; border-radius:8px; text-align:left; font-weight:600; cursor:pointer; }
+        .preset-btn:disabled { opacity:0.5; filter:grayscale(1); }
+
+        /* --- MODALS --- */
+        .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; display: none; justify-content: center; align-items: flex-end; }
+        .modal-card { background: #1a1a1a; width: 100%; border-top: 1px solid #444; border-radius: 20px 20px 0 0; padding: 25px; animation: slideUp 0.3s; text-align: center; }
+        .preset-row { display: flex; gap: 10px; margin: 20px 0; }
+        .sel-btn { flex: 1; padding: 15px 0; background: #333; border: 1px solid #444; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+        .sel-btn.locked { opacity: 0.3; cursor: not-allowed; }
+        .sel-btn.selected { border-color: var(--gold); background: #222; }
+        .confirm-btn { width: 100%; padding: 15px; background: var(--gold); border: none; border-radius: 8px; color: black; font-weight: bold; font-size: 15px; cursor: pointer; text-transform: uppercase; }
+        .cancel-lnk { margin-top: 15px; color: #666; font-size: 12px; cursor: pointer; display: block; }
+
+        /* --- CALL SCREEN --- */
+        #screen-call { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); z-index: 200; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; animation: fadeIn 0.5s; }
+        .call-avatar { width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--green-bright); margin-bottom: 20px; animation: pulse-ring 1.5s infinite; object-fit: cover;}
+        .call-name { font-size: 24px; font-weight: bold; margin-bottom: 10px; color: white; }
+        .call-btn { background: var(--green-bright); color: black; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; animation: bounce 1s infinite; border: none;}
+
+        /* --- NAV --- */
+        .nav-bar { flex: 0 0 65px; background: #000; border-top: 1px solid #333; display: flex; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #555; cursor: pointer; font-size: 10px; }
+        .nav-item.active { color: var(--gold); }
+        .nav-icon { font-size: 22px; margin-bottom: 4px; }
+
+        /* FX */
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(0, 255, 65, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(0, 255, 65, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 255, 65, 0); } }
+        @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        @keyframes flash-green { 0% { background: #111; } 50% { background: rgba(0, 255, 65, 0.2); } 100% { background: #111; } }
+        .blink { animation: glow 1s infinite; border: 1px solid var(--green-bright) !important; }
+        @keyframes glow { 50% { box-shadow: 0 0 15px var(--green-bright); } }
+        .float-txt { position: absolute; font-weight: bold; pointer-events: none; animation: float 1.5s forwards; z-index: 999; text-shadow: 0 2px 2px black;}
+        @keyframes float { 0% { opacity:1; transform:translateY(0); } 100% { opacity:0; transform:translateY(-50px); } }
+
+    </style>
+</head>
+<body>
+
+<div id="phone">
+    
+    <div id="screen-bank" class="screen active">
+        <div class="status-bar">
+            <span class="app-name">BANCO MASTER OS</span>
+            <span class="day-badge" id="day-badge">DIA 1</span>
+        </div>
+
+        <div class="dash-panel">
+            <div style="display:flex; justify-content:space-between; font-size:11px; color:#aaa; margin-bottom:5px;">
+                <span id="lbl-level">NÍVEL 1: LARANJA</span>
+                <span id="lbl-goal">META: 0 / 500k</span>
+            </div>
+            <div class="gauge-wrap">
+                <div class="gauge-info"><span>SUSPEITA (PF)</span><span id="val-suspicion">0%</span></div>
+                <div class="gauge-bar"><div class="gauge-fill bg-green" id="bar-suspicion"></div></div>
+            </div>
+            <div class="gauge-wrap">
+                <div class="gauge-info"><span>COBRANÇA (CARTEL)</span><span id="val-pressure">0%</span></div>
+                <div class="gauge-bar"><div class="gauge-fill bg-blue" id="bar-pressure"></div></div>
+            </div>
+        </div>
+
+        <div class="queue-container">
+            <div class="queue-header">Contratos Pendentes (Devolver 70%)</div>
+            <div class="queue-list" id="debt-list"></div>
+        </div>
+
+        <div class="money-display">
+            <div class="money-col">
+                <span class="m-label">Sujo</span>
+                <span class="m-val val-gold" id="disp-dirty">0</span>
+            </div>
+            <div class="money-col">
+                <span class="m-label">Identidades</span>
+                <span class="m-val" style="font-size:16px;" id="disp-cpfs">0</span>
+            </div>
+            <div class="money-col">
+                <span class="m-label">Limpo</span>
+                <span class="m-val val-green" id="disp-clean">0</span>
+            </div>
+        </div>
+
+        <div class="action-row">
+            <button class="big-btn" id="btn-create-loan" onclick="game.openLoanUI()">
+                <span>📄</span>CRIAR EMPRÉSTIMO
+            </button>
+            <button class="big-btn btn-pay" onclick="game.openPayUI()">
+                <span>💸</span>PAGAR DÍVIDA
+            </button>
+        </div>
+    </div>
+
+    <div id="screen-zep" class="screen">
+        <div class="status-bar" style="background:#202c33; border:none;">
+            <span class="app-name" style="color:white; font-size:18px;">Zep</span>
+        </div>
+        <div style="flex:1; background:#111b21;">
+            <ul class="zep-list" id="contact-list"></ul>
+        </div>
+    </div>
+
+    <div id="screen-chat" class="screen" style="z-index:20;">
+        <div class="chat-header">
+            <span style="font-size:24px; cursor:pointer; color:white;" onclick="game.nav('zep')">←</span>
+            <img id="chat-avatar" class="avatar" src="">
+            <span id="chat-name" style="font-weight:bold;">Nome</span>
+        </div>
+        <div class="chat-msgs" id="chat-msgs"></div>
+        <div class="chat-actions" id="chat-actions"></div>
+    </div>
+
+    <div id="screen-call">
+        <img id="call-img" class="call-avatar" src="">
+        <div class="call-name" id="call-name">Desconhecido</div>
+        <div class="call-label">CHAMADA DE VÍDEO...</div>
+        <button class="call-btn" onclick="game.answerCall()">📞</button>
+    </div>
+
+    <div class="modal-overlay" id="modal-loan">
+        <div class="modal-card">
+            <div style="font-size:14px; color:#aaa; margin-bottom:10px;">SELECIONE O LOTE</div>
+            <div class="preset-row">
+                <div class="sel-btn" id="btn-l-10" onclick="game.selectBatch(10)">10<span>IDs</span><small>50k Sujo</small></div>
+                <div class="sel-btn locked" id="btn-l-50" onclick="game.selectBatch(50)">50<span>IDs</span><small>250k Sujo</small></div>
+                <div class="sel-btn locked" id="btn-l-100" onclick="game.selectBatch(100)">100<span>IDs</span><small>500k Sujo</small></div>
+            </div>
+            <button class="confirm-btn" onclick="game.confirmLoan()">LAVAR DINHEIRO</button>
+            <span class="cancel-lnk" onclick="game.closeModals()">Cancelar</span>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-pay">
+        <div class="modal-card">
+            <div style="font-size:14px; color:#aaa; margin-bottom:10px;">PAGAR MALOTE ANTIGO</div>
+            <div style="font-size:24px; font-weight:bold; color:var(--green-bright); margin-bottom:5px;" id="pay-amount">€ 0</div>
+            <div style="font-size:12px; color:#666; margin-bottom:20px;">Saldo Limpo: <span id="pay-balance">€ 0</span></div>
+            <button class="confirm-btn" onclick="game.confirmPay()">CONFIRMAR PAGAMENTO</button>
+            <span class="cancel-lnk" onclick="game.closeModals()">Cancelar</span>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-msg" style="align-items:center;">
+        <div class="modal-card" style="border-radius:20px;">
+            <div style="color:var(--gold); font-weight:bold; margin-bottom:10px; font-size:16px;" id="msg-title">TITULO</div>
+            <div style="color:#ddd; margin-bottom:20px; line-height:1.4;" id="msg-txt">Texto...</div>
+            <button class="confirm-btn" id="msg-btn">OK</button>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-item active" id="nav-bank" onclick="game.nav('bank')">
+            <span class="nav-icon">🏛️</span>BANCO
+        </div>
+        <div class="nav-item" id="nav-zep" onclick="game.nav('zep')">
+            <span class="nav-icon">💬</span>ZEP
+        </div>
+    </div>
+
+</div>
+
+<script>
+    /* --- DATA & CONFIG --- */
+    const LEVELS = [
+        { id: 1, name: "Laranja", goal: 500000, bagSize: 500000, bagInterval: 45, maxBatch: 10, suspRate: 0.2 },
+        { id: 2, name: "Gerente", goal: 5000000, bagSize: 1500000, bagInterval: 40, maxBatch: 50, suspRate: 0.3 },
+        { id: 3, name: "Doleiro", goal: 20000000, bagSize: 5000000, bagInterval: 30, maxBatch: 100, suspRate: 0.4 },
+        { id: 4, name: "O Mestre", goal: 999999999, bagSize: 10000000, bagInterval: 20, maxBatch: 100, suspRate: 0.5 }
+    ];
+
+    const STORY = [
+        { 
+            id: "meet_judge", 
+            trigger: (g) => g.suspicion > 20, 
+            contact: "judge", name: "Dr. Gilmar", avatar: "judge.png",
+            intro: "Doutor, percebi uma movimentação atípica. Vamos conversar antes que o MP perceba?",
+            unlock: true
+        },
+        { 
+            id: "meet_deputy", 
+            trigger: (g) => g.totalWashed > 5000000, 
+            contact: "deputy", name: "Dep. Motta", avatar: "https://placehold.co/100/444/FFF?text=DM",
+            intro: "Opa, companheiro. Eleição chegando. Preciso de 'apoio logístico'.",
+            unlock: true
+        }
+    ];
+
+    const game = {
+        day: 1, dirty: 0, clean: 0, cpfs: 0, suspicion: 0, pressure: 0, batches: [],
+        levelIdx: 0, totalWashed: 0,
+        contacts: { hacker: true, judge: false, deputy: false },
+        eventsTriggered: [],
+        timer: null, nextBagDay: 2, isPaused: true, tutStep: 0, selectedLoanSize: 10, incomingEvent: null,
+
+        init: function() {
+            this.renderUI();
+            this.renderContacts();
+            this.popup("CONTRATO INICIAL", 
+                "Você é o novo lavador do Cartel.<br><br>1. Receba <strong>MALOTES</strong> de dinheiro sujo.<br>2. Devolva <strong>70% LIMPO</strong> em 90 dias.<br>3. Se falhar, você morre.",
+                () => {
+                    this.isPaused = false; this.tutStep = 1;
+                    document.getElementById('nav-zep').classList.add('blink');
+                    this.startLoop();
+                });
+        },
+
+        startLoop: function() {
+            this.timer = setInterval(() => { if(!this.isPaused) this.tick(); }, 1000);
+        },
+
+        tick: function() {
+            this.day++;
+            let lvl = LEVELS[this.levelIdx];
+            
+            // New Bag
+            if(this.day >= this.nextBagDay) {
+                this.receiveBag(lvl.bagSize);
+                this.nextBagDay = this.day + lvl.bagInterval + Math.floor(Math.random()*5);
+            }
+
+            // Batches
+            let critical = false;
+            this.batches.forEach(b => {
+                b.days--;
+                if(b.days <= 0) this.gameOver("PRAZO ESTOURADO", "O Cartel não perdoa calotes.");
+                if(b.days < 30) critical = true;
+            });
+
+            // Pressure
+            if(critical) this.pressure += 0.5;
+            else if(this.batches.length > 2) this.pressure += 0.1;
+            else if(this.pressure > 0) this.pressure -= 0.1;
+            if(this.pressure >= 100) this.gameOver("COBRANÇA MÁXIMA", "Fim da linha.");
+
+            // Story & Level
+            this.checkStory();
+            if(this.levelIdx < LEVELS.length-1 && this.totalWashed >= lvl.goal) {
+                this.levelIdx++;
+                this.popup("PROMOVIDO", `Nível ${LEVELS[this.levelIdx].name} alcançado!`);
+                this.selectBatch(10); 
+            }
+            this.renderUI();
+        },
+
+        checkStory: function() {
+            STORY.forEach(evt => {
+                if(!this.eventsTriggered.includes(evt.id) && evt.trigger(this)) {
+                    this.triggerEvent(evt);
+                }
+            });
+        },
+
+        triggerEvent: function(evt) {
+            this.isPaused = true;
+            this.eventsTriggered.push(evt.id);
+            this.incomingEvent = evt;
+            document.getElementById('call-img').src = evt.avatar;
+            document.getElementById('call-name').innerText = evt.name;
+            document.getElementById('screen-call').style.display = 'flex';
+        },
+
+        answerCall: function() {
+            document.getElementById('screen-call').style.display = 'none';
+            let evt = this.incomingEvent;
+            if(evt.unlock) this.contacts[evt.contact] = true;
+            this.renderContacts();
+            this.nav('zep');
+            setTimeout(() => {
+                this.chat(evt.contact);
+                this.msg(evt.intro, false);
+                this.isPaused = false;
+            }, 500);
+        },
+
+        receiveBag: function(amt) {
+            this.dirty += amt;
+            let due = amt * 0.7;
+            this.batches.push({ id: Date.now(), due: due, days: 90 });
+            this.floatText(`+ MALOTE ${this.fmt(amt)}`, "gold", 200, 200);
+            this.popup("NOVO MALOTE", `Recebido: ${this.fmt(amt)}<br>Devolver: <strong>${this.fmt(due)}</strong><br>Prazo: 90 Dias`);
+        },
+
+        nav: function(screen) {
+            if(this.tutStep === 1 && screen === 'zep') {
+                this.tutStep = 2; 
+                document.getElementById('nav-zep').classList.remove('blink');
+                setTimeout(() => this.popup("HACKER", "Fale com o H4CK3R para comprar dados (CPFs).", () => this.isPaused = false), 500);
+            }
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('screen-'+screen).classList.add('active');
+            document.getElementById('nav-'+screen).classList.add('active');
+        },
+
+        openLoanUI: function() {
+            this.isPaused = true;
+            document.getElementById('modal-loan').style.display = 'flex';
+            let max = LEVELS[this.levelIdx].maxBatch;
+            [10, 50, 100].forEach(n => {
+                let el = document.getElementById('btn-l-'+n);
+                el.classList.remove('selected', 'locked');
+                if(n > max) el.classList.add('locked');
+                else if(n === this.selectedLoanSize) el.classList.add('selected');
+            });
+        },
+
+        selectBatch: function(n) {
+            if(n > LEVELS[this.levelIdx].maxBatch) return;
+            this.selectedLoanSize = n;
+            this.openLoanUI();
+        },
+
+        confirmLoan: function() {
+            let cost = this.selectedLoanSize * 5000;
+            if(this.tutStep === 4) {
+                if(this.cpfs < 10) { alert("Compre CPFs primeiro"); return; }
+                this.dirty -= cost; this.clean += cost; this.cpfs -= 10; this.totalWashed += cost;
+                this.closeModals();
+                this.isPaused = true;
+                this.popup("SUCESSO", "Dinheiro lavado! Agora pague a dívida.", () => {
+                    this.tutStep = 0; document.getElementById('btn-create-loan').classList.remove('blink'); this.isPaused = false;
+                });
+                return;
+            }
+            if(this.dirty < cost) { alert("Dinheiro sujo insuficiente"); return; }
+            if(this.cpfs < this.selectedLoanSize) { alert("CPFs insuficientes"); return; }
+
+            this.dirty -= cost; this.clean += cost; this.cpfs -= this.selectedLoanSize;
+            this.totalWashed += cost;
+            this.suspicion += (this.selectedLoanSize * LEVELS[this.levelIdx].suspRate);
+            if(this.suspicion >= 100) this.gameOver("PRESO", "A Polícia Federal te pegou.");
+            this.floatText(`+${this.fmt(cost)} LIMPO`, "lime", 200, 300);
+            this.closeModals();
+        },
+
+        openPayUI: function() {
+            if(this.batches.length === 0) { alert("Sem dívidas!"); return; }
+            this.isPaused = true;
+            let debt = this.batches[0];
+            let canPay = Math.min(this.clean, debt.due);
+            document.getElementById('pay-amount').innerText = this.fmt(canPay);
+            document.getElementById('pay-balance').innerText = this.fmt(this.clean);
+            document.getElementById('modal-pay').style.display = 'flex';
+        },
+
+        confirmPay: function() {
+            let debt = this.batches[0];
+            let amount = Math.min(this.clean, debt.due);
+            if(amount <= 0) { alert("Solde propre insuffisant."); return; }
+            this.clean -= amount;
+            debt.due -= amount;
+            this.pressure = Math.max(0, this.pressure - 10);
+            if(debt.due <= 0) { this.batches.shift(); this.floatText("PAGO!", "cyan", 200, 300); } 
+            else { this.floatText("PARCIAL", "cyan", 200, 300); }
+            this.closeModals();
+        },
+
+        renderContacts: function() {
+            let list = document.getElementById('contact-list');
+            list.innerHTML = "";
+            if(this.contacts.hacker) list.innerHTML += this.contactHTML('hacker', 'H4CK3R', 'Venda de Dados', 'hacker.png', '#0f0');
+            if(this.contacts.judge) list.innerHTML += this.contactHTML('judge', 'Dr. Gilmar', 'Jurídico', 'judge.png', 'gold');
+            if(this.contacts.deputy) list.innerHTML += this.contactHTML('deputy', 'Dep. Motta', 'Campanha', 'https://placehold.co/50/444/FFF?text=DM', 'cyan');
+        },
+
+        contactHTML: function(id, name, sub, img, border) {
+            return `<li class="zep-item" onclick="game.chat('${id}')">
+                <img class="avatar" src="${img}" style="border-color:${border}" onerror="this.src='https://placehold.co/50'">
+                <div class="zep-info"><span class="zep-name">${name}</span><span class="zep-sub">${sub}</span></div>
+            </li>`;
+        },
+
+        chat: function(who) {
+            if(this.tutStep === 2 && who === 'hacker') this.tutStep = 3;
+            document.getElementById('screen-zep').classList.remove('active');
+            document.getElementById('screen-chat').classList.add('active');
+            document.getElementById('chat-msgs').innerHTML = '';
+            document.getElementById('chat-actions').innerHTML = '';
+
+            let data = {
+                hacker: { name: "H4CK3R", img: "hacker.png" },
+                judge: { name: "Dr. Gilmar", img: "judge.png" },
+                deputy: { name: "Dep. Motta", img: "https://placehold.co/50/444/FFF?text=DM" }
+            }[who];
+
+            document.getElementById('chat-name').innerText = data.name;
+            document.getElementById('chat-avatar').src = data.img;
+
+            if(who === 'hacker') {
+                this.msg("Tenho pacotes novos.", false);
+                if(this.tutStep === 3) {
+                     this.btn("COMPRAR PACOTE INICIAL (-100k)", () => game.buyCpf(true, 50));
+                } else {
+                    this.btn("10 CPFs (-50k)", () => game.buyCpf(false, 10));
+                    if(this.levelIdx >= 1) this.btn("50 CPFs (-250k)", () => game.buyCpf(false, 50));
+                    if(this.levelIdx >= 2) this.btn("100 CPFs (-500k)", () => game.buyCpf(false, 100));
+                }
+            } 
+            else if(who === 'judge') {
+                this.msg("Como posso ajudar?", false);
+                this.btn("Petit Café (-10k) -10% Susp.", () => game.bribe(10000, 10));
+                if(this.levelIdx >= 1) this.btn("Valise (-100k) -30% Susp.", () => game.bribe(100000, 30));
+            }
+            else if(who === 'deputy') {
+                this.msg("Preciso de doações para a campanha.", false);
+                this.btn("Doar para Campanha (-500k Limpo)", () => game.donate(500000));
+            }
+        },
+
+        buyCpf: function(isTut, qtd) {
+            let cost = isTut ? 100000 : (qtd * 5000);
+            let amount = isTut ? 50 : qtd;
+            if(this.dirty >= cost) {
+                this.dirty -= cost; this.cpfs += amount;
+                this.msg("Transferindo...", true);
+                setTimeout(() => {
+                    this.msg("Feito.", false);
+                    if(isTut) {
+                        setTimeout(() => {
+                            this.popup("DADOS RECEBIDOS", "Vá ao Banco lavar o dinheiro.", () => {
+                                this.tutStep = 4; this.nav('bank'); document.getElementById('btn-create-loan').classList.add('blink');
+                            });
+                        }, 1000);
+                    }
+                }, 500);
+                this.floatText(`+${amount} IDs`, "cyan", 200, 200);
+            } else { this.msg("Saldo insuficiente.", true); }
+            this.renderUI();
+        },
+
+        bribe: function(cost, eff) {
+            if(this.clean >= cost) {
+                this.clean -= cost; this.suspicion = Math.max(0, this.suspicion - eff);
+                this.msg("Feito.", false);
+                this.floatText(`SUSPEITA -${eff}%`, "lime", 200, 400);
+                this.renderUI();
+            } else { this.msg("Precisa ser dinheiro limpo.", true); }
+        },
+
+        donate: function(cost) {
+            if(this.clean >= cost) {
+                this.clean -= cost; this.pressure = Math.max(0, this.pressure - 20);
+                this.msg("O partido agradece.", false);
+                this.renderUI();
+            } else { this.msg("Sem fundos limpos.", true); }
+        },
+
+        msg: function(t, me) {
+            let d = document.createElement('div');
+            d.className = "bubble" + (me ? " me" : "");
+            d.innerHTML = t;
+            document.getElementById('chat-msgs').appendChild(d);
+        },
+
+        btn: function(txt, cb) {
+            let b = document.createElement('button');
+            b.className = 'preset-btn'; b.innerText = txt;
+            b.onclick = cb;
+            document.getElementById('chat-actions').appendChild(b);
+        },
+
+        closeModals: function() {
+            document.querySelectorAll('.modal-overlay').forEach(e => e.style.display = 'none');
+            this.isPaused = false;
+            this.renderUI();
+        },
+
+        popup: function(t, m, cb) {
+            this.isPaused = true;
+            document.getElementById('msg-title').innerText = t;
+            document.getElementById('msg-txt').innerHTML = m;
+            document.getElementById('modal-msg').style.display = 'flex';
+            document.getElementById('msg-btn').onclick = () => {
+                document.getElementById('modal-msg').style.display = 'none';
+                if(cb) cb(); else this.isPaused = false;
+            }
+        },
+
+        floatText: function(txt, col, x, y) {
+            let el = document.createElement('div');
+            el.className = 'float-txt'; el.innerText = txt; el.style.color = col;
+            el.style.left = x+'px'; el.style.top = y+'px';
+            document.getElementById('phone').appendChild(el);
+            setTimeout(() => el.remove(), 1500);
+        },
+
+        gameOver: function(t, m) { this.isPaused = true; alert(t + "\n" + m); location.reload(); },
+
+        renderUI: function() {
+            document.getElementById('day-badge').innerText = "DIA " + this.day;
+            document.getElementById('lbl-level').innerText = "NÍVEL: " + LEVELS[this.levelIdx].name.toUpperCase();
+            document.getElementById('lbl-goal').innerText = `META: ${this.fmt(this.totalWashed)} / ${this.fmt(LEVELS[this.levelIdx].goal)}`;
+            
+            document.getElementById('val-suspicion').innerText = Math.floor(this.suspicion) + "%";
+            document.getElementById('bar-suspicion').style.width = this.suspicion + "%";
+            document.getElementById('val-pressure').innerText = Math.floor(this.pressure) + "%";
+            document.getElementById('bar-pressure').style.width = this.pressure + "%";
+
+            document.getElementById('disp-dirty').innerText = this.fmt(this.dirty);
+            document.getElementById('disp-clean').innerText = this.fmt(this.clean);
+            document.getElementById('disp-cpfs').innerText = this.cpfs;
+
+            let list = document.getElementById('debt-list');
+            list.innerHTML = "";
+            if(this.batches.length === 0) list.innerHTML = "<div style='text-align:center; color:#444; padding:10px;'>Aucune Dette</div>";
+            this.batches.forEach(b => {
+                let div = document.createElement('div');
+                div.className = "queue-item" + (b.days < 30 ? " critical" : "");
+                div.innerHTML = `<div><div style="color:#aaa">À Rendre</div><div style="font-weight:bold; color:var(--blue-highlight)">${this.fmt(b.due)}</div></div><div class="q-timer">${b.days} dias</div>`;
+                list.appendChild(div);
+            });
+        },
+
+        fmt: function(n) {
+            if(n >= 1000000) return (n/1000000).toFixed(1) + "M";
+            if(n >= 1000) return (n/1000).toFixed(0) + "k";
+            return Math.floor(n);
+        }
+    };
+
+    game.init();
+</script>
+</body>
+</html>

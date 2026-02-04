@@ -1,0 +1,136 @@
+// components/LoanModal.tsx
+import React from 'react';
+import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
+import { useGameStore } from '../hooks/use-game-store';
+import { LEVELS } from '../constants/game-data';
+
+export function LoanModal() {
+    const { levelIdx, selectedLoanSize, actions, modal } = useGameStore(state => state);
+
+    const closeModal = () => {
+        actions.setModal('none');
+    }
+
+    const selectBatch = (size: number) => {
+        actions.setSelectedLoanSize(size);
+    }
+    
+    const confirmLoan = () => {
+        actions.confirmLoan();
+    }
+
+    const lvl = LEVELS[levelIdx];
+    const max = lvl.maxBatch;
+
+    return (
+        <Modal
+            transparent={true}
+            visible={modal === 'loan'}
+            animationType="slide"
+            onRequestClose={closeModal}
+        >
+            <View style={styles.modalOverlay}>
+                <View style={styles.modalCard}>
+                    <Text style={styles.title}>SELECIONE O LOTE</Text>
+                    <View style={styles.presetRow}>
+                        {[10, 50, 100].map(size => (
+                            <TouchableOpacity 
+                                key={size}
+                                style={[
+                                    styles.selBtn, 
+                                    size > max && styles.locked, 
+                                    size === selectedLoanSize && styles.selected
+                                ]}
+                                onPress={() => selectBatch(size)}
+                                disabled={size > max}
+                            >
+                                <Text style={styles.btnText}>{size}</Text>
+                                <Text style={styles.subText}>IDs</Text>
+                                <Text style={styles.smallText}>{size * 5}k Sujo</Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                    <TouchableOpacity style={styles.confirmBtn} onPress={confirmLoan}>
+                        <Text style={styles.confirmBtnText}>LAVAR DINHEIRO</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={closeModal}>
+                        <Text style={styles.cancelLnk}>Cancelar</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </Modal>
+    );
+}
+
+const styles = StyleSheet.create({
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.9)',
+        justifyContent: 'flex-end',
+    },
+    modalCard: {
+        backgroundColor: '#1a1a1a',
+        borderTopWidth: 1,
+        borderColor: '#444',
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        padding: 25,
+        alignItems: 'center',
+    },
+    title: {
+        fontSize: 14,
+        color: '#aaa',
+        marginBottom: 10,
+    },
+    presetRow: {
+        display: 'flex',
+        flexDirection: 'row',
+        gap: 10,
+        marginVertical: 20,
+    },
+    selBtn: {
+        flex: 1,
+        paddingVertical: 15,
+        backgroundColor: '#333',
+        borderWidth: 1,
+        borderColor: '#444',
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    locked: {
+        opacity: 0.3,
+    },
+    selected: {
+        borderColor: '#D4AF37',
+        backgroundColor: '#222',
+    },
+    btnText: {
+        color: 'white',
+        fontWeight: 'bold',
+    },
+    subText: {
+        color: 'white',
+    },
+    smallText: {
+        fontSize: 10,
+        color: '#aaa'
+    },
+    confirmBtn: {
+        width: '100%',
+        padding: 15,
+        backgroundColor: '#D4AF37',
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    confirmBtnText: {
+        color: 'black',
+        fontWeight: 'bold',
+        fontSize: 15,
+        textTransform: 'uppercase',
+    },
+    cancelLnk: {
+        marginTop: 15,
+        color: '#666',
+        fontSize: 12,
+    },
+});
