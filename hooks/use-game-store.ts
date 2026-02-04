@@ -15,13 +15,13 @@ type GameStore = GameState & {
     chat: (contactId: string) => void;
     buyCpf: (isTut: boolean, qtd: number) => void;
     addMessage: (text: string, me: boolean) => void;
-    // Add other actions here
+    advanceTutorial: () => void;
   };
 };
 
 const initialState: GameState = {
   day: 1,
-  dirty: 0,
+  dirty: 500000, // Start with some dirty money for tutorial
   clean: 0,
   cpfs: 0,
   suspicion: 0,
@@ -29,7 +29,7 @@ const initialState: GameState = {
   batches: [],
   levelIdx: 0,
   totalWashed: 0,
-  contacts: { hacker: true, judge: false, deputy: false },
+  contacts: { hacker: true, judge: false, deputy: false, lawyer: false },
   eventsTriggered: [],
   nextBagDay: 2,
   isPaused: true,
@@ -45,6 +45,9 @@ const initialState: GameState = {
 export const useGameStore = create<GameStore>((set, get) => ({
   ...initialState,
   actions: {
+    advanceTutorial: () => {
+        set(state => ({ tutStep: state.tutStep + 1 }));
+    },
     tick: () => {
       if (get().isPaused) return;
 
@@ -93,9 +96,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
         // Missing: popup and floatText functionality
     },
     setActiveScreen: (screen) => {
+        const { tutStep, actions } = get();
+        if (tutStep === 2 && screen === 'zep') actions.advanceTutorial();
+        if (tutStep === 5 && screen === 'bank') actions.advanceTutorial();
+        
         set({ activeScreen: screen });
     },
     setModal: (modal) => {
+        const { tutStep, actions } = get();
+        if (tutStep === 6 && modal === 'loan') actions.advanceTutorial();
+        
         set({ modal, isPaused: modal !== 'none' });
     },
     setSelectedLoanSize: (size) => {
@@ -156,6 +166,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
         get().actions.setModal('none');
     },
     chat: (contactId) => {
+        const { tutStep, actions } = get();
+        if (tutStep === 3 && contactId === 'hacker') actions.advanceTutorial();
+
         set({ activeScreen: 'chat', currentChat: contactId, messages: [] });
         const { addMessage } = get().actions;
 
@@ -168,6 +181,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
         }
     },
     buyCpf: (isTut, qtd) => {
+        const { tutStep, actions } = get();
+        if (tutStep === 4) actions.advanceTutorial();
+
         const cost = isTut ? 100000 : (qtd * 5000);
         const amount = isTut ? 50 : qtd;
         const { addMessage } = get().actions;

@@ -14,6 +14,7 @@ export interface GameState {
         hacker: boolean;
         judge: boolean;
         deputy: boolean;
+        lawyer: boolean;
     };
     eventsTriggered: string[];
     nextBagDay: number;

@@ -20,10 +20,6 @@ export function BankScreen() {
         actions.setModal('pay');
     }
 
-    const openPayModal = () => {
-        actions.setModal('pay');
-    }
-
     return (
         <>
             <StatusBar />

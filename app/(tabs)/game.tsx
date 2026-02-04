@@ -8,6 +8,7 @@ import { ChatScreen } from '../../components/ChatScreen';
 import { NavBar } from '../../components/NavBar';
 import { LoanModal } from '../../components/LoanModal';
 import { PayModal } from '../../components/PayModal';
+import { TutorialOverlay } from '../../components/TutorialOverlay';
 
 export default function GameScreen() {
     const { actions, activeScreen } = useGameStore(state => ({
@@ -39,6 +40,7 @@ export default function GameScreen() {
             {activeScreen !== 'chat' && <NavBar />}
             <LoanModal />
             <PayModal />
+            <TutorialOverlay />
         </View>
     );
 }

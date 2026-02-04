@@ -1,13 +1,8 @@
 // components/ChatScreen.tsx
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from 'react-native';
 import { useGameStore } from '../hooks/use-game-store';
-
-const CONTACT_DATA: any = {
-    hacker: { name: "H4CK3R", img: "hacker.png" },
-    judge: { name: "Dr. Gilmar", img: "judge.png" },
-    deputy: { name: "Dep. Motta", img: "https://placehold.co/50/444/FFF?text=DM" }
-};
+import { STORY } from '../constants/game-data';
 
 export function ChatScreen() {
     const { actions, messages, currentChat, levelIdx } = useGameStore(state => state);
@@ -16,7 +11,7 @@ export function ChatScreen() {
         actions.setActiveScreen('zep');
     }
 
-    const contact = CONTACT_DATA[currentChat || ''];
+    const contact = STORY.find(c => c.contact === currentChat);
     
     const renderActions = () => {
         if (currentChat === 'hacker') {
@@ -48,7 +43,7 @@ export function ChatScreen() {
                 <TouchableOpacity onPress={goBack}>
                     <Text style={{fontSize:24, color:'white'}}>←</Text>
                 </TouchableOpacity>
-                <View style={styles.avatar} />
+                <Image source={{ uri: contact?.avatar }} style={styles.avatar} />
                 <Text style={{fontWeight:'bold', color: 'white'}}>{contact?.name}</Text>
             </View>
             <FlatList
