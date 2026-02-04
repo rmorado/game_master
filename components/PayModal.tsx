@@ -2,6 +2,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { useGameStore } from '../hooks/use-game-store';
+import { UI_PAY_MODAL } from '../constants/dialogues';
 
 const formatMoney = (n: number) => {
     if(n >= 1000000) return (n/1000000).toFixed(1) + "M";
@@ -32,14 +33,14 @@ export function PayModal() {
         >
             <View style={styles.modalOverlay}>
                 <View style={styles.modalCard}>
-                    <Text style={styles.title}>PAGAR MALOTE ANTIGO</Text>
+                    <Text style={styles.title}>{UI_PAY_MODAL.title}</Text>
                     <Text style={styles.payAmount}>{formatMoney(canPay)}</Text>
-                    <Text style={styles.payBalance}>Saldo Limpo: {formatMoney(clean)}</Text>
+                    <Text style={styles.payBalance}>{UI_PAY_MODAL.labelBalance(formatMoney(clean))}</Text>
                     <TouchableOpacity style={styles.confirmBtn} onPress={confirmPay}>
-                        <Text style={styles.confirmBtnText}>CONFIRMAR PAGAMENTO</Text>
+                        <Text style={styles.confirmBtnText}>{UI_PAY_MODAL.btnConfirm}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={closeModal}>
-                        <Text style={styles.cancelLnk}>Cancelar</Text>
+                        <Text style={styles.cancelLnk}>{UI_PAY_MODAL.btnCancel}</Text>
                     </TouchableOpacity>
                 </View>
             </View>

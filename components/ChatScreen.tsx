@@ -2,34 +2,46 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from 'react-native';
 import { useGameStore } from '../hooks/use-game-store';
-import { STORY } from '../constants/game-data';
+import { getCharacter } from '../constants/dialogues';
 
 export function ChatScreen() {
-    const { actions, messages, currentChat, levelIdx } = useGameStore(state => state);
+    const { actions, messages, currentChat, levelIdx, tutStep } = useGameStore(state => state);
 
     const goBack = () => {
         actions.setActiveScreen('zep');
     }
 
-    const contact = STORY.find(c => c.contact === currentChat);
-    
+    const character = getCharacter(currentChat);
+
+    // Tutorial logic
+    const isTutorial = tutStep < 8;
+    const shouldHighlightBuy10 = tutStep === 4;
+    const shouldHighlightBack = tutStep === 5;
+
     const renderActions = () => {
-        if (currentChat === 'hacker') {
+        if (currentChat === 'hacker' && character?.offers) {
             return (
                 <>
-                    <TouchableOpacity style={styles.presetBtn} onPress={() => actions.buyCpf(false, 10)}>
-                        <Text style={styles.presetBtnText}>10 CPFs (-50k)</Text>
-                    </TouchableOpacity>
-                    {levelIdx >= 1 && (
-                        <TouchableOpacity style={styles.presetBtn} onPress={() => actions.buyCpf(false, 50)}>
-                            <Text style={styles.presetBtnText}>50 CPFs (-250k)</Text>
-                        </TouchableOpacity>
-                    )}
-                    {levelIdx >= 2 && (
-                        <TouchableOpacity style={styles.presetBtn} onPress={() => actions.buyCpf(false, 100)}>
-                            <Text style={styles.presetBtnText}>100 CPFs (-500k)</Text>
-                        </TouchableOpacity>
-                    )}
+                    {character.offers.map(offer => {
+                        const isHighlighted = shouldHighlightBuy10 && offer.qty === 10;
+                        const isDisabled = isTutorial && !isHighlighted;
+                        return (
+                            levelIdx >= offer.minLevel && (
+                                <TouchableOpacity
+                                    key={offer.qty}
+                                    style={[
+                                        styles.presetBtn,
+                                        isHighlighted && styles.highlighted,
+                                        isDisabled && styles.disabled
+                                    ]}
+                                    onPress={() => actions.buyCpf(false, offer.qty)}
+                                    disabled={isDisabled}
+                                >
+                                    <Text style={styles.presetBtnText}>{offer.label}</Text>
+                                </TouchableOpacity>
+                            )
+                        );
+                    })}
                 </>
             );
         }
@@ -40,11 +52,18 @@ export function ChatScreen() {
     return (
         <View style={styles.chatView}>
             <View style={styles.chatHeader}>
-                <TouchableOpacity onPress={goBack}>
+                <TouchableOpacity
+                    onPress={goBack}
+                    style={[
+                        styles.backButton,
+                        shouldHighlightBack && styles.highlightedBack
+                    ]}
+                    disabled={isTutorial && !shouldHighlightBack}
+                >
                     <Text style={{fontSize:24, color:'white'}}>←</Text>
                 </TouchableOpacity>
-                <Image source={{ uri: contact?.avatar }} style={styles.avatar} />
-                <Text style={{fontWeight:'bold', color: 'white'}}>{contact?.name}</Text>
+                <Image source={{ uri: character?.avatar }} style={styles.avatar} />
+                <Text style={{fontWeight:'bold', color: 'white'}}>{character?.name}</Text>
             </View>
             <FlatList
                 style={styles.chatMsgs}
@@ -122,5 +141,22 @@ const styles = StyleSheet.create({
         color: '#00ff41',
         fontWeight: '600',
         textAlign: 'left',
-    }
+    },
+    backButton: {
+        padding: 5,
+    },
+    highlightedBack: {
+        backgroundColor: 'rgba(0, 255, 65, 0.2)',
+        borderRadius: 8,
+        borderWidth: 2,
+        borderColor: '#00ff41',
+    },
+    highlighted: {
+        backgroundColor: 'rgba(0, 255, 65, 0.1)',
+        borderColor: '#00ff41',
+        borderWidth: 2,
+    },
+    disabled: {
+        opacity: 0.3,
+    },
 });

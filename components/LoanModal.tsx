@@ -3,6 +3,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { useGameStore } from '../hooks/use-game-store';
 import { LEVELS } from '../constants/game-data';
+import { UI_LOAN_MODAL } from '../constants/dialogues';
 
 export function LoanModal() {
     const { levelIdx, selectedLoanSize, actions, modal } = useGameStore(state => state);
@@ -31,30 +32,30 @@ export function LoanModal() {
         >
             <View style={styles.modalOverlay}>
                 <View style={styles.modalCard}>
-                    <Text style={styles.title}>SELECIONE O LOTE</Text>
+                    <Text style={styles.title}>{UI_LOAN_MODAL.title}</Text>
                     <View style={styles.presetRow}>
                         {[10, 50, 100].map(size => (
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 key={size}
                                 style={[
-                                    styles.selBtn, 
-                                    size > max && styles.locked, 
+                                    styles.selBtn,
+                                    size > max && styles.locked,
                                     size === selectedLoanSize && styles.selected
                                 ]}
                                 onPress={() => selectBatch(size)}
                                 disabled={size > max}
                             >
                                 <Text style={styles.btnText}>{size}</Text>
-                                <Text style={styles.subText}>IDs</Text>
-                                <Text style={styles.smallText}>{size * 5}k Sujo</Text>
+                                <Text style={styles.subText}>{UI_LOAN_MODAL.labelIds}</Text>
+                                <Text style={styles.smallText}>{UI_LOAN_MODAL.labelDirtyCost(size * 5)}</Text>
                             </TouchableOpacity>
                         ))}
                     </View>
                     <TouchableOpacity style={styles.confirmBtn} onPress={confirmLoan}>
-                        <Text style={styles.confirmBtnText}>LAVAR DINHEIRO</Text>
+                        <Text style={styles.confirmBtnText}>{UI_LOAN_MODAL.btnConfirm}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={closeModal}>
-                        <Text style={styles.cancelLnk}>Cancelar</Text>
+                        <Text style={styles.cancelLnk}>{UI_LOAN_MODAL.btnCancel}</Text>
                     </TouchableOpacity>
                 </View>
             </View>

@@ -7,10 +7,16 @@ import { Gauge } from './Gauge';
 import { MoneyDisplay } from './MoneyDisplay';
 import { QueueList } from './QueueList';
 import { LEVELS } from '../constants/game-data';
+import { UI_BANK } from '../constants/dialogues';
 
 export function BankScreen() {
-    const { suspicion, pressure, dirty, cpfs, clean, batches, levelIdx, totalWashed, actions } = useGameStore(state => state);
+    const { suspicion, pressure, dirty, cpfs, clean, batches, levelIdx, totalWashed, tutStep, actions } = useGameStore(state => state);
     const lvl = LEVELS[levelIdx];
+
+    // Tutorial logic
+    const isTutorial = tutStep < 8;
+    const shouldHighlightLoan = tutStep === 6;
+    const shouldDisableButtons = isTutorial && tutStep !== 6;
 
     const openLoanModal = () => {
         actions.setModal('loan');
@@ -34,11 +40,23 @@ export function BankScreen() {
             <QueueList batches={batches} />
             <MoneyDisplay dirty={dirty} cpfs={cpfs} clean={clean} />
             <View style={styles.actionRow}>
-                <TouchableOpacity style={styles.bigBtn} onPress={openLoanModal}>
-                    <Text style={styles.btnText}>📄 CRIAR EMPRÉSTIMO</Text>
+                <TouchableOpacity
+                    style={[
+                        styles.bigBtn,
+                        shouldHighlightLoan && styles.highlighted,
+                        shouldDisableButtons && styles.disabled
+                    ]}
+                    onPress={openLoanModal}
+                    disabled={shouldDisableButtons}
+                >
+                    <Text style={styles.btnText}>{UI_BANK.btnCreateLoan}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.bigBtn, styles.btnPay]} onPress={openPayModal}>
-                    <Text style={styles.btnText}>💸 PAGAR DÍVIDA</Text>
+                <TouchableOpacity
+                    style={[styles.bigBtn, styles.btnPay, shouldDisableButtons && styles.disabled]}
+                    onPress={openPayModal}
+                    disabled={shouldDisableButtons}
+                >
+                    <Text style={styles.btnText}>{UI_BANK.btnPayDebt}</Text>
                 </TouchableOpacity>
             </View>
         </>
@@ -88,5 +106,13 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: 'bold',
         fontSize: 12,
+    },
+    highlighted: {
+        borderColor: '#00ff41',
+        borderWidth: 3,
+        backgroundColor: 'rgba(0, 255, 65, 0.1)',
+    },
+    disabled: {
+        opacity: 0.3,
     }
 });

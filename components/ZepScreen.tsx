@@ -4,14 +4,19 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { useGameStore } from '../hooks/use-game-store';
 
 export function ZepScreen() {
-    const { contacts, actions } = useGameStore(state => ({ 
+    const { contacts, tutStep, actions } = useGameStore(state => ({
         contacts: state.contacts,
-        actions: state.actions 
+        tutStep: state.tutStep,
+        actions: state.actions
     }));
 
     const startChat = (contactId: string) => {
         actions.chat(contactId);
     }
+
+    // Tutorial logic
+    const isTutorial = tutStep < 8;
+    const shouldHighlightHacker = tutStep === 3;
 
     const contactList = Object.entries(contacts)
         .filter(([, isActive]) => isActive)
@@ -31,18 +36,29 @@ export function ZepScreen() {
             <FlatList
                 data={contactList}
                 keyExtractor={(item) => item!.id}
-                renderItem={({ item }) => (
-                    <TouchableOpacity onPress={() => startChat(item!.id)}>
-                        <View style={styles.zepItem}>
-                            {/* Image component would go here */}
-                            <View style={[styles.avatar, { borderColor: item!.border }]} />
-                            <View style={styles.zepInfo}>
-                                <Text style={styles.zepName}>{item!.name}</Text>
-                                <Text style={styles.zepSub}>{item!.sub}</Text>
+                renderItem={({ item }) => {
+                    const isHighlighted = shouldHighlightHacker && item!.id === 'hacker';
+                    const isDisabled = isTutorial && !isHighlighted;
+                    return (
+                        <TouchableOpacity
+                            onPress={() => startChat(item!.id)}
+                            disabled={isDisabled}
+                        >
+                            <View style={[
+                                styles.zepItem,
+                                isHighlighted && styles.highlighted,
+                                isDisabled && styles.disabled
+                            ]}>
+                                {/* Image component would go here */}
+                                <View style={[styles.avatar, { borderColor: item!.border }]} />
+                                <View style={styles.zepInfo}>
+                                    <Text style={styles.zepName}>{item!.name}</Text>
+                                    <Text style={styles.zepSub}>{item!.sub}</Text>
+                                </View>
                             </View>
-                        </View>
-                    </TouchableOpacity>
-                )}
+                        </TouchableOpacity>
+                    );
+                }}
             />
         </View>
     );
@@ -95,5 +111,13 @@ const styles = StyleSheet.create({
     zepSub: {
         fontSize: 13,
         color: '#888',
+    },
+    highlighted: {
+        backgroundColor: 'rgba(0, 255, 65, 0.1)',
+        borderLeftWidth: 4,
+        borderLeftColor: '#00ff41',
+    },
+    disabled: {
+        opacity: 0.3,
     },
 });

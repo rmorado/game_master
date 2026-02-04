@@ -172,12 +172,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
         set({ activeScreen: 'chat', currentChat: contactId, messages: [] });
         const { addMessage } = get().actions;
 
-        if (contactId === 'hacker') {
-            addMessage("Tenho pacotes novos.", false);
-        } else if (contactId === 'judge') {
-            addMessage("Como posso ajudar?", false);
-        } else if (contactId === 'deputy') {
-            addMessage("Preciso de doações para a campanha.", false);
+        // Import character greetings from dialogues
+        const { getCharacter } = require('../constants/dialogues');
+        const character = getCharacter(contactId);
+
+        if (character?.greeting) {
+            addMessage(character.greeting, false);
         }
     },
     buyCpf: (isTut, qtd) => {
@@ -193,12 +193,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 dirty: state.dirty - cost,
                 cpfs: state.cpfs + amount,
             }));
-            addMessage("Transferindo...", true);
+            const { SYSTEM_MESSAGES } = require('../constants/dialogues');
+            addMessage(SYSTEM_MESSAGES.transferring, true);
             setTimeout(() => {
-                addMessage("Feito.", false);
+                addMessage(SYSTEM_MESSAGES.done, false);
             }, 500);
         } else {
-            addMessage("Saldo insuficiente.", true);
+            const { SYSTEM_MESSAGES } = require('../constants/dialogues');
+            addMessage(SYSTEM_MESSAGES.insufficientFunds, true);
         }
     },
     addMessage: (text, me) => {
