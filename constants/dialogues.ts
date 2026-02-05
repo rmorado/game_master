@@ -92,11 +92,25 @@ export const SYSTEM_MESSAGES = {
 // ============================================================================
 
 export const CHARACTERS = {
+    // Drug Dealer - Sends dirty money
+    drugdealer: {
+        id: "drugdealer",
+        name: "Patrão",
+        avatar: require('../assets/images/characters/drugdealer.jpg'),
+
+        // Story introduction
+        intro: "Tô mandando o malote. Não me decepcione.",
+        unlockTrigger: (gameState: any) => gameState.day >= 0, // Always available
+
+        // Chat dialogues
+        greeting: "Tem trabalho pra fazer.",
+    },
+
     // Hacker - CPF provider
     hacker: {
         id: "hacker",
         name: "H4CK3R",
-        avatar: "https://placehold.co/100/444/FFF?text=H4",
+        avatar: require('../assets/images/characters/hacker.jpg'),
 
         // Story introduction
         intro: "Pacotes de CPFs disponíveis.",
@@ -113,11 +127,11 @@ export const CHARACTERS = {
         ],
     },
 
-    // Lawyer - Fixes legal problems
+    // Lawyer - Fixes legal problems (not implemented yet)
     lawyer: {
         id: "lawyer",
         name: "Dr. Saul",
-        avatar: "https://placehold.co/100/444/FFF?text=LW",
+        avatar: require('../assets/images/characters/drugdealer.jpg'),
 
         // Story introduction
         intro: "Problemas com a justiça? Eu resolvo. Tenho os contatos certos.",
@@ -131,7 +145,7 @@ export const CHARACTERS = {
     judge: {
         id: "judge",
         name: "Dr. Gilmar",
-        avatar: "https://placehold.co/100/444/FFF?text=JG",
+        avatar: require('../assets/images/characters/juiz.jpg'),
 
         // Story introduction
         intro: "Doutor, percebi uma movimentação atípica. Vamos conversar antes que o MP perceba?",
@@ -145,7 +159,7 @@ export const CHARACTERS = {
     deputy: {
         id: "deputy",
         name: "Dep. Motta",
-        avatar: "https://placehold.co/100/444/FFF?text=DM",
+        avatar: require('../assets/images/characters/deputado.jpg'),
 
         // Story introduction
         intro: "Opa, companheiro. Eleição chegando. Preciso de 'apoio logístico'.",

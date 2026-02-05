@@ -4,9 +4,10 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useGameStore } from '../hooks/use-game-store';
 
 export function NavBar() {
-    const { activeScreen, tutStep, actions } = useGameStore(state => ({
+    const { activeScreen, tutStep, hasUnreadZepMessages, actions } = useGameStore(state => ({
         activeScreen: state.activeScreen,
         tutStep: state.tutStep,
+        hasUnreadZepMessages: state.hasUnreadZepMessages,
         actions: state.actions,
     }));
 
@@ -46,7 +47,12 @@ export function NavBar() {
                 onPress={() => setScreen('zep')}
                 disabled={shouldDisableZep}
             >
-                <Text style={styles.navIcon}>💬</Text>
+                <View>
+                    <Text style={styles.navIcon}>💬</Text>
+                    {hasUnreadZepMessages && (
+                        <View style={styles.badge} />
+                    )}
+                </View>
                 <Text style={[styles.navText, activeScreen === 'zep' && styles.activeText]}>ZEP</Text>
             </TouchableOpacity>
         </View>
@@ -90,5 +96,16 @@ const styles = StyleSheet.create({
     },
     disabled: {
         opacity: 0.3,
+    },
+    badge: {
+        position: 'absolute',
+        top: -2,
+        right: -2,
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: '#ff3b30',
+        borderWidth: 1,
+        borderColor: '#000',
     },
 });

@@ -9,6 +9,7 @@ import { NavBar } from '../../components/NavBar';
 import { LoanModal } from '../../components/LoanModal';
 import { PayModal } from '../../components/PayModal';
 import { TutorialOverlay } from '../../components/TutorialOverlay';
+import { NewMessagePopup } from '../../components/NewMessagePopup';
 
 export default function GameScreen() {
     const { actions, activeScreen } = useGameStore(state => ({
@@ -41,6 +42,7 @@ export default function GameScreen() {
             <LoanModal />
             <PayModal />
             <TutorialOverlay />
+            <NewMessagePopup />
         </View>
     );
 }

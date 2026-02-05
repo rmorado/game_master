@@ -11,6 +11,7 @@ export interface GameState {
     levelIdx: number;
     totalWashed: number;
     contacts: {
+        drugdealer: boolean;
         hacker: boolean;
         judge: boolean;
         deputy: boolean;
@@ -26,12 +27,16 @@ export interface GameState {
     modal: ModalType;
     currentChat: string | null;
     messages: Message[];
+    hasUnreadZepMessages: boolean;
+    showNewMessagePopup: boolean;
+    drugdealerMessages: Message[];
 }
 
 export interface Message {
     id: string;
     text: string;
     me: boolean;
+    unread?: boolean;
 }
 
 export interface Batch {

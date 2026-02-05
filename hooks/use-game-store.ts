@@ -16,6 +16,8 @@ type GameStore = GameState & {
     buyCpf: (isTut: boolean, qtd: number) => void;
     addMessage: (text: string, me: boolean) => void;
     advanceTutorial: () => void;
+    dismissNewMessagePopup: () => void;
+    markZepMessagesAsRead: () => void;
   };
 };
 
@@ -29,7 +31,7 @@ const initialState: GameState = {
   batches: [],
   levelIdx: 0,
   totalWashed: 0,
-  contacts: { hacker: true, judge: false, deputy: false, lawyer: false },
+  contacts: { drugdealer: true, hacker: true, judge: false, deputy: false, lawyer: false },
   eventsTriggered: [],
   nextBagDay: 2,
   isPaused: true,
@@ -40,6 +42,9 @@ const initialState: GameState = {
   modal: 'none',
   currentChat: null,
   messages: [],
+  hasUnreadZepMessages: false,
+  showNewMessagePopup: false,
+  drugdealerMessages: [],
 };
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -89,17 +94,39 @@ export const useGameStore = create<GameStore>((set, get) => ({
     receiveBag: (amount) => {
         const due = amount * 0.7;
         const newBatch: Batch = { id: Date.now(), due, days: 90 };
+        const formatMoney = (n: number) => {
+            if(n >= 1000000) return (n/1000000).toFixed(1) + "M";
+            if(n >= 1000) return (n/1000).toFixed(0) + "k";
+            return Math.floor(n);
+        };
+
         set(state => ({
             dirty: state.dirty + amount,
-            batches: [...state.batches, newBatch]
+            batches: [...state.batches, newBatch],
+            hasUnreadZepMessages: true,
+            showNewMessagePopup: true,
         }));
-        // Missing: popup and floatText functionality
+
+        // Store money transfer message for drugdealer chat
+        const transferMessage = `Malote de ${formatMoney(amount)} depositado. Movimenta isso logo.`;
+        const drugdealerMessages = get().drugdealerMessages || [];
+        set({ drugdealerMessages: [...drugdealerMessages, { id: Date.now().toString(), text: transferMessage, me: false, unread: true }] });
+
+        // Auto-dismiss popup after 3 seconds
+        setTimeout(() => {
+            set({ showNewMessagePopup: false });
+        }, 3000);
     },
     setActiveScreen: (screen) => {
         const { tutStep, actions } = get();
         if (tutStep === 2 && screen === 'zep') actions.advanceTutorial();
         if (tutStep === 5 && screen === 'bank') actions.advanceTutorial();
-        
+
+        // Mark ZEP messages as read when opening ZEP screen
+        if (screen === 'zep') {
+            actions.markZepMessagesAsRead();
+        }
+
         set({ activeScreen: screen });
     },
     setModal: (modal) => {
@@ -170,13 +197,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
         if (tutStep === 3 && contactId === 'hacker') actions.advanceTutorial();
 
         set({ activeScreen: 'chat', currentChat: contactId, messages: [] });
-        const { addMessage } = get().actions;
 
         // Import character greetings from dialogues
         const { getCharacter } = require('../constants/dialogues');
         const character = getCharacter(contactId);
 
-        if (character?.greeting) {
+        // For drugdealer, don't add greeting since drugdealerMessages already has content
+        // For other contacts, add greeting to messages
+        if (character?.greeting && contactId !== 'drugdealer') {
+            const { addMessage } = get().actions;
             addMessage(character.greeting, false);
         }
     },
@@ -206,6 +235,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
     addMessage: (text, me) => {
         const newMessage = { id: Date.now().toString(), text, me };
         set(state => ({ messages: [...state.messages, newMessage] }));
+    },
+    dismissNewMessagePopup: () => {
+        set({ showNewMessagePopup: false });
+    },
+    markZepMessagesAsRead: () => {
+        set({ hasUnreadZepMessages: false });
+        // Mark all drugdealer messages as read
+        const drugdealerMessages = get().drugdealerMessages || [];
+        const updatedMessages = drugdealerMessages.map(msg => ({ ...msg, unread: false }));
+        set({ drugdealerMessages: updatedMessages });
     },
     // ... other actions from the original game object will be translated here
   }

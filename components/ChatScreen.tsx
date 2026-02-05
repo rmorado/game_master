@@ -5,13 +5,16 @@ import { useGameStore } from '../hooks/use-game-store';
 import { getCharacter } from '../constants/dialogues';
 
 export function ChatScreen() {
-    const { actions, messages, currentChat, levelIdx, tutStep } = useGameStore(state => state);
+    const { actions, messages, currentChat, levelIdx, tutStep, drugdealerMessages } = useGameStore(state => state);
 
     const goBack = () => {
         actions.setActiveScreen('zep');
     }
 
     const character = getCharacter(currentChat);
+
+    // Use drugdealer messages if chatting with drugdealer, otherwise use regular messages
+    const displayMessages = currentChat === 'drugdealer' ? drugdealerMessages : messages;
 
     // Tutorial logic
     const isTutorial = tutStep < 8;
@@ -62,12 +65,12 @@ export function ChatScreen() {
                 >
                     <Text style={{fontSize:24, color:'white'}}>←</Text>
                 </TouchableOpacity>
-                <Image source={{ uri: character?.avatar }} style={styles.avatar} />
+                <Image source={character?.avatar} style={styles.avatar} />
                 <Text style={{fontWeight:'bold', color: 'white'}}>{character?.name}</Text>
             </View>
             <FlatList
                 style={styles.chatMsgs}
-                data={messages}
+                data={displayMessages}
                 keyExtractor={item => item.id}
                 renderItem={({item}) => (
                     <View style={[styles.bubble, item.me && styles.me]}>

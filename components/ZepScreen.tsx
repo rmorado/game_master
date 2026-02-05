@@ -1,7 +1,8 @@
 // components/ZepScreen.tsx
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
 import { useGameStore } from '../hooks/use-game-store';
+import { getCharacter } from '../constants/dialogues';
 
 export function ZepScreen() {
     const { contacts, tutStep, actions } = useGameStore(state => ({
@@ -21,11 +22,31 @@ export function ZepScreen() {
     const contactList = Object.entries(contacts)
         .filter(([, isActive]) => isActive)
         .map(([key]) => {
-            // In a real app, you'd fetch this data from a constants file
-            if (key === 'hacker') return { id: 'hacker', name: 'H4CK3R', sub: 'Venda de Dados', img: 'hacker.png', border: '#0f0' };
-            if (key === 'judge') return { id: 'judge', name: 'Dr. Gilmar', sub: 'Jurídico', img: 'judge.png', border: 'gold' };
-            if (key === 'deputy') return { id: 'deputy', name: 'Dep. Motta', sub: 'Campanha', img: 'https://placehold.co/50/444/FFF?text=DM', border: 'cyan' };
-            return null;
+            const character = getCharacter(key);
+            if (!character) return null;
+
+            // Map character to contact display format
+            const subtitles: Record<string, string> = {
+                hacker: 'Venda de Dados',
+                lawyer: 'Advogado',
+                judge: 'Jurídico',
+                deputy: 'Campanha'
+            };
+
+            const borderColors: Record<string, string> = {
+                hacker: '#0f0',
+                lawyer: '#ff4500',
+                judge: 'gold',
+                deputy: 'cyan'
+            };
+
+            return {
+                id: character.id,
+                name: character.name,
+                sub: subtitles[key] || 'Contato',
+                avatar: character.avatar,
+                border: borderColors[key] || '#666'
+            };
         }).filter(Boolean);
 
     return (
@@ -49,8 +70,10 @@ export function ZepScreen() {
                                 isHighlighted && styles.highlighted,
                                 isDisabled && styles.disabled
                             ]}>
-                                {/* Image component would go here */}
-                                <View style={[styles.avatar, { borderColor: item!.border }]} />
+                                <Image
+                                    source={item!.avatar}
+                                    style={[styles.avatar, { borderColor: item!.border }]}
+                                />
                                 <View style={styles.zepInfo}>
                                     <Text style={styles.zepName}>{item!.name}</Text>
                                     <Text style={styles.zepSub}>{item!.sub}</Text>
