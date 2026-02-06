@@ -10,7 +10,7 @@ type GameStore = GameState & {
     setActiveScreen: (screen: 'bank' | 'zep' | 'chat') => void;
     setModal: (modal: GameState['modal']) => void;
     setSelectedLoanSize: (size: number) => void;
-    confirmLoan: () => void;
+    confirmLoan: (loanSize?: number) => void;
     confirmPay: () => void;
     chat: (contactId: string) => void;
     buyCpf: (isTut: boolean, qtd: number) => void;
@@ -144,15 +144,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
     setSelectedLoanSize: (size) => {
         set({ selectedLoanSize: size });
     },
-    confirmLoan: () => {
+    confirmLoan: (loanSize?: number) => {
         const { dirty, cpfs, selectedLoanSize, levelIdx } = get();
-        const cost = selectedLoanSize * 5000;
+        const size = loanSize || selectedLoanSize;
+        const cost = size * 5000;
 
         if (dirty < cost) {
             // alert("Dinheiro sujo insuficiente");
             return;
         }
-        if (cpfs < selectedLoanSize) {
+        if (cpfs < size) {
             // alert("CPFs insuficientes");
             return;
         }
@@ -161,9 +162,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
         set(state => ({
             dirty: state.dirty - cost,
             clean: state.clean + cost,
-            cpfs: state.cpfs - selectedLoanSize,
+            cpfs: state.cpfs - size,
             totalWashed: state.totalWashed + cost,
-            suspicion: state.suspicion + (selectedLoanSize * lvl.suspRate),
+            suspicion: state.suspicion + (size * lvl.suspRate),
         }));
 
         if (get().suspicion >= 100) {

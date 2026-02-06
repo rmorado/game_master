@@ -6,7 +6,7 @@ import { BankScreen } from '../../components/BankScreen';
 import { ZepScreen } from '../../components/ZepScreen';
 import { ChatScreen } from '../../components/ChatScreen';
 import { NavBar } from '../../components/NavBar';
-import { LoanModal } from '../../components/LoanModal';
+import { LoanModalCinematic } from '../../components/LoanModalCinematic';
 import { PayModal } from '../../components/PayModal';
 import { TutorialOverlay } from '../../components/TutorialOverlay';
 import { NewMessagePopup } from '../../components/NewMessagePopup';
@@ -39,7 +39,7 @@ export default function GameScreen() {
         <View style={styles.container}>
             {renderScreen()}
             <NavBar />
-            <LoanModal />
+            <LoanModalCinematic />
             <PayModal />
             <TutorialOverlay />
             <NewMessagePopup />
