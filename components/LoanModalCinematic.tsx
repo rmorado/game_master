@@ -148,7 +148,7 @@ const FakeProgressBar = () => {
   );
 };
 
-// Values Display Component with Animated Counters
+// Values Display Component (No animation for instant updates)
 interface ValuesDisplayProps {
   cpfCount: number;
   dirtyCost: number;
@@ -157,68 +157,30 @@ interface ValuesDisplayProps {
 }
 
 const ValuesDisplay = ({ cpfCount, dirtyCost, cleanGain, suspicionRate }: ValuesDisplayProps) => {
-  const cpfAnim = useRef(new Animated.Value(cpfCount)).current;
-  const dirtyAnim = useRef(new Animated.Value(dirtyCost)).current;
-  const cleanAnim = useRef(new Animated.Value(cleanGain)).current;
-  const suspAnim = useRef(new Animated.Value(suspicionRate)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(cpfAnim, { toValue: cpfCount, duration: 300, useNativeDriver: false }),
-      Animated.timing(dirtyAnim, { toValue: dirtyCost, duration: 300, useNativeDriver: false }),
-      Animated.timing(cleanAnim, { toValue: cleanGain, duration: 300, useNativeDriver: false }),
-      Animated.timing(suspAnim, { toValue: suspicionRate, duration: 300, useNativeDriver: false }),
-    ]).start();
-  }, [cpfCount, dirtyCost, cleanGain, suspicionRate]);
-
-  // Create animated text components
-  const [displayCPF, setDisplayCPF] = useState(cpfCount);
-  const [displayDirty, setDisplayDirty] = useState(dirtyCost);
-  const [displayClean, setDisplayClean] = useState(cleanGain);
-  const [displaySusp, setDisplaySusp] = useState(suspicionRate);
-
-  useEffect(() => {
-    const listeners = [
-      cpfAnim.addListener(({ value }) => setDisplayCPF(Math.round(value))),
-      dirtyAnim.addListener(({ value }) => setDisplayDirty(Math.round(value))),
-      cleanAnim.addListener(({ value }) => setDisplayClean(Math.round(value))),
-      suspAnim.addListener(({ value }) => setDisplaySusp(value)),
-    ];
-
-    return () => {
-      listeners.forEach(id => {
-        cpfAnim.removeListener(id);
-        dirtyAnim.removeListener(id);
-        cleanAnim.removeListener(id);
-        suspAnim.removeListener(id);
-      });
-    };
-  }, []);
-
   return (
     <View style={styles.valuesContainer}>
       <Text style={styles.valuesTitle}>📊 VALORES DA OPERAÇÃO</Text>
       <View style={styles.valuesBox}>
         <View style={styles.valueRow}>
           <Text style={styles.valueLabel}>CPFs Utilizados:</Text>
-          <Text style={styles.valueNumber}>{displayCPF}</Text>
+          <Text style={styles.valueNumber}>{cpfCount}</Text>
         </View>
         <View style={styles.valueRow}>
           <Text style={styles.valueLabel}>Dinheiro Sujo:</Text>
           <Text style={[styles.valueNumber, { color: '#D4AF37' }]}>
-            R$ {formatMoney(displayDirty)}
+            R$ {formatMoney(dirtyCost)}
           </Text>
         </View>
         <View style={styles.valueRow}>
           <Text style={styles.valueLabel}>Dinheiro Limpo:</Text>
           <Text style={[styles.valueNumber, { color: '#00ff41' }]}>
-            R$ {formatMoney(displayClean)}
+            R$ {formatMoney(cleanGain)}
           </Text>
         </View>
         <View style={styles.valueRow}>
           <Text style={styles.valueLabel}>Taxa de Suspeita:</Text>
           <Text style={[styles.valueNumber, { color: '#ff3b30' }]}>
-            +{displaySusp.toFixed(1)}%
+            +{suspicionRate.toFixed(1)}%
           </Text>
         </View>
       </View>
@@ -401,7 +363,7 @@ export function LoanModalCinematic() {
                   onValueChange={setSliderValue}
                   minimumValue={10}
                   maximumValue={maxCPFs}
-                  step={10}
+                  step={1}
                   minimumTrackTintColor="#00ff41"
                   maximumTrackTintColor="#333"
                   thumbTintColor="#D4AF37"
