@@ -1,11 +1,13 @@
 // components/ChatScreen.tsx
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from 'react-native';
 import { useGameStore } from '../hooks/use-game-store';
-import { getCharacter } from '../constants/dialogues';
+import { getCharacter, DIALOGUES } from '../constants/dialogues';
 
 export function ChatScreen() {
-    const { actions, messages, currentChat, levelIdx, tutStep, drugdealerMessages } = useGameStore(state => state);
+    const state = useGameStore(s => s);
+    const { actions, messages, currentChat, levelIdx, tutStep, drugdealerMessages, cpfsBoughtFromHacker, hasUnlocked50Pack } = state;
+    const flatListRef = useRef<FlatList>(null);
 
     const goBack = () => {
         actions.setActiveScreen('zep');
@@ -16,40 +18,53 @@ export function ChatScreen() {
     // Use drugdealer messages if chatting with drugdealer, otherwise use regular messages
     const displayMessages = currentChat === 'drugdealer' ? drugdealerMessages : messages;
 
+    // Auto-scroll to bottom when messages change
+    useEffect(() => {
+        if (displayMessages.length > 0) {
+            setTimeout(() => {
+                flatListRef.current?.scrollToEnd({ animated: true });
+            }, 100);
+        }
+    }, [displayMessages]);
+
     // Tutorial logic
     const isTutorial = tutStep < 8;
     const shouldHighlightBuy10 = tutStep === 4;
     const shouldHighlightBack = tutStep === 5;
 
     const renderActions = () => {
-        if (currentChat === 'hacker' && character?.offers) {
-            return (
-                <>
-                    {character.offers.map(offer => {
-                        const isHighlighted = shouldHighlightBuy10 && offer.qty === 10;
-                        const isDisabled = isTutorial && !isHighlighted;
-                        return (
-                            levelIdx >= offer.minLevel && (
-                                <TouchableOpacity
-                                    key={offer.qty}
-                                    style={[
-                                        styles.presetBtn,
-                                        isHighlighted && styles.highlighted,
-                                        isDisabled && styles.disabled
-                                    ]}
-                                    onPress={() => actions.buyCpf(false, offer.qty)}
-                                    disabled={isDisabled}
-                                >
-                                    <Text style={styles.presetBtnText}>{offer.label}</Text>
-                                </TouchableOpacity>
-                            )
-                        );
-                    })}
-                </>
-            );
-        }
-        // Add actions for other contacts here
-        return null;
+        // Get dialogue options for current character
+        const dialogue = DIALOGUES[currentChat!];
+        if (!dialogue) return null;
+
+        // Filter available options based on conditions
+        const availableOptions = dialogue.outgoingOptions.filter(option => {
+            if (option.condition && !option.condition(state)) return false;
+            return true;
+        });
+
+        return (
+            <>
+                {availableOptions.map(option => {
+                    const isHighlighted = shouldHighlightBuy10 && option.id === 'buy_10_cpfs';
+                    const isDisabled = isTutorial && !isHighlighted;
+                    return (
+                        <TouchableOpacity
+                            key={option.id}
+                            style={[
+                                styles.presetBtn,
+                                isHighlighted && styles.highlighted,
+                                isDisabled && styles.disabled
+                            ]}
+                            onPress={() => actions.chooseDialogueOption(option.id)}
+                            disabled={isDisabled}
+                        >
+                            <Text style={styles.presetBtnText}>{option.text}</Text>
+                        </TouchableOpacity>
+                    );
+                })}
+            </>
+        );
     }
 
     return (
@@ -69,6 +84,7 @@ export function ChatScreen() {
                 <Text style={{fontWeight:'bold', color: 'white'}}>{character?.name}</Text>
             </View>
             <FlatList
+                ref={flatListRef}
                 style={styles.chatMsgs}
                 data={displayMessages}
                 keyExtractor={item => item.id}

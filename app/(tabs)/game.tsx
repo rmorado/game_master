@@ -38,7 +38,7 @@ export default function GameScreen() {
     return (
         <View style={styles.container}>
             {renderScreen()}
-            {activeScreen !== 'chat' && <NavBar />}
+            <NavBar />
             <LoanModal />
             <PayModal />
             <TutorialOverlay />

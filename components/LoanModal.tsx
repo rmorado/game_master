@@ -6,7 +6,7 @@ import { LEVELS } from '../constants/game-data';
 import { UI_LOAN_MODAL } from '../constants/dialogues';
 
 export function LoanModal() {
-    const { levelIdx, selectedLoanSize, actions, modal } = useGameStore(state => state);
+    const { levelIdx, selectedLoanSize, actions, modal, cpfs } = useGameStore(state => state);
 
     const closeModal = () => {
         actions.setModal('none');
@@ -15,13 +15,10 @@ export function LoanModal() {
     const selectBatch = (size: number) => {
         actions.setSelectedLoanSize(size);
     }
-    
+
     const confirmLoan = () => {
         actions.confirmLoan();
     }
-
-    const lvl = LEVELS[levelIdx];
-    const max = lvl.maxBatch;
 
     return (
         <Modal
@@ -34,22 +31,25 @@ export function LoanModal() {
                 <View style={styles.modalCard}>
                     <Text style={styles.title}>{UI_LOAN_MODAL.title}</Text>
                     <View style={styles.presetRow}>
-                        {[10, 50, 100].map(size => (
-                            <TouchableOpacity
-                                key={size}
-                                style={[
-                                    styles.selBtn,
-                                    size > max && styles.locked,
-                                    size === selectedLoanSize && styles.selected
-                                ]}
-                                onPress={() => selectBatch(size)}
-                                disabled={size > max}
-                            >
-                                <Text style={styles.btnText}>{size}</Text>
-                                <Text style={styles.subText}>{UI_LOAN_MODAL.labelIds}</Text>
-                                <Text style={styles.smallText}>{UI_LOAN_MODAL.labelDirtyCost(size * 5)}</Text>
-                            </TouchableOpacity>
-                        ))}
+                        {[10, 50, 100].map(size => {
+                            const isLocked = cpfs < size;
+                            return (
+                                <TouchableOpacity
+                                    key={size}
+                                    style={[
+                                        styles.selBtn,
+                                        isLocked && styles.locked,
+                                        size === selectedLoanSize && styles.selected
+                                    ]}
+                                    onPress={() => selectBatch(size)}
+                                    disabled={isLocked}
+                                >
+                                    <Text style={styles.btnText}>{size}</Text>
+                                    <Text style={styles.subText}>{UI_LOAN_MODAL.labelIds}</Text>
+                                    <Text style={styles.smallText}>{UI_LOAN_MODAL.labelDirtyCost(size * 5)}</Text>
+                                </TouchableOpacity>
+                            );
+                        })}
                     </View>
                     <TouchableOpacity style={styles.confirmBtn} onPress={confirmLoan}>
                         <Text style={styles.confirmBtnText}>{UI_LOAN_MODAL.btnConfirm}</Text>

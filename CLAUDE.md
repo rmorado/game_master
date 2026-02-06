@@ -39,13 +39,18 @@ The entire game state lives in a **single Zustand store** at `hooks/use-game-sto
 - `activeScreen` - Determines which screen renders ('bank' | 'zep' | 'chat')
 - `modal` - Active modal overlay ('loan' | 'pay' | 'msg' | 'none')
 - `tutStep` - Tutorial progress (0-7, then complete)
+- `hasUnreadZepMessages` - Controls red dot badge on ZEP nav button
+- `showNewMessagePopup` - Controls money transfer notification popup
+- `drugdealerMessages[]` - Separate message array for drugdealer chat
 
 **Critical actions:**
 - `tick()` - Game loop (runs every 1 second). Handles bag spawning, debt countdown, pressure calculation
-- `receiveBag()` - Adds dirty money + creates debt batch
+- `receiveBag()` - Adds dirty money + creates debt batch + triggers money transfer notification
 - `confirmLoan(cpfAmount)` - Converts dirty→clean money, increases suspicion
 - `confirmPay()` - Pays oldest debt from clean money
 - `buyCpf(qty)` - Purchases fake IDs from hacker (costs dirty money)
+- `markZepMessagesAsRead()` - Clears notification badge when user opens ZEP screen
+- `dismissNewMessagePopup()` - Manually dismisses money transfer popup
 
 ### Component Architecture
 
@@ -54,12 +59,14 @@ app/(tabs)/game.tsx (MAIN GAME CONTAINER)
 ├── Runs setInterval(tick, 1000) - the game loop
 ├── Renders based on activeScreen state:
 │   ├── BankScreen - Primary UI (money, gauges, debt queue, actions)
-│   ├── ZepScreen - Contact list (hacker, judge, deputy, lawyer)
+│   ├── ZepScreen - Contact list (drugdealer, hacker, judge, deputy, lawyer)
 │   └── ChatScreen - Contact interaction UI
+├── NavBar - Bottom navigation (bank/zep) with notification badge
 ├── Modal overlays (controlled by modal state):
 │   ├── LoanModal - Create fake loans (choose 10/50/100 CPFs)
 │   └── PayModal - Pay debts from clean money
-└── TutorialOverlay - Contextual hints (8 steps)
+├── TutorialOverlay - Contextual hints (8 steps)
+└── NewMessagePopup - Money transfer notification (auto-dismisses after 3s)
 ```
 
 **Screen navigation:** Use `setActiveScreen('bank' | 'zep' | 'chat')` from the store. Do NOT use React Navigation for in-game screens.
@@ -82,8 +89,11 @@ app/(tabs)/game.tsx (MAIN GAME CONTAINER)
 | File | Purpose | When to Modify |
 |------|---------|----------------|
 | `hooks/use-game-store.ts` | **All game state and logic** | Adding mechanics, balancing, new actions |
+| `constants/dialogues.ts` | All text content, character data, avatars | Changing text, adding characters, translations |
 | `constants/game-data.ts` | Level configs, tutorial steps, contacts | Balancing difficulty, changing progression |
 | `components/BankScreen.tsx` | Primary UI, shows money/gauges/debts | UI changes to main screen |
+| `components/NewMessagePopup.tsx` | Money transfer notification popup | Notification styling, behavior |
+| `components/NavBar.tsx` | Bottom navigation with badge system | Navigation UI, badge styling |
 | `app/(tabs)/game.tsx` | Game loop coordinator, screen router | Changing tick interval, screen routing |
 | `types/game.ts` | TypeScript interfaces | Adding new state properties or types |
 
@@ -136,9 +146,21 @@ Theme definitions in `constants/theme.ts`:
 3. Update tutorial if action should be taught
 
 **Adding a new contact:**
-1. Add entry to `contacts` object in `game-data.ts`
-2. Contact appears automatically in `ZepScreen`
-3. Implement chat responses in `ChatScreen.tsx`
+1. Add character to `CHARACTERS` object in `constants/dialogues.ts` with avatar, name, greeting, offers
+2. Add character ID to `contacts` object in GameState initial state
+3. Contact appears automatically in `ZepScreen` via `getCharacter()` helper
+4. Implement chat responses in `ChatScreen.tsx`
+
+**Adding character images:**
+- Place images in `assets/images/characters/`
+- Reference via `require('../assets/images/characters/filename.jpg')` in dialogues.ts
+- React Native Image component automatically handles local requires
+
+**Implementing notifications:**
+- Set notification flags (`hasUnreadZepMessages`, `showNewMessagePopup`) in store action
+- Create separate message array if messages should persist independently
+- Auto-clear notifications in screen navigation (`setActiveScreen`) or via setTimeout
+- Add badge rendering to NavBar using conditional rendering
 
 **Modifying game balance:**
 - Edit `levels[]` in `game-data.ts` for difficulty curves

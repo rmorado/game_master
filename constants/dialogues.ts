@@ -1,6 +1,8 @@
 // constants/dialogues.ts
 // Centralized dialogue and text content for O Mestre
 
+import { CharacterDialogue, GameState } from '../types/game';
+
 // ============================================================================
 // SYSTEM MESSAGES
 // ============================================================================
@@ -168,6 +170,61 @@ export const CHARACTERS = {
         // Chat dialogues
         greeting: "Preciso de doações para a campanha.",
     },
+};
+
+// ============================================================================
+// DIALOGUE SYSTEM
+// ============================================================================
+
+export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
+    hacker: {
+        characterId: 'hacker',
+
+        outgoingOptions: [
+            {
+                id: 'buy_10_cpfs',
+                text: 'Buy pack of 10 CPFs (50,000)',
+                response: 'Feito. Transferindo agora.',
+                action: (state: GameState) => ({
+                    dirty: state.dirty - 50000,
+                    cpfs: state.cpfs + 10,
+                    cpfsBoughtFromHacker: (state.cpfsBoughtFromHacker || 0) + 10
+                })
+            },
+
+            {
+                id: 'ask_more_volume',
+                text: 'I need more volume',
+                condition: (state: GameState) => !state.hasUnlocked50Pack,  // Hide after unlock
+                response: (state: GameState) => {
+                    const bought = state.cpfsBoughtFromHacker || 0;
+                    if (bought >= 50) {
+                        return 'Yes, I think I can do that. You can get 50 CPFs at a discount.';
+                    }
+                    return "I don't know you well enough, 10 is all you got.";
+                },
+                action: (state: GameState) => {
+                    const bought = state.cpfsBoughtFromHacker || 0;
+                    if (bought >= 50) {
+                        return { hasUnlocked50Pack: true };  // Unlock 50-pack
+                    }
+                    return {};
+                }
+            },
+
+            {
+                id: 'buy_50_cpfs',
+                text: 'Buy pack of 50 CPFs (200,000 - DISCOUNTED)',
+                condition: (state: GameState) => state.hasUnlocked50Pack === true,  // Only show if unlocked
+                response: 'Negócio fechado. Mandando os pacotes.',
+                action: (state: GameState) => ({
+                    dirty: state.dirty - 200000,
+                    cpfs: state.cpfs + 50,
+                    cpfsBoughtFromHacker: (state.cpfsBoughtFromHacker || 0) + 50
+                })
+            }
+        ]
+    }
 };
 
 // ============================================================================

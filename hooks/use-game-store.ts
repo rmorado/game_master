@@ -18,6 +18,7 @@ type GameStore = GameState & {
     advanceTutorial: () => void;
     dismissNewMessagePopup: () => void;
     markZepMessagesAsRead: () => void;
+    chooseDialogueOption: (optionId: string) => void;
   };
 };
 
@@ -45,6 +46,11 @@ const initialState: GameState = {
   hasUnreadZepMessages: false,
   showNewMessagePopup: false,
   drugdealerMessages: [],
+  // Dialogue system state
+  cpfsBoughtFromHacker: 0,
+  hasUnlocked50Pack: false,
+  chatMode: null,
+  unlockedDialogueOptions: [],
 };
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -196,18 +202,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
         const { tutStep, actions } = get();
         if (tutStep === 3 && contactId === 'hacker') actions.advanceTutorial();
 
-        set({ activeScreen: 'chat', currentChat: contactId, messages: [] });
-
-        // Import character greetings from dialogues
-        const { getCharacter } = require('../constants/dialogues');
-        const character = getCharacter(contactId);
-
-        // For drugdealer, don't add greeting since drugdealerMessages already has content
-        // For other contacts, add greeting to messages
-        if (character?.greeting && contactId !== 'drugdealer') {
-            const { addMessage } = get().actions;
-            addMessage(character.greeting, false);
-        }
+        set({
+            activeScreen: 'chat',
+            currentChat: contactId,
+            chatMode: 'outgoing',  // Player initiated
+            messages: []  // No greeting - dialogue options show immediately
+        });
     },
     buyCpf: (isTut, qtd) => {
         const { tutStep, actions } = get();
@@ -245,6 +245,50 @@ export const useGameStore = create<GameStore>((set, get) => ({
         const drugdealerMessages = get().drugdealerMessages || [];
         const updatedMessages = drugdealerMessages.map(msg => ({ ...msg, unread: false }));
         set({ drugdealerMessages: updatedMessages });
+    },
+    chooseDialogueOption: (optionId: string) => {
+        const state = get();
+        const { DIALOGUES } = require('../constants/dialogues');
+        const dialogue = DIALOGUES[state.currentChat!];
+
+        if (!dialogue) return;
+
+        const option = dialogue.outgoingOptions.find((o: any) => o.id === optionId);
+
+        if (!option) return;
+
+        // Check condition
+        if (option.condition && !option.condition(state)) return;
+
+        // Get response
+        const response = typeof option.response === 'function'
+            ? option.response(state)
+            : option.response;
+
+        // Execute action
+        const stateChanges = option.action ? option.action(state) : {};
+
+        // Handle unlocks
+        const newUnlocks = option.unlocks
+            ? [...state.unlockedDialogueOptions, ...option.unlocks]
+            : state.unlockedDialogueOptions;
+
+        // Update state
+        set({
+            ...stateChanges,
+            unlockedDialogueOptions: newUnlocks,
+            messages: [
+                ...state.messages,
+                { id: Date.now().toString(), text: option.text, me: true },
+                { id: (Date.now() + 1).toString(), text: response, me: false }
+            ]
+        });
+
+        // Tutorial advancement
+        const { tutStep, actions } = get();
+        if (tutStep === 4 && optionId === 'buy_10_cpfs') {
+            actions.advanceTutorial();
+        }
     },
     // ... other actions from the original game object will be translated here
   }
