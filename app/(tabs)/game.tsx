@@ -8,6 +8,7 @@ import { ChatScreen } from '../../components/ChatScreen';
 import { NavBar } from '../../components/NavBar';
 import { LoanModalCinematic } from '../../components/LoanModalCinematic';
 import { PayModal } from '../../components/PayModal';
+import { SellDebtModal } from '../../components/SellDebtModal';
 import { TutorialOverlay } from '../../components/TutorialOverlay';
 import { NewMessagePopup } from '../../components/NewMessagePopup';
 
@@ -41,6 +42,7 @@ export default function GameScreen() {
             <NavBar />
             <LoanModalCinematic />
             <PayModal />
+            <SellDebtModal />
             <TutorialOverlay />
             <NewMessagePopup />
         </View>

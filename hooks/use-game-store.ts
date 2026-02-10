@@ -1,7 +1,8 @@
 // hooks/use-game-store.ts
-import create from 'zustand';
-import { GameState, Batch } from '../types/game';
+import { create } from 'zustand';
+import { GameState, Batch, DebtPack, BankOffer } from '../types/game';
 import { LEVELS, STORY } from '../constants/game-data';
+import { BANKS } from '../constants/dialogues';
 
 type GameStore = GameState & {
   actions: {
@@ -12,6 +13,9 @@ type GameStore = GameState & {
     setSelectedLoanSize: (size: number) => void;
     confirmLoan: (loanSize?: number) => void;
     confirmPay: () => void;
+    openSellModal: (packId: number) => void;
+    sellDebtPack: (packId: number, offerValue: number) => void;
+    respondToBag: (accept: boolean) => void;
     chat: (contactId: string) => void;
     buyCpf: (isTut: boolean, qtd: number) => void;
     addMessage: (text: string, me: boolean) => void;
@@ -30,6 +34,12 @@ const initialState: GameState = {
   suspicion: 0,
   pressure: 0,
   batches: [],
+  debtPacks: [],
+  currentSellPackId: null,
+  bankOffers: [],
+  hasPendingBag: false,
+  pendingBagAmount: 0,
+  hasUsedNotNow: false,
   levelIdx: 0,
   totalWashed: 0,
   contacts: { drugdealer: true, hacker: true, judge: false, deputy: false, lawyer: false },
@@ -66,10 +76,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       const lvl = LEVELS[get().levelIdx];
 
-      // New Bag
-      if (get().day >= get().nextBagDay) {
-        get().actions.receiveBag(lvl.bagSize);
-        set((state) => ({ nextBagDay: state.day + lvl.bagInterval + Math.floor(Math.random() * 5) }));
+      // New Bag — notify player via ZEP instead of auto-delivering
+      if (get().day >= get().nextBagDay && !get().hasPendingBag) {
+        const amount = lvl.bagSize;
+        const fmtM = (n: number) => n >= 1000000 ? (n/1000000).toFixed(1)+'M' : (n/1000).toFixed(0)+'k';
+        const offerMsg = {
+          id: Date.now().toString(),
+          text: `Tenho R$${fmtM(amount)} pra lavar. Posso mandar agora?`,
+          me: false,
+          unread: true,
+        };
+        set(state => ({
+          hasPendingBag: true,
+          pendingBagAmount: amount,
+          hasUnreadZepMessages: true,
+          showNewMessagePopup: true,
+          nextBagDay: state.day + lvl.bagInterval + Math.floor(Math.random() * 5),
+          drugdealerMessages: [...state.drugdealerMessages, offerMsg],
+        }));
+        setTimeout(() => set({ showNewMessagePopup: false }), 3000);
       }
 
       // Batches
@@ -136,42 +161,115 @@ export const useGameStore = create<GameStore>((set, get) => ({
         set({ activeScreen: screen });
     },
     setModal: (modal) => {
-        const { tutStep, actions } = get();
-        if (tutStep === 6 && modal === 'loan') actions.advanceTutorial();
-        
         set({ modal, isPaused: modal !== 'none' });
     },
     setSelectedLoanSize: (size) => {
         set({ selectedLoanSize: size });
     },
     confirmLoan: (loanSize?: number) => {
-        const { dirty, cpfs, selectedLoanSize, levelIdx } = get();
+        const { dirty, cpfs, selectedLoanSize, levelIdx, day, tutStep } = get();
         const size = loanSize || selectedLoanSize;
         const cost = size * 5000;
 
-        if (dirty < cost) {
-            // alert("Dinheiro sujo insuficiente");
-            return;
-        }
-        if (cpfs < size) {
-            // alert("CPFs insuficientes");
-            return;
-        }
+        if (dirty < cost || cpfs < size) return;
 
         const lvl = LEVELS[levelIdx];
+        const newPack: DebtPack = {
+            id: Date.now(),
+            value: cost,
+            cpfsUsed: size,
+            dayCreated: day,
+        };
+
         set(state => ({
             dirty: state.dirty - cost,
-            clean: state.clean + cost,
             cpfs: state.cpfs - size,
-            totalWashed: state.totalWashed + cost,
             suspicion: state.suspicion + (size * lvl.suspRate),
+            debtPacks: [...state.debtPacks, newPack],
         }));
 
-        if (get().suspicion >= 100) {
-            // gameOver("PRESO", "A Polícia Federal te pegou.");
-        }
-        
+        // Advance tutorial after pack is created
+        if (tutStep === 6) get().actions.advanceTutorial();
+
         get().actions.setModal('none');
+    },
+    openSellModal: (packId: number) => {
+        const pack = get().debtPacks.find(p => p.id === packId);
+        if (!pack) return;
+
+        const offers: BankOffer[] = BANKS.map(bank => {
+            const discountRate = 0.10 + Math.random() * 0.10;
+            return {
+                bankName: bank.name,
+                discountRate,
+                offerValue: Math.floor(pack.value * (1 - discountRate)),
+            };
+        });
+
+        set({ currentSellPackId: packId, bankOffers: offers, modal: 'sell', isPaused: true });
+    },
+    sellDebtPack: (packId: number, offerValue: number) => {
+        const { tutStep, actions, debtPacks, levelIdx } = get();
+        const pack = debtPacks.find(p => p.id === packId);
+        const lvl = LEVELS[levelIdx];
+        const suspicionIncrease = pack
+            ? Math.max(1, Math.round(pack.cpfsUsed * lvl.suspRate * 0.5))
+            : 1;
+
+        set(state => ({
+            clean: state.clean + offerValue,
+            totalWashed: state.totalWashed + offerValue,
+            suspicion: state.suspicion + suspicionIncrease,
+            debtPacks: state.debtPacks.filter(p => p.id !== packId),
+            modal: 'none',
+            isPaused: false,
+            currentSellPackId: null,
+            bankOffers: [],
+        }));
+
+        // Advance tutorial after first sell
+        if (tutStep === 7) actions.advanceTutorial();
+    },
+    respondToBag: (accept: boolean) => {
+        const { pendingBagAmount } = get();
+        const now = Date.now();
+        const fmtM = (n: number) => n >= 1000000 ? (n/1000000).toFixed(1)+'M' : (n/1000).toFixed(0)+'k';
+
+        if (accept) {
+            // Deliver the money + create debt batch inline (no extra notification)
+            const due = Math.floor(pendingBagAmount * 0.7);
+            const newBatch: Batch = { id: now, due, days: 90 };
+            set(state => ({
+                dirty: state.dirty + pendingBagAmount,
+                batches: [...state.batches, newBatch],
+                drugdealerMessages: [...state.drugdealerMessages,
+                    { id: now.toString(), text: 'OK, manda.', me: true },
+                ],
+            }));
+            setTimeout(() => {
+                set(state => ({
+                    drugdealerMessages: [...state.drugdealerMessages,
+                        { id: (Date.now()+1).toString(), text: `Feito. R$${fmtM(pendingBagAmount)} mandados. Movimenta isso logo.`, me: false },
+                    ],
+                }));
+            }, 500);
+        } else {
+            set(state => ({
+                drugdealerMessages: [...state.drugdealerMessages,
+                    { id: now.toString(), text: 'Não agora.', me: true },
+                ],
+                hasUsedNotNow: true,
+            }));
+            setTimeout(() => {
+                set(state => ({
+                    drugdealerMessages: [...state.drugdealerMessages,
+                        { id: (Date.now()+1).toString(), text: 'Tudo bem. Te mando sinal quando for a hora.', me: false },
+                    ],
+                }));
+            }, 500);
+        }
+
+        set({ hasPendingBag: false, pendingBagAmount: 0 });
     },
     confirmPay: () => {
         const { clean, batches } = get();

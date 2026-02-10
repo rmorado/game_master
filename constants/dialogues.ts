@@ -47,22 +47,47 @@ export const TUTORIAL = [
     },
     {
         id: 6,
-        text: "Use o botão CRIAR EMPRÉSTIMO para simular dívidas e lavar o dinheiro.",
+        text: "Use CRIAR PACOTE para converter dinheiro sujo em um pacote de dívida.",
         target: 'btn_loan',
         screen: 'bank'
     },
     {
         id: 7,
-        text: "Veja! O dinheiro sujo diminuiu e o limpo aumentou. Mas CUIDADO com a Suspeita (PF).",
-        target: 'clean_display',
+        text: "Pacote criado! Agora use VENDER DÍVIDA para vendê-lo a um banco e receber dinheiro limpo.",
+        target: 'btn_sell',
         screen: 'bank'
     },
 ];
 
+// Banks that buy debt packs
+export const BANKS = [
+    { id: 'brausila', name: 'Banco de Brausila' },
+    { id: 'eterno',   name: 'Banco Eterno' },
+    { id: 'sapo',     name: 'Banco SAPO' },
+];
+
 // UI Labels - Bank Screen
 export const UI_BANK = {
-    btnCreateLoan: "📄 CRIAR EMPRÉSTIMO",
-    btnPayDebt: "💸 PAGAR DÍVIDA",
+    btnCreateLoan: "📦 CRIAR PACOTE",
+    btnSellPack:   "💰 VENDER DÍVIDA",
+    btnPayDebt:    "💸 PAGAR",
+    packSection:   "PACOTES PRONTOS",
+    packEmpty:     "Nenhum pacote. Crie um empréstimo.",
+    debtSection:   "DÍVIDAS A PAGAR",
+    debtEmpty:     "Sem dívidas pendentes.",
+};
+
+// UI Labels - Sell Modal
+export const UI_SELL = {
+    title:         "VENDER PACOTE DE DÍVIDA",
+    subtitle:      "Escolha um comprador",
+    faceValue:     "Valor nominal",
+    discount:      "Desconto",
+    offer:         "Oferta",
+    accept:        "ACEITAR",
+    successTitle:  "✅ PACOTE VENDIDO",
+    successSub:    "Dinheiro limpo depositado na conta",
+    cancel:        "❌ FECHAR",
 };
 
 // UI Labels - Loan Modal

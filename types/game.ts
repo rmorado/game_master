@@ -8,6 +8,9 @@ export interface GameState {
     suspicion: number;
     pressure: number;
     batches: Batch[];
+    debtPacks: DebtPack[];
+    currentSellPackId: number | null;
+    bankOffers: BankOffer[];
     levelIdx: number;
     totalWashed: number;
     contacts: {
@@ -22,7 +25,7 @@ export interface GameState {
     isPaused: boolean;
     tutStep: number;
     selectedLoanSize: number;
-    incomingEvent: any | null; // You might want to define a type for events
+    incomingEvent: any | null;
     activeScreen: 'bank' | 'zep' | 'chat';
     modal: ModalType;
     currentChat: string | null;
@@ -30,6 +33,10 @@ export interface GameState {
     hasUnreadZepMessages: boolean;
     showNewMessagePopup: boolean;
     drugdealerMessages: Message[];
+    // Pending bag (drug dealer offer)
+    hasPendingBag: boolean;
+    pendingBagAmount: number;
+    hasUsedNotNow: boolean;
     // Dialogue system state
     cpfsBoughtFromHacker: number;
     hasUnlocked50Pack: boolean;
@@ -50,32 +57,33 @@ export interface Batch {
     days: number;
 }
 
-export type ModalType = 'none' | 'loan' | 'pay' | 'msg';
+export interface DebtPack {
+    id: number;
+    value: number;       // face value (cpfCount × 5000)
+    cpfsUsed: number;
+    dayCreated: number;
+}
+
+export interface BankOffer {
+    bankName: string;
+    discountRate: number;  // 0.10 to 0.20
+    offerValue: number;
+}
+
+export type ModalType = 'none' | 'loan' | 'pay' | 'msg' | 'sell';
 
 // Dialogue system types
 export interface DialogueOption {
-    id: string;                          // Unique identifier
-    text: string;                        // Button text shown to player
-
-    // Conditional visibility
-    condition?: (state: GameState) => boolean;  // Show option if true
-
-    // Response handling
-    response: string | ((state: GameState) => string);  // Character's reply
-
-    // Side effects
-    action?: (state: GameState) => Partial<GameState>;  // State changes
-
-    // Unlocks
-    unlocks?: string[];                  // IDs of options to unlock after choosing this
+    id: string;
+    text: string;
+    condition?: (state: GameState) => boolean;
+    response: string | ((state: GameState) => string);
+    action?: (state: GameState) => Partial<GameState>;
+    unlocks?: string[];
 }
 
 export interface CharacterDialogue {
     characterId: string;
-
-    // Player-initiated: options shown when player opens chat
     outgoingOptions: DialogueOption[];
-
-    // Character-initiated: options shown when replying to character's message
     incomingOptions?: DialogueOption[];
 }

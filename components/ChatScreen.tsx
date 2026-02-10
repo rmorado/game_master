@@ -6,7 +6,7 @@ import { getCharacter, DIALOGUES } from '../constants/dialogues';
 
 export function ChatScreen() {
     const state = useGameStore(s => s);
-    const { actions, messages, currentChat, levelIdx, tutStep, drugdealerMessages, cpfsBoughtFromHacker, hasUnlocked50Pack } = state;
+    const { actions, messages, currentChat, levelIdx, tutStep, drugdealerMessages, cpfsBoughtFromHacker, hasUnlocked50Pack, hasPendingBag, hasUsedNotNow } = state;
     const flatListRef = useRef<FlatList>(null);
 
     const goBack = () => {
@@ -33,6 +33,28 @@ export function ChatScreen() {
     const shouldHighlightBack = tutStep === 5;
 
     const renderActions = () => {
+        // Drugdealer pending bag — show offer response buttons
+        if (currentChat === 'drugdealer' && hasPendingBag) {
+            return (
+                <>
+                    <TouchableOpacity
+                        style={[styles.presetBtn, styles.presetBtnAccept]}
+                        onPress={() => actions.respondToBag(true)}
+                    >
+                        <Text style={styles.presetBtnText}>OK, manda.</Text>
+                    </TouchableOpacity>
+                    {!hasUsedNotNow && (
+                        <TouchableOpacity
+                            style={styles.presetBtn}
+                            onPress={() => actions.respondToBag(false)}
+                        >
+                            <Text style={[styles.presetBtnText, { color: '#aaa' }]}>Não agora.</Text>
+                        </TouchableOpacity>
+                    )}
+                </>
+            );
+        }
+
         // Get dialogue options for current character
         const dialogue = DIALOGUES[currentChat!];
         if (!dialogue) return null;
@@ -160,6 +182,10 @@ const styles = StyleSheet.create({
         color: '#00ff41',
         fontWeight: '600',
         textAlign: 'left',
+    },
+    presetBtnAccept: {
+        borderColor: '#00ff41',
+        backgroundColor: 'rgba(0,255,65,0.08)',
     },
     backButton: {
         padding: 5,

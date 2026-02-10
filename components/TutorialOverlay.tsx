@@ -15,7 +15,7 @@ export function TutorialOverlay() {
          if (step.target !== 'nav_zep' && step.target !== 'btn_back') return null;
     }
 
-    const isInfoStep = step.target === null || step.id === 0 || step.id === 1 || step.id === 7;
+    const isInfoStep = step.target === null || step.id === 0 || step.id === 1;
 
     return (
         <View style={styles.container} pointerEvents="box-none">

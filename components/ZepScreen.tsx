@@ -5,9 +5,10 @@ import { useGameStore } from '../hooks/use-game-store';
 import { getCharacter } from '../constants/dialogues';
 
 export function ZepScreen() {
-    const { contacts, tutStep, actions } = useGameStore(state => ({
+    const { contacts, tutStep, hasPendingBag, actions } = useGameStore(state => ({
         contacts: state.contacts,
         tutStep: state.tutStep,
+        hasPendingBag: state.hasPendingBag,
         actions: state.actions
     }));
 
@@ -70,10 +71,15 @@ export function ZepScreen() {
                                 isHighlighted && styles.highlighted,
                                 isDisabled && styles.disabled
                             ]}>
-                                <Image
-                                    source={item!.avatar}
-                                    style={[styles.avatar, { borderColor: item!.border }]}
-                                />
+                                <View style={styles.avatarWrapper}>
+                                    <Image
+                                        source={item!.avatar}
+                                        style={[styles.avatar, { borderColor: item!.border }]}
+                                    />
+                                    {item!.id === 'drugdealer' && hasPendingBag && (
+                                        <View style={styles.pendingDot} />
+                                    )}
+                                </View>
                                 <View style={styles.zepInfo}>
                                     <Text style={styles.zepName}>{item!.name}</Text>
                                     <Text style={styles.zepSub}>{item!.sub}</Text>
@@ -114,13 +120,27 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
+    avatarWrapper: {
+        position: 'relative',
+        marginRight: 15,
+    },
     avatar: {
         width: 45,
         height: 45,
         borderRadius: 22.5,
         backgroundColor: '#333',
-        marginRight: 15,
         borderWidth: 2,
+    },
+    pendingDot: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        width: 13,
+        height: 13,
+        borderRadius: 6.5,
+        backgroundColor: '#ff3b30',
+        borderWidth: 2,
+        borderColor: '#111b21',
     },
     zepInfo: {
         flex: 1,
