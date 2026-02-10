@@ -11,19 +11,19 @@ import { CharacterDialogue, GameState } from '../types/game';
 export const TUTORIAL = [
     {
         id: 0,
-        text: "BEM-VINDO. O PCC confia em você para lavar o dinheiro. Não nos decepcione.",
+        text: "Bem vindo, Vacaro. Você lava dinheiro para o PCC. Vamos ver quanto você consegue limpar.",
         target: null,
         screen: 'bank'
     },
     {
         id: 1,
-        text: "Este é o seu dinheiro SUJO. Você precisa transformá-lo em dinheiro LIMPO.",
+        text: "Este é o seu dinheiro sujo. Use seu banco para lavar, criando empréstimos falsos e vendendo a dívida para outros bancos.",
         target: 'dirty_display',
         screen: 'bank'
     },
     {
         id: 2,
-        text: "Para isso, você precisa de contas laranjas (CPFs). Vá ao app ZEP falar com o Hacker.",
+        text: "Para isso, você precisa de contas laranjas. O hacker consegue CPFs para criarmos os empréstimos.",
         target: 'nav_zep',
         screen: 'bank'
     },
@@ -90,7 +90,25 @@ export const UI_SELL = {
     cancel:        "❌ FECHAR",
 };
 
-// UI Labels - Loan Modal
+// UI Labels - Loan Modal (Cinematic)
+export const UI_LOAN_CINEMATIC = {
+    title:           "CRIAR PACOTE DE DÍVIDA",
+    subtitle:        "Selecione a quantidade de CPFs",
+    sectionValues:   "📊 VALORES DA OPERAÇÃO",
+    labelCpfs:       "CPFs Utilizados:",
+    labelDirty:      "Dinheiro Sujo:",
+    labelClean:      "Dinheiro Limpo:",
+    labelSuspicion:  "Taxa de Suspeita:",
+    sectionCpfs:     "💾 CPFs SELECIONADOS",
+    btnConfirm:      "🔒 CONFIRMAR LAVAGEM",
+    btnCancel:       "❌ CANCELAR",
+    processingTitle: "OPERAÇÃO DE LAVAGEM",
+    processingLabel: "PROCESSANDO...",
+    successTitle:    "✅ EMPRÉSTIMOS CRIADOS",
+    successSubtitle: "Pacote de dívida pronto para venda",
+};
+
+// UI Labels - Loan Modal (legacy)
 export const UI_LOAN_MODAL = {
     title: "SELECIONE O LOTE",
     labelIds: "IDs",
@@ -101,7 +119,7 @@ export const UI_LOAN_MODAL = {
 
 // UI Labels - Pay Modal
 export const UI_PAY_MODAL = {
-    title: "PAGAR MALOTE ANTIGO",
+    title: "PAGAR PCC",
     labelBalance: (amount: string) => `Saldo Limpo: ${amount}`,
     btnConfirm: "CONFIRMAR PAGAMENTO",
     btnCancel: "Cancelar",
@@ -208,7 +226,7 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
         outgoingOptions: [
             {
                 id: 'buy_10_cpfs',
-                text: 'Buy pack of 10 CPFs (50,000)',
+                text: 'Comprar 10 CPFs (50,000)',
                 response: 'Feito. Transferindo agora.',
                 action: (state: GameState) => ({
                     dirty: state.dirty - 50000,
@@ -219,14 +237,14 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
 
             {
                 id: 'ask_more_volume',
-                text: 'I need more volume',
+                text: 'Preciso de mais volume',
                 condition: (state: GameState) => !state.hasUnlocked50Pack,  // Hide after unlock
                 response: (state: GameState) => {
                     const bought = state.cpfsBoughtFromHacker || 0;
                     if (bought >= 50) {
-                        return 'Yes, I think I can do that. You can get 50 CPFs at a discount.';
+                        return 'Ok. Posso vender 50 com um desconto.';
                     }
-                    return "I don't know you well enough, 10 is all you got.";
+                    return "É o que té tendo. Não vai dar não.";
                 },
                 action: (state: GameState) => {
                     const bought = state.cpfsBoughtFromHacker || 0;
@@ -239,7 +257,7 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
 
             {
                 id: 'buy_50_cpfs',
-                text: 'Buy pack of 50 CPFs (200,000 - DISCOUNTED)',
+                text: 'Comprar 50 CPFs (200,000)',
                 condition: (state: GameState) => state.hasUnlocked50Pack === true,  // Only show if unlocked
                 response: 'Negócio fechado. Mandando os pacotes.',
                 action: (state: GameState) => ({

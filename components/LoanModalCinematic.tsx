@@ -13,6 +13,7 @@ import {
 import Slider from '@react-native-community/slider';
 import { useGameStore } from '../hooks/use-game-store';
 import { LEVELS } from '../constants/game-data';
+import { UI_LOAN_CINEMATIC } from '../constants/dialogues';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -107,7 +108,7 @@ const AnimatedTitle = () => {
 
   return (
     <Animated.View style={[styles.titleContainer, { opacity: fadeAnim }]}>
-      <Text style={styles.titleText}>OPERAÇÃO DE LAVAGEM</Text>
+      <Text style={styles.titleText}>{UI_LOAN_CINEMATIC.processingTitle}</Text>
     </Animated.View>
   );
 };
@@ -143,7 +144,7 @@ const FakeProgressBar = () => {
       <View style={styles.progressBar}>
         <Animated.View style={[styles.progressFill, { width }]} />
       </View>
-      <Text style={styles.progressLabel}>PROCESSANDO...</Text>
+      <Text style={styles.progressLabel}>{UI_LOAN_CINEMATIC.processingLabel}</Text>
     </View>
   );
 };
@@ -159,26 +160,26 @@ interface ValuesDisplayProps {
 const ValuesDisplay = ({ cpfCount, dirtyCost, cleanGain, suspicionRate }: ValuesDisplayProps) => {
   return (
     <View style={styles.valuesContainer}>
-      <Text style={styles.valuesTitle}>📊 VALORES DA OPERAÇÃO</Text>
+      <Text style={styles.valuesTitle}>{UI_LOAN_CINEMATIC.sectionValues}</Text>
       <View style={styles.valuesBox}>
         <View style={styles.valueRow}>
-          <Text style={styles.valueLabel}>CPFs Utilizados:</Text>
+          <Text style={styles.valueLabel}>{UI_LOAN_CINEMATIC.labelCpfs}</Text>
           <Text style={styles.valueNumber}>{cpfCount}</Text>
         </View>
         <View style={styles.valueRow}>
-          <Text style={styles.valueLabel}>Dinheiro Sujo:</Text>
+          <Text style={styles.valueLabel}>{UI_LOAN_CINEMATIC.labelDirty}</Text>
           <Text style={[styles.valueNumber, { color: '#D4AF37' }]}>
             R$ {formatMoney(dirtyCost)}
           </Text>
         </View>
         <View style={styles.valueRow}>
-          <Text style={styles.valueLabel}>Dinheiro Limpo:</Text>
+          <Text style={styles.valueLabel}>{UI_LOAN_CINEMATIC.labelClean}</Text>
           <Text style={[styles.valueNumber, { color: '#00ff41' }]}>
             R$ {formatMoney(cleanGain)}
           </Text>
         </View>
         <View style={styles.valueRow}>
-          <Text style={styles.valueLabel}>Taxa de Suspeita:</Text>
+          <Text style={styles.valueLabel}>{UI_LOAN_CINEMATIC.labelSuspicion}</Text>
           <Text style={[styles.valueNumber, { color: '#ff3b30' }]}>
             +{suspicionRate.toFixed(1)}%
           </Text>
@@ -201,7 +202,7 @@ const CPFPreviewList = ({ count }: CPFPreviewListProps) => {
 
   return (
     <View style={styles.cpfListContainer}>
-      <Text style={styles.cpfListTitle}>💾 CPFs SELECIONADOS</Text>
+      <Text style={styles.cpfListTitle}>{UI_LOAN_CINEMATIC.sectionCpfs}</Text>
       <ScrollView style={styles.cpfScrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.cpfGrid}>
           {cpfs.map((cpf, i) => (
@@ -253,7 +254,7 @@ const ConfirmButton = ({ onPress, disabled }: ConfirmButtonProps) => {
           { transform: [{ scale: scaleAnim }] },
         ]}
       >
-        <Text style={styles.confirmButtonText}>🔒 CONFIRMAR LAVAGEM</Text>
+        <Text style={styles.confirmButtonText}>{UI_LOAN_CINEMATIC.btnConfirm}</Text>
       </Animated.View>
     </TouchableOpacity>
   );
@@ -329,8 +330,8 @@ export function LoanModalCinematic() {
           {/* Show different content based on state */}
           {isComplete ? (
             <View style={styles.successContainer}>
-              <Text style={styles.successTitle}>✅ EMPRÉSTIMOS CRIADOS</Text>
-              <Text style={styles.successSubtitle}>Pacote de dívida pronto para venda</Text>
+              <Text style={styles.successTitle}>{UI_LOAN_CINEMATIC.successTitle}</Text>
+              <Text style={styles.successSubtitle}>{UI_LOAN_CINEMATIC.successSubtitle}</Text>
             </View>
           ) : isProcessing ? (
             <>
@@ -346,8 +347,8 @@ export function LoanModalCinematic() {
           ) : (
             <>
               <View style={styles.staticTitleContainer}>
-                <Text style={styles.staticTitle}>CRIAR PACOTE DE DÍVIDA</Text>
-                <Text style={styles.staticSubtitle}>Selecione a quantidade de CPFs</Text>
+                <Text style={styles.staticTitle}>{UI_LOAN_CINEMATIC.title}</Text>
+                <Text style={styles.staticSubtitle}>{UI_LOAN_CINEMATIC.subtitle}</Text>
               </View>
 
               <ValuesDisplay
@@ -380,7 +381,7 @@ export function LoanModalCinematic() {
               <ConfirmButton onPress={handleConfirm} disabled={!canConfirm} />
 
               <TouchableOpacity onPress={handleClose}>
-                <Text style={styles.cancelLink}>❌ CANCELAR</Text>
+                <Text style={styles.cancelLink}>{UI_LOAN_CINEMATIC.btnCancel}</Text>
               </TouchableOpacity>
             </>
           )}
