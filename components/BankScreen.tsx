@@ -87,7 +87,7 @@ export function BankScreen() {
             {/* ── Header ── */}
             <View style={styles.header}>
                 <Text style={styles.levelLabel}>NÍV. {levelIdx + 1}: {lvl.name.toUpperCase()}</Text>
-                <Text style={styles.goalLabel}>META: {formatMoney(totalWashed)} / {formatMoney(lvl.goal)}</Text>
+                <Text style={styles.goalLabel}>META: {formatMoney(totalWashed)} / {lvl.goal !== null ? formatMoney(lvl.goal) : '∞'}</Text>
             </View>
 
             {/* ── Gauges ── */}

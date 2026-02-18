@@ -6,17 +6,17 @@ import { getCharacter, DIALOGUES } from '../constants/dialogues';
 
 export function ChatScreen() {
     const state = useGameStore(s => s);
-    const { actions, messages, currentChat, levelIdx, tutStep, drugdealerMessages, cpfsBoughtFromHacker, hasUnlocked50Pack, hasPendingBag, hasUsedNotNow } = state;
+    const { actions, chatHistory, currentChat, levelIdx, tutStep, cpfsBoughtFromHacker, hasUnlocked50Pack, hasPendingBag, hasUsedNotNow } = state;
     const flatListRef = useRef<FlatList>(null);
 
     const goBack = () => {
         actions.setActiveScreen('zep');
     }
 
-    const character = getCharacter(currentChat);
+    const character = currentChat ? getCharacter(currentChat) : undefined;
 
-    // Use drugdealer messages if chatting with drugdealer, otherwise use regular messages
-    const displayMessages = currentChat === 'drugdealer' ? drugdealerMessages : messages;
+    // Read messages from per-contact chat history
+    const displayMessages = (currentChat && chatHistory[currentChat]) || [];
 
     // Auto-scroll to bottom when messages change
     useEffect(() => {

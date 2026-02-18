@@ -4,12 +4,16 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useGameStore } from '../hooks/use-game-store';
 
 export function NavBar() {
-    const { activeScreen, tutStep, hasUnreadZepMessages, actions } = useGameStore(state => ({
+    const { activeScreen, tutStep, unreadCounts, hasPendingBag, actions } = useGameStore(state => ({
         activeScreen: state.activeScreen,
         tutStep: state.tutStep,
-        hasUnreadZepMessages: state.hasUnreadZepMessages,
+        unreadCounts: state.unreadCounts,
+        hasPendingBag: state.hasPendingBag,
         actions: state.actions,
     }));
+
+    const hasUnreadZepMessages = hasPendingBag ||
+        Object.values(unreadCounts).some(n => n > 0);
 
     const setScreen = (screen: 'bank' | 'zep') => {
         actions.setActiveScreen(screen);

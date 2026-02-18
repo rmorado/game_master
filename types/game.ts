@@ -1,5 +1,31 @@
 // types/game.ts
 
+export interface Level {
+    id: number;
+    name: string;
+    goal: number | null;   // null = O Mestre survival mode
+    bagSize: number;
+    bagInterval: number;
+    maxBatch: number;
+    suspRate: number;
+}
+
+// ─── Scripted Event System ───────────────────────────────────────────────────
+
+export type EventPayload =
+    | { type: 'unlock_contact'; contactId: string }
+    | { type: 'incoming_message'; contactId: string; text: string }
+    | { type: 'unlock_dialogue_option'; optionId: string }
+    | { type: 'multi'; payloads: EventPayload[] };
+
+export interface ScriptedEvent {
+    id: string;
+    trigger: (state: GameState) => boolean;
+    payload: EventPayload;
+}
+
+// ─── Core Game State ─────────────────────────────────────────────────────────
+
 export interface GameState {
     day: number;
     dirty: number;
@@ -29,10 +55,11 @@ export interface GameState {
     activeScreen: 'bank' | 'zep' | 'chat';
     modal: ModalType;
     currentChat: string | null;
-    messages: Message[];
-    hasUnreadZepMessages: boolean;
+    // Per-contact chat history (replaces messages[] and drugdealerMessages[])
+    chatHistory: { [contactId: string]: Message[] };
+    // Per-contact unread badge counts (replaces hasUnreadZepMessages)
+    unreadCounts: { [contactId: string]: number };
     showNewMessagePopup: boolean;
-    drugdealerMessages: Message[];
     // Pending bag (drug dealer offer)
     hasPendingBag: boolean;
     pendingBagAmount: number;
@@ -42,6 +69,11 @@ export interface GameState {
     hasUnlocked50Pack: boolean;
     chatMode: 'incoming' | 'outgoing' | null;
     unlockedDialogueOptions: string[];
+    // Game over state
+    isGameOver: boolean;
+    gameOverReason: string;
+    gameOverDetail: string;
+    omstreDayStart: number;
 }
 
 export interface Message {

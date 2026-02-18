@@ -5,10 +5,11 @@ import { useGameStore } from '../hooks/use-game-store';
 import { getCharacter } from '../constants/dialogues';
 
 export function ZepScreen() {
-    const { contacts, tutStep, hasPendingBag, actions } = useGameStore(state => ({
+    const { contacts, tutStep, hasPendingBag, unreadCounts, actions } = useGameStore(state => ({
         contacts: state.contacts,
         tutStep: state.tutStep,
         hasPendingBag: state.hasPendingBag,
+        unreadCounts: state.unreadCounts,
         actions: state.actions
     }));
 
@@ -76,7 +77,8 @@ export function ZepScreen() {
                                         source={item!.avatar}
                                         style={[styles.avatar, { borderColor: item!.border }]}
                                     />
-                                    {item!.id === 'drugdealer' && hasPendingBag && (
+                                    {((item!.id === 'drugdealer' && hasPendingBag) ||
+                                      (unreadCounts[item!.id] || 0) > 0) && (
                                         <View style={styles.pendingDot} />
                                     )}
                                 </View>

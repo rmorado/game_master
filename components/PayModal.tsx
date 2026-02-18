@@ -7,7 +7,7 @@ import { UI_PAY_MODAL } from '../constants/dialogues';
 const formatMoney = (n: number) => {
     if(n >= 1000000) return (n/1000000).toFixed(1) + "M";
     if(n >= 1000) return (n/1000).toFixed(0) + "k";
-    return Math.floor(n);
+    return String(Math.floor(n));
 }
 
 export function PayModal() {
