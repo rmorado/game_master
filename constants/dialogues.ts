@@ -27,25 +27,25 @@ export const TUTORIAL = [
     },
     {
         id: 1,
-        text: "Este é o seu dinheiro sujo. Use seu banco para lavar, criando empréstimos falsos e vendendo a dívida para outros bancos.",
+        text: "O processo é simples. Criamos empréstimos falsos e vendemos a dívida para outros bancos. Devolvemos esse dinheiro para o PCC e tiramos um pouco para nós. Só um pouco.",
         target: 'dirty_display',
         screen: 'bank'
     },
     {
         id: 2,
-        text: "Para isso, você precisa de contas laranjas. O hacker consegue CPFs para criarmos os empréstimos.",
+        text: "Primeiro vamos pegar uns CPFs reais, essas pessoas nunca vão saber que estão endividadas. Claro, nós pagamos tudo.",
         target: 'nav_zep',
         screen: 'bank'
     },
     {
         id: 3,
-        text: "Este é o Hacker. Ele fornece os dados que precisamos. Toque nele.",
+        text: "Este é o Hacker. Ele consegue pacotes de identidades.",
         target: 'contact_hacker',
         screen: 'zep'
     },
     {
         id: 4,
-        text: "Compre 10 CPFs usando o dinheiro sujo. É um investimento necessário.",
+        text: "Compre 10 CPFs para criar empréstimos em nome dessas pessoas.",
         target: 'btn_buy_10',
         screen: 'chat'
     },
@@ -57,7 +57,7 @@ export const TUTORIAL = [
     },
     {
         id: 6,
-        text: "Use CRIAR PACOTE para converter dinheiro sujo em um pacote de dívida.",
+        text: "Use CRIAR PACOTE para realizar os pedidos de empréstimos e criar o pacote de dívida.",
         target: 'btn_loan',
         screen: 'bank'
     },
@@ -110,11 +110,11 @@ export const UI_LOAN_CINEMATIC = {
     labelClean:      "Dinheiro Limpo:",
     labelSuspicion:  "Taxa de Suspeita:",
     sectionCpfs:     "💾 CPFs SELECIONADOS",
-    btnConfirm:      "🔒 CONFIRMAR LAVAGEM",
+    btnConfirm:      "🔒 Criar Derivativo das Dívidas",
     btnCancel:       "❌ CANCELAR",
-    processingTitle: "OPERAÇÃO DE LAVAGEM",
+    processingTitle: "Dívida Consolidada",
     processingLabel: "PROCESSANDO...",
-    successTitle:    "✅ EMPRÉSTIMOS CRIADOS",
+    successTitle:    "✅ PRONTO",
     successSubtitle: "Pacote de dívida pronto para venda",
 };
 

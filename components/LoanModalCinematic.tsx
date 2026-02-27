@@ -7,7 +7,6 @@ import {
   Modal,
   TouchableOpacity,
   Animated,
-  ScrollView,
   Dimensions,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
@@ -194,16 +193,25 @@ interface CPFPreviewListProps {
   count: number;
 }
 
+const MAX_VISIBLE_CPFS = 20;
+
 const CPFPreviewList = ({ count }: CPFPreviewListProps) => {
+  const visibleCount = Math.min(count, MAX_VISIBLE_CPFS);
+  const overflow = count - MAX_VISIBLE_CPFS;
+
   const cpfs = useMemo(
-    () => Array.from({ length: count }, () => generateFakeCPF()),
+    () => Array.from({ length: visibleCount }, () => generateFakeCPF()),
     [count]
   );
+
+  // Height grows dynamically: 2 CPFs per row, ~22px per row, +20px padding
+  const rowCount = Math.ceil(visibleCount / 2);
+  const dynamicHeight = rowCount * 22 + 20;
 
   return (
     <View style={styles.cpfListContainer}>
       <Text style={styles.cpfListTitle}>{UI_LOAN_CINEMATIC.sectionCpfs}</Text>
-      <ScrollView style={styles.cpfScrollView} showsVerticalScrollIndicator={false}>
+      <View style={[styles.cpfBox, { height: dynamicHeight }]}>
         <View style={styles.cpfGrid}>
           {cpfs.map((cpf, i) => (
             <Text key={i} style={styles.cpfItem}>
@@ -211,7 +219,10 @@ const CPFPreviewList = ({ count }: CPFPreviewListProps) => {
             </Text>
           ))}
         </View>
-      </ScrollView>
+        {overflow > 0 && (
+          <Text style={styles.cpfOverflow}>+ {overflow} CPFs</Text>
+        )}
+      </View>
     </View>
   );
 };
@@ -272,6 +283,11 @@ export function LoanModalCinematic() {
 
   const currentLevel = LEVELS[levelIdx];
   const maxCPFs = Math.min(cpfs, 100);
+
+  // Clamp slider if available CPFs drop below current selection
+  useEffect(() => {
+    if (sliderValue > maxCPFs) setSliderValue(Math.max(1, maxCPFs));
+  }, [maxCPFs]);
 
   // Derived calculations
   const dirtyCost = sliderValue * 5000;
@@ -362,7 +378,7 @@ export function LoanModalCinematic() {
                 <Slider
                   value={sliderValue}
                   onValueChange={setSliderValue}
-                  minimumValue={10}
+                  minimumValue={1}
                   maximumValue={maxCPFs}
                   step={1}
                   minimumTrackTintColor="#00ff41"
@@ -371,7 +387,7 @@ export function LoanModalCinematic() {
                   style={styles.slider}
                 />
                 <View style={styles.sliderLabels}>
-                  <Text style={styles.sliderLabel}>10</Text>
+                  <Text style={styles.sliderLabel}>1</Text>
                   <Text style={styles.sliderLabel}>{maxCPFs}</Text>
                 </View>
               </View>
@@ -555,13 +571,22 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     fontWeight: '600',
   },
-  cpfScrollView: {
-    maxHeight: 120,
+  cpfBox: {
     backgroundColor: 'rgba(26, 26, 26, 0.8)',
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#333',
     padding: 10,
+    overflow: 'hidden',
+  },
+  cpfOverflow: {
+    color: '#00ff41',
+    fontSize: 10,
+    fontFamily: 'Courier',
+    opacity: 0.5,
+    marginTop: 4,
+    textAlign: 'center',
+    width: '100%',
   },
   cpfGrid: {
     flexDirection: 'row',
