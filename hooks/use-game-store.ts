@@ -2,7 +2,12 @@
 import { create } from 'zustand';
 import { GameState, Batch, DebtPack, BankOffer, EventPayload } from '../types/game';
 import { LEVELS } from '../constants/game-data';
-import { BANKS, SCRIPTED_EVENTS } from '../constants/dialogues';
+import { BANKS, SCRIPTED_EVENTS, DIALOGUES } from '../constants/dialogues';
+
+// ─── Module-level helpers ─────────────────────────────────────────────────────
+
+const fmtM = (n: number) =>
+    n >= 1_000_000 ? (n / 1_000_000).toFixed(1) + 'M' : (n / 1_000).toFixed(0) + 'k';
 
 // ─── fireEvent helper ────────────────────────────────────────────────────────
 
@@ -56,21 +61,17 @@ type GameStore = GameState & {
         receiveBag: (amount: number) => void;
         setActiveScreen: (screen: 'bank' | 'zep' | 'chat') => void;
         setModal: (modal: GameState['modal']) => void;
-        setSelectedLoanSize: (size: number) => void;
-        confirmLoan: (loanSize?: number) => void;
+        confirmLoan: (loanSize: number) => void;
         confirmPay: () => void;
         openSellModal: (packId: number) => void;
         sellDebtPack: (packId: number, offerValue: number) => void;
         respondToBag: (accept: boolean) => void;
         chat: (contactId: string) => void;
-        buyCpf: (isTut: boolean, qtd: number) => void;
-        addMessage: (text: string, me: boolean) => void;
         advanceTutorial: () => void;
         dismissNewMessagePopup: () => void;
         chooseDialogueOption: (optionId: string) => void;
         gameOver: (reason: string, detail: string) => void;
         restartGame: () => void;
-        addIncomingMessage: (contactId: string, text: string) => void;
     };
 };
 
@@ -97,8 +98,6 @@ const initialState: GameState = {
     nextBagDay: 2,
     isPaused: true,
     tutStep: 0,
-    selectedLoanSize: 10,
-    incomingEvent: null,
     activeScreen: 'bank',
     modal: 'none',
     currentChat: null,
@@ -107,7 +106,6 @@ const initialState: GameState = {
     showNewMessagePopup: false,
     cpfsBoughtFromHacker: 0,
     hasUnlocked50Pack: false,
-    chatMode: null,
     unlockedDialogueOptions: [],
     isGameOver: false,
     gameOverReason: '',
@@ -132,24 +130,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
             set({ ...initialState });
         },
 
-        addIncomingMessage: (contactId, text) => {
-            set(s => ({
-                chatHistory: {
-                    ...s.chatHistory,
-                    [contactId]: [
-                        ...(s.chatHistory[contactId] || []),
-                        { id: Date.now().toString(), text, me: false },
-                    ],
-                },
-                unreadCounts: {
-                    ...s.unreadCounts,
-                    [contactId]: (s.unreadCounts[contactId] || 0) + 1,
-                },
-                showNewMessagePopup: true,
-            }));
-            setTimeout(() => set({ showNewMessagePopup: false }), 3000);
-        },
-
         tick: () => {
             if (get().isPaused || get().isGameOver) return;
 
@@ -161,8 +141,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
             // ── Bag spawn ──
             if (state.day >= state.nextBagDay && !state.hasPendingBag) {
                 const amount = lvl.bagSize;
-                const fmtM = (n: number) =>
-                    n >= 1_000_000 ? (n / 1_000_000).toFixed(1) + 'M' : (n / 1_000).toFixed(0) + 'k';
                 const offerMsg = {
                     id: Date.now().toString(),
                     text: `Tenho R$${fmtM(amount)} pra lavar. Posso mandar agora?`,
@@ -259,11 +237,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
         receiveBag: (amount) => {
             const due = amount * 0.7;
             const newBatch: Batch = { id: Date.now(), due, days: 90 };
-            const fmtM = (n: number) => {
-                if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
-                if (n >= 1_000) return (n / 1_000).toFixed(0) + 'k';
-                return String(Math.floor(n));
-            };
             const transferMsg = `Malote de ${fmtM(amount)} depositado. Movimenta isso logo.`;
 
             set(s => ({
@@ -297,13 +270,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
             set({ modal, isPaused: modal !== 'none' });
         },
 
-        setSelectedLoanSize: (size) => {
-            set({ selectedLoanSize: size });
-        },
-
-        confirmLoan: (loanSize?: number) => {
-            const { dirty, cpfs, selectedLoanSize, levelIdx, day, tutStep } = get();
-            const size = loanSize || selectedLoanSize;
+        confirmLoan: (loanSize: number) => {
+            const { dirty, cpfs, levelIdx, day, tutStep } = get();
+            const size = loanSize;
             const cost = size * 5000;
 
             if (dirty < cost || cpfs < size) return;
@@ -369,8 +338,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
         respondToBag: (accept: boolean) => {
             const { pendingBagAmount } = get();
             const now = Date.now();
-            const fmtM = (n: number) =>
-                n >= 1_000_000 ? (n / 1_000_000).toFixed(1) + 'M' : (n / 1_000).toFixed(0) + 'k';
 
             if (accept) {
                 const due = Math.floor(pendingBagAmount * 0.7);
@@ -465,44 +432,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             set(s => ({
                 activeScreen: 'chat',
                 currentChat: contactId,
-                chatMode: 'outgoing',
                 unreadCounts: { ...s.unreadCounts, [contactId]: 0 },
-            }));
-        },
-
-        buyCpf: (isTut, qtd) => {
-            const { tutStep, actions } = get();
-            if (tutStep === 4) actions.advanceTutorial();
-
-            const cost = isTut ? 100000 : qtd * 5000;
-            const amount = isTut ? 50 : qtd;
-            const { addMessage } = get().actions;
-
-            if (get().dirty >= cost) {
-                set(s => ({
-                    dirty: s.dirty - cost,
-                    cpfs: s.cpfs + amount,
-                }));
-                const { SYSTEM_MESSAGES } = require('../constants/dialogues');
-                addMessage(SYSTEM_MESSAGES.transferring, true);
-                setTimeout(() => {
-                    addMessage(SYSTEM_MESSAGES.done, false);
-                }, 500);
-            } else {
-                const { SYSTEM_MESSAGES } = require('../constants/dialogues');
-                addMessage(SYSTEM_MESSAGES.insufficientFunds, true);
-            }
-        },
-
-        addMessage: (text, me) => {
-            const { currentChat } = get();
-            if (!currentChat) return;
-            const newMessage = { id: Date.now().toString(), text, me };
-            set(s => ({
-                chatHistory: {
-                    ...s.chatHistory,
-                    [currentChat]: [...(s.chatHistory[currentChat] || []), newMessage],
-                },
             }));
         },
 
@@ -512,7 +442,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
         chooseDialogueOption: (optionId: string) => {
             const state = get();
-            const { DIALOGUES } = require('../constants/dialogues');
             const dialogue = DIALOGUES[state.currentChat!];
 
             if (!dialogue) return;

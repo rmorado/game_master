@@ -118,15 +118,6 @@ export const UI_LOAN_CINEMATIC = {
     successSubtitle: "Pacote de dívida pronto para venda",
 };
 
-// UI Labels - Loan Modal (legacy)
-export const UI_LOAN_MODAL = {
-    title: "SELECIONE O LOTE",
-    labelIds: "IDs",
-    labelDirtyCost: (amount: number) => `${amount}k Sujo`,
-    btnConfirm: "LAVAR DINHEIRO",
-    btnCancel: "Cancelar",
-};
-
 // UI Labels - Pay Modal
 export const UI_PAY_MODAL = {
     title: "PAGAR PCC",
@@ -155,7 +146,6 @@ export const CHARACTERS = {
 
         // Story introduction
         intro: "Tô mandando o malote. Não me decepcione.",
-        unlockTrigger: (gameState: any) => gameState.day >= 0, // Always available
 
         // Chat dialogues
         greeting: "Tem trabalho pra fazer.",
@@ -169,17 +159,9 @@ export const CHARACTERS = {
 
         // Story introduction
         intro: "Pacotes de CPFs disponíveis.",
-        unlockTrigger: (gameState: any) => gameState.day > 1,
 
         // Chat dialogues
         greeting: "Tenho pacotes novos.",
-
-        // Actions/offers (displayed as buttons)
-        offers: [
-            { qty: 10, cost: 50000, label: "10 CPFs (-50k)", minLevel: 0 },
-            { qty: 50, cost: 250000, label: "50 CPFs (-250k)", minLevel: 1 },
-            { qty: 100, cost: 500000, label: "100 CPFs (-500k)", minLevel: 2 },
-        ],
     },
 
     // Lawyer - Fixes legal problems
@@ -190,7 +172,6 @@ export const CHARACTERS = {
 
         // Story introduction
         intro: "Problemas com a justiça? Eu resolvo. Tenho os contatos certos.",
-        unlockTrigger: (gameState: any) => false, // Unlocked via scripted event
 
         // Chat dialogues
         greeting: "Como posso ajudar?",
@@ -204,7 +185,6 @@ export const CHARACTERS = {
 
         // Story introduction
         intro: "Doutor, percebi uma movimentação atípica. Vamos conversar antes que o MP perceba?",
-        unlockTrigger: (gameState: any) => false, // Unlocked via scripted event
 
         // Chat dialogues
         greeting: "Como posso ajudar?",
@@ -218,7 +198,6 @@ export const CHARACTERS = {
 
         // Story introduction
         intro: "Opa, companheiro. Eleição chegando. Preciso de 'apoio logístico'.",
-        unlockTrigger: (gameState: any) => false, // Unlocked via scripted event
 
         // Chat dialogues
         greeting: "Preciso de doações para a campanha.",
@@ -325,13 +304,6 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                         i === 0 ? { ...b, days: b.days + 30 } : b
                     ),
                 }),
-            },
-            {
-                id: 'judge_offer_2',
-                text: '[PLACEHOLDER — designer fills in]',
-                condition: (state: GameState) =>
-                    state.unlockedDialogueOptions.includes('judge_offer_2'),
-                response: '[PLACEHOLDER]',
             },
         ],
     },
@@ -449,15 +421,3 @@ export const getCharacter = (characterId: string) => {
     return CHARACTERS[characterId as keyof typeof CHARACTERS];
 };
 
-// Get all character introductions in story format
-export const getStoryEvents = () => {
-    return Object.values(CHARACTERS).map(char => ({
-        id: `meet_${char.id}`,
-        trigger: char.unlockTrigger,
-        contact: char.id,
-        name: char.name,
-        avatar: char.avatar,
-        intro: char.intro,
-        unlock: char.id === 'hacker' || char.id === 'lawyer',
-    }));
-};

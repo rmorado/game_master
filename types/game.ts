@@ -6,7 +6,6 @@ export interface Level {
     goal: number | null;   // null = O Mestre survival mode
     bagSize: number;
     bagInterval: number;
-    maxBatch: number;
     suspRate: number;
 }
 
@@ -50,8 +49,6 @@ export interface GameState {
     nextBagDay: number;
     isPaused: boolean;
     tutStep: number;
-    selectedLoanSize: number;
-    incomingEvent: any | null;
     activeScreen: 'bank' | 'zep' | 'chat';
     modal: ModalType;
     currentChat: string | null;
@@ -67,7 +64,6 @@ export interface GameState {
     // Dialogue system state
     cpfsBoughtFromHacker: number;
     hasUnlocked50Pack: boolean;
-    chatMode: 'incoming' | 'outgoing' | null;
     unlockedDialogueOptions: string[];
     // Game over state
     isGameOver: boolean;
@@ -80,7 +76,6 @@ export interface Message {
     id: string;
     text: string;
     me: boolean;
-    unread?: boolean;
 }
 
 export interface Batch {
@@ -117,5 +112,4 @@ export interface DialogueOption {
 export interface CharacterDialogue {
     characterId: string;
     outgoingOptions: DialogueOption[];
-    incomingOptions?: DialogueOption[];
 }

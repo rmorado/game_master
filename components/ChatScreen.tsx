@@ -6,7 +6,7 @@ import { getCharacter, DIALOGUES } from '../constants/dialogues';
 
 export function ChatScreen() {
     const state = useGameStore(s => s);
-    const { actions, chatHistory, currentChat, levelIdx, tutStep, cpfsBoughtFromHacker, hasUnlocked50Pack, hasPendingBag, hasUsedNotNow } = state;
+    const { actions, chatHistory, currentChat, tutStep, hasPendingBag, hasUsedNotNow } = state;
     const flatListRef = useRef<FlatList>(null);
 
     const goBack = () => {
