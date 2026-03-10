@@ -79,7 +79,7 @@ type GameStore = GameState & {
 
 const initialState: GameState = {
     day: 1,
-    dirty: 500000,
+    dirty: 5000000,
     clean: 0,
     cpfs: 0,
     suspicion: 0,
@@ -93,7 +93,7 @@ const initialState: GameState = {
     hasUsedNotNow: false,
     levelIdx: 0,
     totalWashed: 0,
-    contacts: { drugdealer: true, hacker: true, judge: false, deputy: false, lawyer: false },
+    contacts: { drugdealer: true, hacker: true, judge: false, deputy: false, lawyer: false, anonimo: false },
     eventsTriggered: [],
     nextBagDay: 2,
     isPaused: true,
@@ -107,6 +107,9 @@ const initialState: GameState = {
     cpfsBoughtFromHacker: 0,
     hasUnlocked50Pack: false,
     unlockedDialogueOptions: [],
+    hasFirstSoldPack: false,
+    hasFirstPaidDebt: false,
+    hasRespondedToBlackmail: false,
     isGameOver: false,
     gameOverReason: '',
     gameOverDetail: '',
@@ -330,6 +333,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 isPaused: false,
                 currentSellPackId: null,
                 bankOffers: [],
+                hasFirstSoldPack: true,
             }));
 
             if (tutStep === 7) actions.advanceTutorial();
@@ -420,6 +424,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 clean: s.clean - amount,
                 batches: newBatches,
                 pressure: Math.max(0, s.pressure - 10),
+                hasFirstPaidDebt: true,
             }));
 
             get().actions.setModal('none');
@@ -476,7 +481,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             }));
 
             const { tutStep, actions } = get();
-            if (tutStep === 4 && optionId === 'buy_10_cpfs') {
+            if (tutStep === 4 && optionId === 'buy_100_cpfs') {
                 actions.advanceTutorial();
             }
         },

@@ -44,6 +44,7 @@ export interface GameState {
         judge: boolean;
         deputy: boolean;
         lawyer: boolean;
+        anonimo: boolean;
     };
     eventsTriggered: string[];
     nextBagDay: number;
@@ -65,6 +66,10 @@ export interface GameState {
     cpfsBoughtFromHacker: number;
     hasUnlocked50Pack: boolean;
     unlockedDialogueOptions: string[];
+    // Blackmail event state
+    hasFirstSoldPack: boolean;
+    hasFirstPaidDebt: boolean;
+    hasRespondedToBlackmail: boolean;
     // Game over state
     isGameOver: boolean;
     gameOverReason: string;

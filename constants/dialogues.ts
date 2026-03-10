@@ -21,49 +21,49 @@ const fmt = (n: number) => {
 export const TUTORIAL = [
     {
         id: 0,
-        text: "Bem vindo, Vacaro. Você lava dinheiro para o PCC. Vamos ver quanto você consegue limpar.",
+        text: "Bem-vindo, Vacaro. Você lava dinheiro pro PCC — eles mandam o sujo, você devolve o limpo.",
         target: null,
         screen: 'bank'
     },
     {
         id: 1,
-        text: "O processo é simples. Criamos empréstimos falsos e vendemos a dívida para outros bancos. Devolvemos esse dinheiro para o PCC e tiramos um pouco para nós. Só um pouco.",
-        target: 'dirty_display',
+        text: "O esquema: empréstimos falsos em nome de CPFs reais, vendidos como dívida pra outros bancos.",
+        target: null,
         screen: 'bank'
     },
     {
         id: 2,
-        text: "Primeiro vamos pegar uns CPFs reais, essas pessoas nunca vão saber que estão endividadas. Claro, nós pagamos tudo.",
+        text: "Precisamos de CPFs. Entre no Zep.",
         target: 'nav_zep',
         screen: 'bank'
     },
     {
         id: 3,
-        text: "Este é o Hacker. Ele consegue pacotes de identidades.",
+        text: "Esse é o Hacker. Ele vende pacotes de identidades.",
         target: 'contact_hacker',
         screen: 'zep'
     },
     {
         id: 4,
-        text: "Compre 10 CPFs para criar empréstimos em nome dessas pessoas.",
-        target: 'btn_buy_10',
+        text: "Compre 100 CPFs.",
+        target: 'btn_buy_100',
         screen: 'chat'
     },
     {
         id: 5,
-        text: "Ótimo. Agora volte ao Banco para usar esses CPFs.",
+        text: "Feito. Volte ao Banco.",
         target: 'btn_back',
         screen: 'chat'
     },
     {
         id: 6,
-        text: "Use CRIAR PACOTE para realizar os pedidos de empréstimos e criar o pacote de dívida.",
+        text: "Use CRIAR PACOTE para gerar o derivativo de dívida.",
         target: 'btn_loan',
         screen: 'bank'
     },
     {
         id: 7,
-        text: "Pacote criado! Agora use VENDER DÍVIDA para vendê-lo a um banco e receber dinheiro limpo.",
+        text: "Pacote pronto! Agora use VENDER DÍVIDA para receber o dinheiro limpo.",
         target: 'btn_sell',
         screen: 'bank'
     },
@@ -78,11 +78,11 @@ export const BANKS = [
 
 // UI Labels - Bank Screen
 export const UI_BANK = {
-    btnCreateLoan: "📦 CRIAR PACOTE",
+    btnCreateLoan: "📦 CRIAR EMPRÉSTIMOS",
     btnSellPack:   "💰 VENDER DÍVIDA",
     btnPayDebt:    "💸 PAGAR",
-    packSection:   "PACOTES PRONTOS",
-    packEmpty:     "Nenhum pacote. Crie um empréstimo.",
+    packSection:   "DERIVATIVOS PRONTOS",
+    packEmpty:     "Nenhum derivativo. Crie um empréstimo.",
     debtSection:   "DÍVIDAS A PAGAR",
     debtEmpty:     "Sem dívidas pendentes.",
 };
@@ -141,11 +141,11 @@ export const CHARACTERS = {
     // Drug Dealer - Sends dirty money
     drugdealer: {
         id: "drugdealer",
-        name: "Patrão",
+        name: "PCC",
         avatar: require('../assets/images/characters/drugdealer.jpg'),
 
         // Story introduction
-        intro: "Tô mandando o malote. Não me decepcione.",
+        intro: "Mandando dinheiro. Não me decepcione.",
 
         // Chat dialogues
         greeting: "Tem trabalho pra fazer.",
@@ -190,6 +190,17 @@ export const CHARACTERS = {
         greeting: "Como posso ajudar?",
     },
 
+    // Anonymous blackmailer
+    anonimo: {
+        id: "anonimo",
+        name: "Número Desconhecido",
+        avatar: require('../assets/images/characters/drugdealer.jpg'),
+
+        intro: "eu sei o que você está fazendo.",
+
+        greeting: "...",
+    },
+
     // Deputy - Political corruption
     deputy: {
         id: "deputy",
@@ -211,18 +222,52 @@ export const CHARACTERS = {
 const LAWYER_COSTS = [50000, 150000, 400000, 1000000];
 
 export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
+    anonimo: {
+        characterId: 'anonimo',
+        outgoingOptions: [
+            {
+                id: 'blackmail_pay',
+                text: 'PAGAR (R$300.000 sujo)',
+                condition: (state: GameState) =>
+                    !state.hasRespondedToBlackmail && state.dirty >= 300000,
+                response: 'Sábio. Obrigado pela cooperação.',
+                action: (state: GameState) => ({
+                    dirty: state.dirty - 300000,
+                    hasRespondedToBlackmail: true,
+                    unlockedDialogueOptions: [
+                        ...state.unlockedDialogueOptions,
+                        'investigate_bitcoin',
+                    ],
+                }),
+            },
+            {
+                id: 'blackmail_ignore',
+                text: 'IGNORAR',
+                condition: (state: GameState) => !state.hasRespondedToBlackmail,
+                response: 'Você vai se arrepender.',
+                action: (state: GameState) => ({
+                    hasRespondedToBlackmail: true,
+                    unlockedDialogueOptions: [
+                        ...state.unlockedDialogueOptions,
+                        'investigate_bitcoin',
+                    ],
+                }),
+            },
+        ],
+    },
+
     hacker: {
         characterId: 'hacker',
 
         outgoingOptions: [
             {
-                id: 'buy_10_cpfs',
-                text: 'Comprar 10 CPFs (50,000)',
+                id: 'buy_100_cpfs',
+                text: 'Comprar 100 CPFs (500,000)',
                 response: 'Feito. Transferindo agora.',
                 action: (state: GameState) => ({
-                    dirty: state.dirty - 50000,
-                    cpfs: state.cpfs + 10,
-                    cpfsBoughtFromHacker: (state.cpfsBoughtFromHacker || 0) + 10
+                    dirty: state.dirty - 500000,
+                    cpfs: state.cpfs + 100,
+                    cpfsBoughtFromHacker: (state.cpfsBoughtFromHacker || 0) + 100
                 })
             },
 
@@ -232,14 +277,14 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                 condition: (state: GameState) => !state.hasUnlocked50Pack,
                 response: (state: GameState) => {
                     const bought = state.cpfsBoughtFromHacker || 0;
-                    if (bought >= 50) {
-                        return 'Ok. Posso vender 50 com um desconto.';
+                    if (bought >= 500) {
+                        return 'Ok. Posso vender 500 com um desconto.';
                     }
                     return "É o que té tendo. Não vai dar não.";
                 },
                 action: (state: GameState) => {
                     const bought = state.cpfsBoughtFromHacker || 0;
-                    if (bought >= 50) {
+                    if (bought >= 500) {
                         return { hasUnlocked50Pack: true };
                     }
                     return {};
@@ -247,15 +292,23 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
             },
 
             {
-                id: 'buy_50_cpfs',
-                text: 'Comprar 50 CPFs (200,000)',
+                id: 'buy_500_cpfs',
+                text: 'Comprar 500 CPFs (2,000,000)',
                 condition: (state: GameState) => state.hasUnlocked50Pack === true,
                 response: 'Negócio fechado. Mandando os pacotes.',
                 action: (state: GameState) => ({
-                    dirty: state.dirty - 200000,
-                    cpfs: state.cpfs + 50,
-                    cpfsBoughtFromHacker: (state.cpfsBoughtFromHacker || 0) + 50
+                    dirty: state.dirty - 2000000,
+                    cpfs: state.cpfs + 500,
+                    cpfsBoughtFromHacker: (state.cpfsBoughtFromHacker || 0) + 500
                 })
+            },
+
+            {
+                id: 'investigate_bitcoin',
+                text: 'Investigar endereço Bitcoin',
+                condition: (state: GameState) =>
+                    state.unlockedDialogueOptions.includes('investigate_bitcoin'),
+                response: 'Vou rastrear. Isso leva tempo — te aviso.',
             }
         ]
     },
@@ -336,6 +389,23 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
 // ============================================================================
 
 export const SCRIPTED_EVENTS: ScriptedEvent[] = [
+    // ── Blackmail event ──
+    {
+        id: 'blackmail_intro',
+        trigger: (s) => s.hasFirstSoldPack && s.hasFirstPaidDebt,
+        payload: {
+            type: 'multi',
+            payloads: [
+                { type: 'unlock_contact', contactId: 'anonimo' },
+                {
+                    type: 'incoming_message',
+                    contactId: 'anonimo',
+                    text: 'eu sei o que você está fazendo. meu silencio custa 1 Bitcoin. mandar para: bc1q9x8yflhp5t4k0d3e2w7n6m1c8v0a4s3g7j2r5',
+                },
+            ],
+        },
+    },
+
     // ── Contact unlocks ──
     {
         id: 'unlock_lawyer',

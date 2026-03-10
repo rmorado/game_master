@@ -29,7 +29,7 @@ export function ChatScreen() {
 
     // Tutorial logic
     const isTutorial = tutStep < 8;
-    const shouldHighlightBuy10 = tutStep === 4;
+    const shouldHighlightBuy100 = tutStep === 4;
     const shouldHighlightBack = tutStep === 5;
 
     const renderActions = () => {
@@ -68,7 +68,7 @@ export function ChatScreen() {
         return (
             <>
                 {availableOptions.map(option => {
-                    const isHighlighted = shouldHighlightBuy10 && option.id === 'buy_10_cpfs';
+                    const isHighlighted = shouldHighlightBuy100 && option.id === 'buy_100_cpfs';
                     const isDisabled = isTutorial && !isHighlighted;
                     return (
                         <TouchableOpacity
