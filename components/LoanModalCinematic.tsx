@@ -13,6 +13,7 @@ import Slider from '@react-native-community/slider';
 import { useGameStore } from '../hooks/use-game-store';
 import { LEVELS } from '../constants/game-data';
 import { UI_LOAN_CINEMATIC } from '../constants/dialogues';
+import { formatMoney } from '../utils/format';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -26,10 +27,6 @@ const generateFakeCPF = () => {
   const part3 = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
   const part4 = Math.floor(Math.random() * 100).toString().padStart(2, '0');
   return `${part1}.${part2}.${part3}-${part4}`;
-};
-
-const formatMoney = (value: number) => {
-  return Math.floor(value).toLocaleString('pt-BR');
 };
 
 // ============================================================================

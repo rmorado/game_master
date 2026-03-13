@@ -31,8 +31,7 @@ export function NavBar() {
             <TouchableOpacity
                 style={[
                     styles.navItem,
-                    activeScreen === 'bank' && styles.active,
-                    shouldHighlightBank && styles.highlighted,
+                                        shouldHighlightBank && styles.highlighted,
                     shouldDisableBanco && styles.disabled
                 ]}
                 onPress={() => setScreen('bank')}
@@ -44,8 +43,7 @@ export function NavBar() {
             <TouchableOpacity
                 style={[
                     styles.navItem,
-                    activeScreen === 'zep' && styles.active,
-                    shouldHighlightZep && styles.highlighted,
+                                        shouldHighlightZep && styles.highlighted,
                     shouldDisableZep && styles.disabled
                 ]}
                 onPress={() => setScreen('zep')}
@@ -78,9 +76,6 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-    },
-    active: {
-        // Special style for active tab if needed
     },
     navIcon: {
         fontSize: 22,

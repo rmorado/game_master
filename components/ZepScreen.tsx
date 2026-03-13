@@ -26,28 +26,12 @@ export function ZepScreen() {
         .map(([key]) => {
             const character = getCharacter(key);
             if (!character) return null;
-
-            // Map character to contact display format
-            const subtitles: Record<string, string> = {
-                hacker: 'Venda de Dados',
-                lawyer: 'Advogado',
-                judge: 'Jurídico',
-                deputy: 'Campanha'
-            };
-
-            const borderColors: Record<string, string> = {
-                hacker: '#0f0',
-                lawyer: '#ff4500',
-                judge: 'gold',
-                deputy: 'cyan'
-            };
-
             return {
                 id: character.id,
                 name: character.name,
-                sub: subtitles[key] || 'Contato',
+                sub: (character as any).sub || 'Contato',
                 avatar: character.avatar,
-                border: borderColors[key] || '#666'
+                border: (character as any).borderColor || '#666',
             };
         }).filter(Boolean);
 

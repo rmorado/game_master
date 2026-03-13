@@ -7,12 +7,7 @@ import { Gauge } from './Gauge';
 import { LEVELS } from '../constants/game-data';
 import { UI_BANK } from '../constants/dialogues';
 import { DebtPack, Batch } from '../types/game';
-
-const formatMoney = (n: number) => {
-    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
-    if (n >= 1000) return (n / 1000).toFixed(0) + 'k';
-    return Math.floor(n).toString();
-};
+import { formatMoney } from '../utils/format';
 
 // ─── Pack inventory card ───────────────────────────────────────────────────────
 interface PackCardProps {

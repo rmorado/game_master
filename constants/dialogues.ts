@@ -2,16 +2,7 @@
 // Centralized dialogue and text content for O Mestre
 
 import { CharacterDialogue, GameState, ScriptedEvent } from '../types/game';
-
-// ============================================================================
-// HELPERS
-// ============================================================================
-
-const fmt = (n: number) => {
-    if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-    if (n >= 1_000) return `${(n / 1_000).toFixed(0)}k`;
-    return String(Math.floor(n));
-};
+import { formatMoney as fmt } from '../utils/format';
 
 // ============================================================================
 // SYSTEM MESSAGES
@@ -142,62 +133,50 @@ export const CHARACTERS = {
     drugdealer: {
         id: "drugdealer",
         name: "PCC",
+        sub: "Organização",
+        borderColor: "#D4AF37",
         avatar: require('../assets/images/characters/drugdealer.jpg'),
-
-        // Story introduction
         intro: "Mandando dinheiro. Não me decepcione.",
-
-        // Chat dialogues
         greeting: "Tem trabalho pra fazer.",
     },
 
-    // Hacker - CPF provider
     hacker: {
         id: "hacker",
         name: "H4CK3R",
+        sub: "Venda de Dados",
+        borderColor: "#0f0",
         avatar: require('../assets/images/characters/hacker.jpg'),
-
-        // Story introduction
         intro: "Pacotes de CPFs disponíveis.",
-
-        // Chat dialogues
         greeting: "Tenho pacotes novos.",
     },
 
-    // Lawyer - Fixes legal problems
     lawyer: {
         id: "lawyer",
         name: "Dr. Saul",
+        sub: "Advogado",
+        borderColor: "#ff4500",
         avatar: require('../assets/images/characters/drugdealer.jpg'),
-
-        // Story introduction
         intro: "Problemas com a justiça? Eu resolvo. Tenho os contatos certos.",
-
-        // Chat dialogues
         greeting: "Como posso ajudar?",
     },
 
-    // Judge - Unlocked via Lawyer
     judge: {
         id: "judge",
         name: "Dr. Gilmar",
+        sub: "Jurídico",
+        borderColor: "gold",
         avatar: require('../assets/images/characters/juiz.jpg'),
-
-        // Story introduction
         intro: "Doutor, percebi uma movimentação atípica. Vamos conversar antes que o MP perceba?",
-
-        // Chat dialogues
         greeting: "Como posso ajudar?",
     },
 
-    // Anonymous blackmailer
     anonimo: {
         id: "anonimo",
         name: "Número Desconhecido",
+        sub: "Desconhecido",
+        borderColor: "#666",
         avatar: require('../assets/images/characters/drugdealer.jpg'),
-
         intro: "eu sei o que você está fazendo.",
-
         greeting: "...",
     },
 
@@ -205,12 +184,10 @@ export const CHARACTERS = {
     deputy: {
         id: "deputy",
         name: "Dep. Motta",
+        sub: "Campanha",
+        borderColor: "cyan",
         avatar: require('../assets/images/characters/deputado.jpg'),
-
-        // Story introduction
         intro: "Opa, companheiro. Eleição chegando. Preciso de 'apoio logístico'.",
-
-        // Chat dialogues
         greeting: "Preciso de doações para a campanha.",
     },
 };

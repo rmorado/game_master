@@ -3,12 +3,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { useGameStore } from '../hooks/use-game-store';
 import { UI_PAY_MODAL } from '../constants/dialogues';
-
-const formatMoney = (n: number) => {
-    if(n >= 1000000) return (n/1000000).toFixed(1) + "M";
-    if(n >= 1000) return (n/1000).toFixed(0) + "k";
-    return String(Math.floor(n));
-}
+import { formatMoney } from '../utils/format';
 
 export function PayModal() {
     const { clean, batches, actions, modal } = useGameStore(state => state);

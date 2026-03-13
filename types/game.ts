@@ -104,7 +104,7 @@ export interface BankOffer {
     offerValue: number;
 }
 
-export type ModalType = 'none' | 'loan' | 'pay' | 'msg' | 'sell';
+export type ModalType = 'none' | 'loan' | 'pay' | 'sell';
 
 // Dialogue system types
 export interface DialogueOption {

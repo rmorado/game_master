@@ -11,12 +11,7 @@ import {
 } from 'react-native';
 import { useGameStore } from '../hooks/use-game-store';
 import { UI_SELL } from '../constants/dialogues';
-
-const formatMoney = (n: number) => {
-    if (n >= 1000000) return 'R$ ' + (n / 1000000).toFixed(2) + 'M';
-    if (n >= 1000) return 'R$ ' + (n / 1000).toFixed(0) + 'k';
-    return 'R$ ' + Math.floor(n).toLocaleString('pt-BR');
-};
+import { formatMoney } from '../utils/format';
 
 interface BankCardProps {
     bankName: string;
@@ -59,7 +54,7 @@ const BankCard = ({ bankName, discountRate, offerValue, onAccept, isSelected, in
             </View>
             <View style={styles.bankCardBody}>
                 <Text style={styles.offerLabel}>Oferta</Text>
-                <Text style={styles.offerValue}>{formatMoney(offerValue)}</Text>
+                <Text style={styles.offerValue}>R$ {formatMoney(offerValue)}</Text>
             </View>
             <TouchableOpacity style={styles.acceptBtn} onPress={onAccept}>
                 <Text style={styles.acceptBtnText}>{UI_SELL.accept}</Text>
@@ -135,7 +130,7 @@ export function SellDebtModal() {
 
                             <View style={styles.packInfo}>
                                 <Text style={styles.packInfoLabel}>{UI_SELL.faceValue}</Text>
-                                <Text style={styles.packInfoValue}>{formatMoney(pack!.value)}</Text>
+                                <Text style={styles.packInfoValue}>R$ {formatMoney(pack!.value)}</Text>
                             </View>
 
                             <ScrollView showsVerticalScrollIndicator={false} style={styles.bankList}>

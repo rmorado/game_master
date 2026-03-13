@@ -3,11 +3,9 @@ import { create } from 'zustand';
 import { GameState, Batch, DebtPack, BankOffer, EventPayload } from '../types/game';
 import { LEVELS } from '../constants/game-data';
 import { BANKS, SCRIPTED_EVENTS, DIALOGUES } from '../constants/dialogues';
+import { formatMoney } from '../utils/format';
 
-// ─── Module-level helpers ─────────────────────────────────────────────────────
-
-const fmtM = (n: number) =>
-    n >= 1_000_000 ? (n / 1_000_000).toFixed(1) + 'M' : (n / 1_000).toFixed(0) + 'k';
+const MSG_POPUP_DURATION = 3000;
 
 // ─── fireEvent helper ────────────────────────────────────────────────────────
 
@@ -37,7 +35,7 @@ function fireEvent(
                 },
                 showNewMessagePopup: true,
             }));
-            setTimeout(() => set({ showNewMessagePopup: false }), 3000);
+            setTimeout(() => set({ showNewMessagePopup: false }), MSG_POPUP_DURATION);
             break;
         case 'unlock_dialogue_option':
             set(s => ({
@@ -147,7 +145,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 const amount = lvl.bagSize;
                 const offerMsg = {
                     id: Date.now().toString(),
-                    text: `Tenho R$${fmtM(amount)} pra lavar. Posso mandar agora?`,
+                    text: `Tenho R$${formatMoney(amount)} pra lavar. Posso mandar agora?`,
                     me: false,
                 };
                 set(s => ({
@@ -164,7 +162,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                         drugdealer: (s.unreadCounts.drugdealer || 0) + 1,
                     },
                 }));
-                setTimeout(() => set({ showNewMessagePopup: false }), 3000);
+                setTimeout(() => set({ showNewMessagePopup: false }), MSG_POPUP_DURATION);
             }
 
             // ── Debt countdown + default ──
@@ -241,7 +239,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         receiveBag: (amount) => {
             const due = amount * 0.7;
             const newBatch: Batch = { id: Date.now(), due, days: 90 };
-            const transferMsg = `Malote de ${fmtM(amount)} depositado. Movimenta isso logo.`;
+            const transferMsg = `Malote de ${formatMoney(amount)} depositado. Movimenta isso logo.`;
 
             set(s => ({
                 dirty: s.dirty + amount,
@@ -260,7 +258,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 },
             }));
 
-            setTimeout(() => set({ showNewMessagePopup: false }), 3000);
+            setTimeout(() => set({ showNewMessagePopup: false }), MSG_POPUP_DURATION);
         },
 
         setActiveScreen: (screen) => {
@@ -282,11 +280,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
             if (dirty < cost || cpfs < size) return;
 
             const lvl = LEVELS[levelIdx];
+            const packId = Date.now();
             const newPack: DebtPack = {
-                id: Date.now(),
+                id: packId,
                 value: cost,
                 cpfsUsed: size,
                 dayCreated: day,
+            };
+            const newBatch: Batch = {
+                id: packId + 1,
+                due: Math.floor(cost * 0.7),
+                days: 90,
             };
 
             set(s => ({
@@ -294,6 +298,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 cpfs: s.cpfs - size,
                 suspicion: s.suspicion + size * lvl.suspRate,
                 debtPacks: [...s.debtPacks, newPack],
+                batches: [...s.batches, newBatch],
             }));
 
             if (tutStep === 6) get().actions.advanceTutorial();
@@ -366,7 +371,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                                 ...(s.chatHistory.drugdealer || []),
                                 {
                                     id: (Date.now() + 1).toString(),
-                                    text: `Feito. R$${fmtM(pendingBagAmount)} mandados. Movimenta isso logo.`,
+                                    text: `Feito. R$${formatMoney(pendingBagAmount)} mandados. Movimenta isso logo.`,
                                     me: false,
                                 },
                             ],
