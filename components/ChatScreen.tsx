@@ -6,7 +6,7 @@ import { getCharacter, DIALOGUES } from '../constants/dialogues';
 
 export function ChatScreen() {
     const state = useGameStore(s => s);
-    const { actions, chatHistory, currentChat, tutStep, hasPendingBag, hasUsedNotNow } = state;
+    const { actions, chatHistory, currentChat, tutStep, hasPendingBag, hasUsedNotNow, isTyping } = state;
     const flatListRef = useRef<FlatList>(null);
 
     const goBack = () => {
@@ -25,7 +25,7 @@ export function ChatScreen() {
                 flatListRef.current?.scrollToEnd({ animated: true });
             }, 100);
         }
-    }, [displayMessages]);
+    }, [displayMessages, isTyping]);
 
     // Tutorial logic
     const isTutorial = tutStep < 8;
@@ -115,6 +115,11 @@ export function ChatScreen() {
                         <Text style={styles.bubbleText}>{item.text}</Text>
                     </View>
                 )}
+                ListFooterComponent={isTyping ? (
+                    <View style={styles.bubble}>
+                        <Text style={styles.bubbleText}>...</Text>
+                    </View>
+                ) : null}
             />
             <View style={styles.chatActions}>
                 {renderActions()}

@@ -70,6 +70,8 @@ export interface GameState {
     hasFirstSoldPack: boolean;
     hasFirstPaidDebt: boolean;
     hasRespondedToBlackmail: boolean;
+    // Chat typing indicator
+    isTyping: boolean;
     // Game over state
     isGameOver: boolean;
     gameOverReason: string;

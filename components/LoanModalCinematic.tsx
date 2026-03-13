@@ -152,11 +152,10 @@ const FakeProgressBar = () => {
 interface ValuesDisplayProps {
   cpfCount: number;
   dirtyCost: number;
-  cleanGain: number;
   suspicionRate: number;
 }
 
-const ValuesDisplay = ({ cpfCount, dirtyCost, cleanGain, suspicionRate }: ValuesDisplayProps) => {
+const ValuesDisplay = ({ cpfCount, dirtyCost, suspicionRate }: ValuesDisplayProps) => {
   return (
     <View style={styles.valuesContainer}>
       <Text style={styles.valuesTitle}>{UI_LOAN_CINEMATIC.sectionValues}</Text>
@@ -171,12 +170,7 @@ const ValuesDisplay = ({ cpfCount, dirtyCost, cleanGain, suspicionRate }: Values
             R$ {formatMoney(dirtyCost)}
           </Text>
         </View>
-        <View style={styles.valueRow}>
-          <Text style={styles.valueLabel}>{UI_LOAN_CINEMATIC.labelClean}</Text>
-          <Text style={[styles.valueNumber, { color: '#00ff41' }]}>
-            R$ {formatMoney(cleanGain)}
-          </Text>
-        </View>
+
         <View style={styles.valueRow}>
           <Text style={styles.valueLabel}>{UI_LOAN_CINEMATIC.labelSuspicion}</Text>
           <Text style={[styles.valueNumber, { color: '#ff3b30' }]}>
@@ -291,7 +285,7 @@ export function LoanModalCinematic() {
 
   // Derived calculations
   const dirtyCost = sliderValue * 5000;
-  const cleanGain = sliderValue * 5000;
+
   const suspicionIncrease = sliderValue * currentLevel.suspRate;
 
   // Validation
@@ -356,7 +350,7 @@ export function LoanModalCinematic() {
               <ValuesDisplay
                 cpfCount={sliderValue}
                 dirtyCost={dirtyCost}
-                cleanGain={cleanGain}
+                
                 suspicionRate={suspicionIncrease}
               />
             </>
@@ -370,7 +364,7 @@ export function LoanModalCinematic() {
               <ValuesDisplay
                 cpfCount={sliderValue}
                 dirtyCost={dirtyCost}
-                cleanGain={cleanGain}
+                
                 suspicionRate={suspicionIncrease}
               />
 

@@ -97,6 +97,7 @@ const initialState: GameState = {
     eventsTriggered: [],
     nextBagDay: 2,
     isPaused: true,
+    isTyping: false,
     tutStep: 0,
     activeScreen: 'bank',
     modal: 'none',
@@ -460,30 +461,39 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 ? option.response(state)
                 : option.response;
 
-            const stateChanges = option.action ? option.action(state) : {};
-
-            const newUnlocks = option.unlocks
-                ? [...state.unlockedDialogueOptions, ...option.unlocks]
-                : state.unlockedDialogueOptions;
-
             const currentChat = state.currentChat!;
             set(s => ({
-                ...stateChanges,
-                unlockedDialogueOptions: newUnlocks,
+                ...(option.action ? option.action(s) : {}),
+                unlockedDialogueOptions: option.unlocks
+                    ? [...s.unlockedDialogueOptions, ...option.unlocks]
+                    : s.unlockedDialogueOptions,
+                isTyping: true,
                 chatHistory: {
                     ...s.chatHistory,
                     [currentChat]: [
                         ...(s.chatHistory[currentChat] || []),
                         { id: Date.now().toString(), text: option.text, me: true },
-                        { id: (Date.now() + 1).toString(), text: response, me: false },
                     ],
                 },
             }));
 
-            const { tutStep, actions } = get();
-            if (tutStep === 4 && optionId === 'buy_100_cpfs') {
-                actions.advanceTutorial();
-            }
+            setTimeout(() => {
+                set(s => ({
+                    isTyping: false,
+                    chatHistory: {
+                        ...s.chatHistory,
+                        [currentChat]: [
+                            ...(s.chatHistory[currentChat] || []),
+                            { id: (Date.now() + 1).toString(), text: response, me: false },
+                        ],
+                    },
+                }));
+
+                const { tutStep, actions } = get();
+                if (tutStep === 4 && optionId === 'buy_100_cpfs') {
+                    actions.advanceTutorial();
+                }
+            }, 1000);
         },
     },
 }));
