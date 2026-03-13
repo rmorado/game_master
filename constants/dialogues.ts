@@ -21,7 +21,7 @@ const fmt = (n: number) => {
 export const TUTORIAL = [
     {
         id: 0,
-        text: "Bem-vindo, Vacaro. Você lava dinheiro pro PCC — eles mandam o sujo, você devolve o limpo.",
+        text: "Bem-vindo, Vacaro. Você lava dinheiro pro PCC: eles mandam uma quantia, você devolve pelo menos 60%.",
         target: null,
         screen: 'bank'
     },
@@ -33,13 +33,13 @@ export const TUTORIAL = [
     },
     {
         id: 2,
-        text: "Precisamos de CPFs. Entre no Zep.",
+        text: "Primeiro a gente compra um pacote de CPFs. Entre no Zep.",
         target: 'nav_zep',
         screen: 'bank'
     },
     {
         id: 3,
-        text: "Esse é o Hacker. Ele vende pacotes de identidades.",
+        text: "Este é o Hacker. Ele vende identidades. Laranjas que nem sabem que estão na feira.",
         target: 'contact_hacker',
         screen: 'zep'
     },
@@ -51,13 +51,13 @@ export const TUTORIAL = [
     },
     {
         id: 5,
-        text: "Feito. Volte ao Banco.",
+        text: "Volte ao Banco. Todo mundo aí vai pedir um empréstimo. Logo abaixo do limite pra não ter perguntas do BC.",
         target: 'btn_back',
         screen: 'chat'
     },
     {
         id: 6,
-        text: "Use CRIAR PACOTE para gerar o derivativo de dívida.",
+        text: "Use CRIAR DERIVATIVO para gerar o derivativo de dívida.",
         target: 'btn_loan',
         screen: 'bank'
     },
@@ -78,7 +78,7 @@ export const BANKS = [
 
 // UI Labels - Bank Screen
 export const UI_BANK = {
-    btnCreateLoan: "📦 CRIAR EMPRÉSTIMOS",
+    btnCreateLoan: "📦 CRIAR DERIVATIVO",
     btnSellPack:   "💰 VENDER DÍVIDA",
     btnPayDebt:    "💸 PAGAR",
     packSection:   "DERIVATIVOS PRONTOS",
@@ -102,17 +102,17 @@ export const UI_SELL = {
 
 // UI Labels - Loan Modal (Cinematic)
 export const UI_LOAN_CINEMATIC = {
-    title:           "CRIAR PACOTE DE DÍVIDA",
+    title:           "REQUERIMENTO DE EMPRÉSTIMOS",
     subtitle:        "Selecione a quantidade de CPFs",
     sectionValues:   "📊 VALORES DA OPERAÇÃO",
     labelCpfs:       "CPFs Utilizados:",
-    labelDirty:      "Dinheiro Sujo:",
-    labelClean:      "Dinheiro Limpo:",
+    labelDirty:      "Custo total da dívida:",
+    labelClean:      "Valor de venda total:",
     labelSuspicion:  "Taxa de Suspeita:",
     sectionCpfs:     "💾 CPFs SELECIONADOS",
-    btnConfirm:      "🔒 Criar Derivativo das Dívidas",
+    btnConfirm:      "🔒 CRIAR DÍVIDA CONSOLIDADA",
     btnCancel:       "❌ CANCELAR",
-    processingTitle: "Dívida Consolidada",
+    processingTitle: "Criando Dívida Consolidada",
     processingLabel: "PROCESSANDO...",
     successTitle:    "✅ PRONTO",
     successSubtitle: "Pacote de dívida pronto para venda",
