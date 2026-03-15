@@ -2,10 +2,50 @@
 import { create } from 'zustand';
 import { GameState, Batch, DebtPack, BankOffer, EventPayload } from '../types/game';
 import { LEVELS } from '../constants/game-data';
-import { BANKS, SCRIPTED_EVENTS, DIALOGUES } from '../constants/dialogues';
+import { BANKS, SCRIPTED_EVENTS, DIALOGUES, LEVEL_EVENTS } from '../constants/dialogues';
 import { formatMoney } from '../utils/format';
 
 const MSG_POPUP_DURATION = 3000;
+
+// ─── Timeout tracking (cleared on restart) ──────────────────────────────────
+
+const pendingTimeouts: ReturnType<typeof setTimeout>[] = [];
+
+function trackedTimeout(fn: () => void, ms: number) {
+    const id = setTimeout(() => {
+        const idx = pendingTimeouts.indexOf(id);
+        if (idx !== -1) pendingTimeouts.splice(idx, 1);
+        fn();
+    }, ms);
+    pendingTimeouts.push(id);
+}
+
+// ─── Chat helper ────────────────────────────────────────────────────────────
+
+function appendMsg(
+    state: Pick<GameState, 'chatHistory' | 'unreadCounts'>,
+    contactId: string,
+    text: string,
+    me: boolean,
+    incrementUnread = false,
+): Pick<GameState, 'chatHistory'> & Partial<Pick<GameState, 'unreadCounts'>> {
+    const result: any = {
+        chatHistory: {
+            ...state.chatHistory,
+            [contactId]: [
+                ...(state.chatHistory[contactId] || []),
+                { id: Date.now().toString(), text, me },
+            ],
+        },
+    };
+    if (incrementUnread) {
+        result.unreadCounts = {
+            ...state.unreadCounts,
+            [contactId]: (state.unreadCounts[contactId] || 0) + 1,
+        };
+    }
+    return result;
+}
 
 // ─── fireEvent helper ────────────────────────────────────────────────────────
 
@@ -22,20 +62,10 @@ function fireEvent(
             break;
         case 'incoming_message':
             set(s => ({
-                chatHistory: {
-                    ...s.chatHistory,
-                    [payload.contactId]: [
-                        ...(s.chatHistory[payload.contactId] || []),
-                        { id: Date.now().toString(), text: payload.text, me: false },
-                    ],
-                },
-                unreadCounts: {
-                    ...s.unreadCounts,
-                    [payload.contactId]: (s.unreadCounts[payload.contactId] || 0) + 1,
-                },
+                ...appendMsg(s, payload.contactId, payload.text, false, true),
                 showNewMessagePopup: true,
             }));
-            setTimeout(() => set({ showNewMessagePopup: false }), MSG_POPUP_DURATION);
+            trackedTimeout(() => set({ showNewMessagePopup: false }), MSG_POPUP_DURATION);
             break;
         case 'unlock_dialogue_option':
             set(s => ({
@@ -68,6 +98,7 @@ type GameStore = GameState & {
         advanceTutorial: () => void;
         dismissNewMessagePopup: () => void;
         chooseDialogueOption: (optionId: string) => void;
+        advanceLevelDialogue: () => void;
         gameOver: (reason: string, detail: string) => void;
         restartGame: () => void;
     };
@@ -82,7 +113,7 @@ const initialState: GameState = {
     cpfs: 0,
     suspicion: 0,
     pressure: 0,
-    batches: [],
+    batches: [{ id: 1, due: 3500000, days: 90 }],
     debtPacks: [],
     currentSellPackId: null,
     bankOffers: [],
@@ -91,7 +122,7 @@ const initialState: GameState = {
     hasUsedNotNow: false,
     levelIdx: 0,
     totalWashed: 0,
-    contacts: { drugdealer: true, hacker: true, judge: false, deputy: false, lawyer: false, anonimo: false },
+    contacts: { drugdealer: true, hacker: true },
     eventsTriggered: [],
     nextBagDay: 2,
     isPaused: true,
@@ -109,6 +140,12 @@ const initialState: GameState = {
     hasFirstSoldPack: false,
     hasFirstPaidDebt: false,
     hasRespondedToBlackmail: false,
+    hasCompletedInvestigador: false,
+    hasPaidDeputado: false,
+    hasContactedJuiz: false,
+    hasPaidMadame: false,
+    levelUpScreen: null,
+    levelUpDialogueIdx: 0,
     isGameOver: false,
     gameOverReason: '',
     gameOverDetail: '',
@@ -124,11 +161,39 @@ export const useGameStore = create<GameStore>((set, get) => ({
             set(state => ({ tutStep: state.tutStep + 1 }));
         },
 
+        advanceLevelDialogue: () => {
+            const { levelUpScreen, levelUpDialogueIdx } = get();
+            if (levelUpScreen === null) return;
+
+            const event = LEVEL_EVENTS[levelUpScreen];
+            if (!event) {
+                set({ levelUpScreen: null, levelUpDialogueIdx: 0, isPaused: false });
+                return;
+            }
+
+            const nextIdx = levelUpDialogueIdx + 1;
+            if (nextIdx < event.dialogues.length) {
+                set({ levelUpDialogueIdx: nextIdx });
+            } else {
+                if (event.unlocks) {
+                    event.unlocks.forEach(contactId => {
+                        fireEvent({ type: 'unlock_contact', contactId }, get, set);
+                    });
+                }
+                if (event.payloads) {
+                    event.payloads.forEach(p => fireEvent(p, get, set));
+                }
+                set({ levelUpScreen: null, levelUpDialogueIdx: 0, isPaused: false });
+            }
+        },
+
         gameOver: (reason, detail) => {
             set({ isGameOver: true, isPaused: true, gameOverReason: reason, gameOverDetail: detail });
         },
 
         restartGame: () => {
+            pendingTimeouts.forEach(clearTimeout);
+            pendingTimeouts.length = 0;
             set({ ...initialState });
         },
 
@@ -143,26 +208,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
             // ── Bag spawn ──
             if (state.day >= state.nextBagDay && !state.hasPendingBag) {
                 const amount = lvl.bagSize;
-                const offerMsg = {
-                    id: Date.now().toString(),
-                    text: `Tenho R$${formatMoney(amount)} pra lavar. Posso mandar agora?`,
-                    me: false,
-                };
                 set(s => ({
                     hasPendingBag: true,
                     pendingBagAmount: amount,
                     showNewMessagePopup: true,
                     nextBagDay: s.day + lvl.bagInterval + Math.floor(Math.random() * 5),
-                    chatHistory: {
-                        ...s.chatHistory,
-                        drugdealer: [...(s.chatHistory.drugdealer || []), offerMsg],
-                    },
-                    unreadCounts: {
-                        ...s.unreadCounts,
-                        drugdealer: (s.unreadCounts.drugdealer || 0) + 1,
-                    },
+                    ...appendMsg(s, 'drugdealer', `Tenho R$${formatMoney(amount)} pra lavar. Posso mandar agora?`, false, true),
                 }));
-                setTimeout(() => set({ showNewMessagePopup: false }), MSG_POPUP_DURATION);
+                trackedTimeout(() => set({ showNewMessagePopup: false }), MSG_POPUP_DURATION);
             }
 
             // ── Debt countdown + default ──
@@ -173,7 +226,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
             for (const b of get().batches) {
                 const newDays = b.days - 1;
                 if (newDays <= 0) {
-                    // Batch defaulted — spike pressure
                     pressureSpike += 25;
                 } else {
                     if (newDays < 30) critical = true;
@@ -197,10 +249,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
             }
 
             // ── Game over checks ──
-            if (get().suspicion >= 100) {
-                get().actions.gameOver("OPERAÇÃO POLICIAL", "A Polícia Federal fechou o cerco.");
-                return;
-            }
             if (get().pressure >= 100) {
                 get().actions.gameOver("VINGANÇA DO CARTEL", "O Cartel cobra com juros.");
                 return;
@@ -211,10 +259,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
             const currentLvl = LEVELS[afterState.levelIdx];
             if (
                 currentLvl.goal !== null &&
-                afterState.clean >= currentLvl.goal &&
+                afterState.totalWashed >= currentLvl.goal &&
                 afterState.levelIdx < 3
             ) {
-                set(s => ({ levelIdx: s.levelIdx + 1 }));
+                const newLevel = afterState.levelIdx + 1;
+                set({
+                    levelIdx: newLevel,
+                    levelUpScreen: newLevel,
+                    levelUpDialogueIdx: 0,
+                    isPaused: true,
+                });
             }
             // Track O Mestre start day
             if (get().levelIdx === 3 && get().omstreDayStart === 0) {
@@ -223,42 +277,33 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
             // ── Scripted event loop ──
             const snapshot = get();
-            SCRIPTED_EVENTS.forEach(event => {
-                if (
-                    !snapshot.eventsTriggered.includes(event.id) &&
-                    event.trigger(snapshot)
-                ) {
-                    fireEvent(event.payload, get, set);
-                    set(s => ({
-                        eventsTriggered: [...s.eventsTriggered, event.id],
-                    }));
-                }
-            });
+            if (snapshot.eventsTriggered.length < SCRIPTED_EVENTS.length) {
+                SCRIPTED_EVENTS.forEach(event => {
+                    if (
+                        !snapshot.eventsTriggered.includes(event.id) &&
+                        event.trigger(snapshot)
+                    ) {
+                        fireEvent(event.payload, get, set);
+                        set(s => ({
+                            eventsTriggered: [...s.eventsTriggered, event.id],
+                        }));
+                    }
+                });
+            }
         },
 
         receiveBag: (amount) => {
             const due = amount * 0.7;
             const newBatch: Batch = { id: Date.now(), due, days: 90 };
-            const transferMsg = `Malote de ${formatMoney(amount)} depositado. Movimenta isso logo.`;
 
             set(s => ({
                 dirty: s.dirty + amount,
                 batches: [...s.batches, newBatch],
                 showNewMessagePopup: true,
-                chatHistory: {
-                    ...s.chatHistory,
-                    drugdealer: [
-                        ...(s.chatHistory.drugdealer || []),
-                        { id: Date.now().toString(), text: transferMsg, me: false },
-                    ],
-                },
-                unreadCounts: {
-                    ...s.unreadCounts,
-                    drugdealer: (s.unreadCounts.drugdealer || 0) + 1,
-                },
+                ...appendMsg(s, 'drugdealer', `Malote de ${formatMoney(amount)} depositado. Movimenta isso logo.`, false, true),
             }));
 
-            setTimeout(() => set({ showNewMessagePopup: false }), MSG_POPUP_DURATION);
+            trackedTimeout(() => set({ showNewMessagePopup: false }), MSG_POPUP_DURATION);
         },
 
         setActiveScreen: (screen) => {
@@ -280,17 +325,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
             if (dirty < cost || cpfs < size) return;
 
             const lvl = LEVELS[levelIdx];
-            const packId = Date.now();
             const newPack: DebtPack = {
-                id: packId,
+                id: Date.now(),
                 value: cost,
                 cpfsUsed: size,
                 dayCreated: day,
-            };
-            const newBatch: Batch = {
-                id: packId + 1,
-                due: Math.floor(cost * 0.7),
-                days: 90,
             };
 
             set(s => ({
@@ -298,7 +337,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 cpfs: s.cpfs - size,
                 suspicion: s.suspicion + size * lvl.suspRate,
                 debtPacks: [...s.debtPacks, newPack],
-                batches: [...s.batches, newBatch],
             }));
 
             if (tutStep === 6) get().actions.advanceTutorial();
@@ -335,11 +373,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 totalWashed: s.totalWashed + offerValue,
                 suspicion: s.suspicion + suspicionIncrease,
                 debtPacks: s.debtPacks.filter(p => p.id !== packId),
-                modal: 'none',
-                isPaused: false,
+                hasFirstSoldPack: true,
                 currentSellPackId: null,
                 bankOffers: [],
-                hasFirstSoldPack: true,
             }));
 
             if (tutStep === 7) actions.advanceTutorial();
@@ -347,61 +383,28 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
         respondToBag: (accept: boolean) => {
             const { pendingBagAmount } = get();
-            const now = Date.now();
 
             if (accept) {
                 const due = Math.floor(pendingBagAmount * 0.7);
-                const newBatch: Batch = { id: now, due, days: 90 };
+                const newBatch: Batch = { id: Date.now(), due, days: 90 };
                 set(s => ({
                     dirty: s.dirty + pendingBagAmount,
                     batches: [...s.batches, newBatch],
-                    chatHistory: {
-                        ...s.chatHistory,
-                        drugdealer: [
-                            ...(s.chatHistory.drugdealer || []),
-                            { id: now.toString(), text: 'OK, manda.', me: true },
-                        ],
-                    },
+                    ...appendMsg(s, 'drugdealer', 'OK, manda.', true),
                 }));
-                setTimeout(() => {
+                trackedTimeout(() => {
                     set(s => ({
-                        chatHistory: {
-                            ...s.chatHistory,
-                            drugdealer: [
-                                ...(s.chatHistory.drugdealer || []),
-                                {
-                                    id: (Date.now() + 1).toString(),
-                                    text: `Feito. R$${formatMoney(pendingBagAmount)} mandados. Movimenta isso logo.`,
-                                    me: false,
-                                },
-                            ],
-                        },
+                        ...appendMsg(s, 'drugdealer', `Feito. R$${formatMoney(pendingBagAmount)} mandados. Movimenta isso logo.`, false),
                     }));
                 }, 500);
             } else {
                 set(s => ({
-                    chatHistory: {
-                        ...s.chatHistory,
-                        drugdealer: [
-                            ...(s.chatHistory.drugdealer || []),
-                            { id: now.toString(), text: 'Não agora.', me: true },
-                        ],
-                    },
+                    ...appendMsg(s, 'drugdealer', 'Não agora.', true),
                     hasUsedNotNow: true,
                 }));
-                setTimeout(() => {
+                trackedTimeout(() => {
                     set(s => ({
-                        chatHistory: {
-                            ...s.chatHistory,
-                            drugdealer: [
-                                ...(s.chatHistory.drugdealer || []),
-                                {
-                                    id: (Date.now() + 1).toString(),
-                                    text: 'Tudo bem. Te mando sinal quando for a hora.',
-                                    me: false,
-                                },
-                            ],
-                        },
+                        ...appendMsg(s, 'drugdealer', 'Tudo bem. Te mando sinal quando for a hora.', false),
                     }));
                 }, 500);
             }
@@ -473,25 +476,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
                     ? [...s.unlockedDialogueOptions, ...option.unlocks]
                     : s.unlockedDialogueOptions,
                 isTyping: true,
-                chatHistory: {
-                    ...s.chatHistory,
-                    [currentChat]: [
-                        ...(s.chatHistory[currentChat] || []),
-                        { id: Date.now().toString(), text: option.text, me: true },
-                    ],
-                },
+                ...appendMsg(s, currentChat, option.text, true),
             }));
 
-            setTimeout(() => {
+            trackedTimeout(() => {
                 set(s => ({
                     isTyping: false,
-                    chatHistory: {
-                        ...s.chatHistory,
-                        [currentChat]: [
-                            ...(s.chatHistory[currentChat] || []),
-                            { id: (Date.now() + 1).toString(), text: response, me: false },
-                        ],
-                    },
+                    ...appendMsg(s, currentChat, response, false),
                 }));
 
                 const { tutStep, actions } = get();

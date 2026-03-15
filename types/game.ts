@@ -38,14 +38,7 @@ export interface GameState {
     bankOffers: BankOffer[];
     levelIdx: number;
     totalWashed: number;
-    contacts: {
-        drugdealer: boolean;
-        hacker: boolean;
-        judge: boolean;
-        deputy: boolean;
-        lawyer: boolean;
-        anonimo: boolean;
-    };
+    contacts: Record<string, boolean>;
     eventsTriggered: string[];
     nextBagDay: number;
     isPaused: boolean;
@@ -70,8 +63,16 @@ export interface GameState {
     hasFirstSoldPack: boolean;
     hasFirstPaidDebt: boolean;
     hasRespondedToBlackmail: boolean;
+    // Gerente chain state
+    hasCompletedInvestigador: boolean;
+    hasPaidDeputado: boolean;
+    hasContactedJuiz: boolean;
+    hasPaidMadame: boolean;
     // Chat typing indicator
     isTyping: boolean;
+    // Level transition state
+    levelUpScreen: number | null;       // levelIdx that was just reached, or null
+    levelUpDialogueIdx: number;         // which dialogue in the sequence we're showing
     // Game over state
     isGameOver: boolean;
     gameOverReason: string;
@@ -105,6 +106,21 @@ export interface BankOffer {
 }
 
 export type ModalType = 'none' | 'loan' | 'pay' | 'sell';
+
+// ─── Level Transition System ────────────────────────────────────────────────
+
+export interface LevelDialogue {
+    from: string;       // character id (e.g. 'drugdealer', 'system')
+    text: string;
+}
+
+export interface LevelEvent {
+    title: string;                      // e.g. "GERENTE"
+    subtitle?: string;                  // optional flavor text
+    dialogues: LevelDialogue[];         // sequence of messages player taps through
+    unlocks?: string[];                 // contact ids to unlock
+    payloads?: EventPayload[];          // additional scripted event payloads to fire
+}
 
 // Dialogue system types
 export interface DialogueOption {

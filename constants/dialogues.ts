@@ -1,7 +1,7 @@
 // constants/dialogues.ts
 // Centralized dialogue and text content for O Mestre
 
-import { CharacterDialogue, GameState, ScriptedEvent } from '../types/game';
+import { CharacterDialogue, GameState, LevelEvent, ScriptedEvent } from '../types/game';
 import { formatMoney as fmt } from '../utils/format';
 
 // ============================================================================
@@ -180,6 +180,26 @@ export const CHARACTERS = {
         greeting: "...",
     },
 
+    investigador: {
+        id: "investigador",
+        name: "Investigador BC",
+        sub: "Banco Central",
+        borderColor: "#1e90ff",
+        avatar: require('../assets/images/characters/bancocentral.jpg'),
+        intro: "Boa tarde. Sou do Banco Central. Precisamos dos seus registros.",
+        greeting: "Estou aguardando os documentos.",
+    },
+
+    madame: {
+        id: "madame",
+        name: "Dra. Helena",
+        sub: "Advocacia & Consultoria",
+        borderColor: "#e6b8d4",
+        avatar: require('../assets/images/characters/madame.jpg'),
+        intro: "Meu marido me disse que você precisa de orientação. Posso ajudar.",
+        greeting: "Vamos resolver isso.",
+    },
+
     // Deputy - Political corruption
     deputy: {
         id: "deputy",
@@ -239,10 +259,10 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
         outgoingOptions: [
             {
                 id: 'buy_100_cpfs',
-                text: 'Comprar 100 CPFs (500,000)',
+                text: 'Comprar 100 CPFs (R$50k)',
                 response: 'Feito. Transferindo agora.',
                 action: (state: GameState) => ({
-                    dirty: state.dirty - 500000,
+                    dirty: state.dirty - 50000,
                     cpfs: state.cpfs + 100,
                     cpfsBoughtFromHacker: (state.cpfsBoughtFromHacker || 0) + 100
                 })
@@ -251,32 +271,44 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
             {
                 id: 'ask_more_volume',
                 text: 'Preciso de mais volume',
-                condition: (state: GameState) => !state.hasUnlocked50Pack,
-                response: (state: GameState) => {
-                    const bought = state.cpfsBoughtFromHacker || 0;
-                    if (bought >= 500) {
-                        return 'Ok. Posso vender 500 com um desconto.';
-                    }
-                    return "É o que té tendo. Não vai dar não.";
-                },
-                action: (state: GameState) => {
-                    const bought = state.cpfsBoughtFromHacker || 0;
-                    if (bought >= 500) {
-                        return { hasUnlocked50Pack: true };
-                    }
-                    return {};
-                }
+                condition: (state: GameState) => !state.hasUnlocked50Pack && state.cpfsBoughtFromHacker >= 100,
+                response: 'Ok. Consigo pacotes maiores. Tá liberado.',
+                action: () => ({ hasUnlocked50Pack: true }),
             },
 
             {
-                id: 'buy_500_cpfs',
-                text: 'Comprar 500 CPFs (2,000,000)',
-                condition: (state: GameState) => state.hasUnlocked50Pack === true,
+                id: 'buy_1000_cpfs',
+                text: 'Comprar 1.000 CPFs (R$400k)',
+                condition: (state: GameState) => state.hasUnlocked50Pack && state.dirty >= 400000,
                 response: 'Negócio fechado. Mandando os pacotes.',
                 action: (state: GameState) => ({
-                    dirty: state.dirty - 2000000,
-                    cpfs: state.cpfs + 500,
-                    cpfsBoughtFromHacker: (state.cpfsBoughtFromHacker || 0) + 500
+                    dirty: state.dirty - 400000,
+                    cpfs: state.cpfs + 1000,
+                    cpfsBoughtFromHacker: (state.cpfsBoughtFromHacker || 0) + 1000
+                })
+            },
+
+            {
+                id: 'buy_5000_cpfs',
+                text: 'Comprar 5.000 CPFs (R$1.5M)',
+                condition: (state: GameState) => state.hasUnlocked50Pack && state.dirty >= 1500000,
+                response: 'Pacote grande. Vai demorar umas horas.',
+                action: (state: GameState) => ({
+                    dirty: state.dirty - 1500000,
+                    cpfs: state.cpfs + 5000,
+                    cpfsBoughtFromHacker: (state.cpfsBoughtFromHacker || 0) + 5000
+                })
+            },
+
+            {
+                id: 'buy_10000_cpfs',
+                text: 'Comprar 10.000 CPFs (R$2.5M)',
+                condition: (state: GameState) => state.hasUnlocked50Pack && state.dirty >= 2500000,
+                response: 'Isso é operação pesada. Tá mandado.',
+                action: (state: GameState) => ({
+                    dirty: state.dirty - 2500000,
+                    cpfs: state.cpfs + 10000,
+                    cpfsBoughtFromHacker: (state.cpfsBoughtFromHacker || 0) + 10000
                 })
             },
 
@@ -317,30 +349,28 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
         ],
     },
 
-    judge: {
-        characterId: 'judge',
-        outgoingOptions: [
-            {
-                id: 'judge_first_offer',
-                text: 'Preciso de mais tempo.',
-                condition: (state: GameState) =>
-                    state.unlockedDialogueOptions.includes('judge_first_offer') &&
-                    state.clean >= 500000 &&
-                    state.batches.length > 0,
-                response: 'Fica quieto. 30 dias — e não me ligue de novo tão cedo.',
-                action: (state: GameState) => ({
-                    clean: state.clean - 500000,
-                    batches: state.batches.map((b, i) =>
-                        i === 0 ? { ...b, days: b.days + 30 } : b
-                    ),
-                }),
-            },
-        ],
-    },
-
     deputy: {
         characterId: 'deputy',
         outgoingOptions: [
+            {
+                id: 'deputy_help_bc',
+                text: 'O Banco Central tá em cima de mim.',
+                condition: (state: GameState) =>
+                    state.hasCompletedInvestigador && !state.hasPaidDeputado && state.dirty >= 500000,
+                response: 'Posso fazer uns telefonemas. R$500k sujo. Tenho uns amigos no judiciário que podem te apresentar alguém.',
+                action: (state: GameState) => ({
+                    dirty: state.dirty - 500000,
+                    hasPaidDeputado: true,
+                    suspicion: Math.max(0, state.suspicion - 10),
+                }),
+            },
+            {
+                id: 'deputy_help_bc_broke',
+                text: 'O Banco Central tá em cima de mim.',
+                condition: (state: GameState) =>
+                    state.hasCompletedInvestigador && !state.hasPaidDeputado && state.dirty < 500000,
+                response: 'Posso ajudar, mas custa R$500k sujo. Volta quando tiver.',
+            },
             {
                 id: 'hire_deputy',
                 text: 'Preciso que recuem.',
@@ -359,6 +389,139 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
             },
         ],
     },
+
+    investigador: {
+        characterId: 'investigador',
+        outgoingOptions: [
+            {
+                id: 'investigador_comply',
+                text: 'Vou providenciar os documentos.',
+                condition: (state: GameState) => !state.hasCompletedInvestigador,
+                response: 'Ótimo. Aguardo em até 48 horas. Qualquer irregularidade será encaminhada ao Ministério Público.',
+                action: (state: GameState) => ({
+                    hasCompletedInvestigador: true,
+                }),
+            },
+            {
+                id: 'investigador_stall',
+                text: 'Posso ter mais tempo?',
+                condition: (state: GameState) => !state.hasCompletedInvestigador,
+                response: 'Não. O prazo é regulamentar. Envie os documentos ou vamos abrir um processo formal.',
+                action: (state: GameState) => ({
+                    hasCompletedInvestigador: true,
+                }),
+            },
+            {
+                id: 'investigador_done',
+                text: 'Alguma novidade?',
+                condition: (state: GameState) => state.hasCompletedInvestigador,
+                response: 'A análise está em andamento. Não saia do país.',
+            },
+        ],
+    },
+
+    judge: {
+        characterId: 'judge',
+        outgoingOptions: [
+            {
+                id: 'judge_intro_talk',
+                text: 'O deputado me mandou falar com o senhor.',
+                condition: (state: GameState) =>
+                    state.hasPaidDeputado && !state.hasContactedJuiz,
+                response: 'Nós não deveríamos estar tendo essa conversa. Mas... minha esposa tem um escritório de advocacia. Dra. Helena. Ela faz consultoria para orientação junto ao Supremo. Qualquer solicitação, fale diretamente com ela.',
+                action: (state: GameState) => ({
+                    hasContactedJuiz: true,
+                }),
+            },
+            {
+                id: 'judge_first_offer',
+                text: 'Preciso de mais tempo.',
+                condition: (state: GameState) =>
+                    state.unlockedDialogueOptions.includes('judge_first_offer') &&
+                    state.clean >= 500000 &&
+                    state.batches.length > 0,
+                response: 'Fica quieto. 30 dias — e não me ligue de novo tão cedo.',
+                action: (state: GameState) => ({
+                    clean: state.clean - 500000,
+                    batches: state.batches.map((b, i) =>
+                        i === 0 ? { ...b, days: b.days + 30 } : b
+                    ),
+                }),
+            },
+        ],
+    },
+
+    madame: {
+        characterId: 'madame',
+        outgoingOptions: [
+            {
+                id: 'madame_proposal',
+                text: 'Me disseram que a senhora pode ajudar.',
+                condition: (state: GameState) => !state.hasPaidMadame,
+                response: 'Posso. Ofereço um contrato de consultoria geral e assessoria para orientação junto ao Supremo Tribunal. O valor é R$120M limpos. Quando estiver pronto, me avise.',
+            },
+            {
+                id: 'madame_negotiate',
+                text: 'R$120M é muito. Tem como negociar?',
+                condition: (state: GameState) => !state.hasPaidMadame,
+                response: 'Não. O valor reflete a complexidade e os riscos envolvidos. Quando tiver o valor, me procure. Seus problemas vão desaparecer.',
+            },
+            {
+                id: 'madame_pay',
+                text: 'Quero fechar o contrato (R$120M limpos)',
+                condition: (state: GameState) => !state.hasPaidMadame && state.clean >= 120000000,
+                response: 'Excelente decisão. O contrato está assinado. A partir de agora, considere seus problemas resolvidos.',
+                action: (state: GameState) => ({
+                    clean: state.clean - 120000000,
+                    hasPaidMadame: true,
+                    suspicion: 0,
+                }),
+            },
+            {
+                id: 'madame_cant_pay',
+                text: 'Ainda não tenho o valor.',
+                condition: (state: GameState) => !state.hasPaidMadame && state.clean < 120000000,
+                response: 'Sem pressa. Mas não demore — cada dia que passa, a situação fica mais delicada.',
+            },
+        ],
+    },
+};
+
+// ============================================================================
+// LEVEL TRANSITION EVENTS
+// ============================================================================
+
+// Keyed by the levelIdx the player just reached (1 = became Gerente, etc.)
+// Fill in dialogues/unlocks per level. Empty placeholder = no cutscene.
+export const LEVEL_EVENTS: { [levelIdx: number]: LevelEvent } = {
+    1: {
+        title: "GERENTE",
+        subtitle: "O esquema cresceu. Agora vem a atenção.",
+        dialogues: [
+            { from: 'drugdealer', text: 'Bom trabalho. Você tá subindo. Mas cuidado — o Banco Central tá de olho.' },
+            { from: 'system', text: 'Novo contato apareceu no Zep.' },
+        ],
+        unlocks: ['investigador'],
+        payloads: [
+            {
+                type: 'incoming_message',
+                contactId: 'investigador',
+                text: 'Boa tarde. Sou do departamento de compliance do Banco Central. Identificamos movimentações atípicas nas suas contas. Precisamos dos seus registros bancários para uma análise preliminar.',
+            },
+        ],
+    },
+    2: {
+        title: "DOLEIRO",
+        subtitle: "O jogo ficou mais pesado.",
+        dialogues: [],
+        unlocks: [],
+    },
+    3: {
+        title: "O MESTRE",
+        subtitle: "Agora é sobrevivência.",
+        dialogues: [],
+        unlocks: [],
+    },
 };
 
 // ============================================================================
@@ -369,7 +532,7 @@ export const SCRIPTED_EVENTS: ScriptedEvent[] = [
     // ── Blackmail event ──
     {
         id: 'blackmail_intro',
-        trigger: (s) => s.hasFirstSoldPack && s.hasFirstPaidDebt,
+        trigger: (s) => s.suspicion >= 150,
         payload: {
             type: 'multi',
             payloads: [
@@ -383,49 +546,48 @@ export const SCRIPTED_EVENTS: ScriptedEvent[] = [
         },
     },
 
-    // ── Contact unlocks ──
+    // ── Gerente chain: Investigador → Deputado → Juiz → Madame ──
     {
-        id: 'unlock_lawyer',
-        trigger: (s) => s.levelIdx >= 1,
-        payload: {
-            type: 'multi',
-            payloads: [
-                { type: 'unlock_contact', contactId: 'lawyer' },
-                {
-                    type: 'incoming_message',
-                    contactId: 'drugdealer',
-                    text: 'você tá crescendo. hora de ter proteção.',
-                },
-            ],
-        },
-    },
-    {
-        id: 'unlock_judge',
-        trigger: (s) => s.levelIdx >= 2 && s.clean >= 10_000_000,
-        payload: {
-            type: 'multi',
-            payloads: [
-                { type: 'unlock_contact', contactId: 'judge' },
-                {
-                    type: 'incoming_message',
-                    contactId: 'lawyer',
-                    text: 'Conheço alguém que pode adiar um prazo. Custa caro.',
-                },
-                { type: 'unlock_dialogue_option', optionId: 'judge_first_offer' },
-            ],
-        },
-    },
-    {
-        id: 'unlock_deputy',
-        trigger: (s) => s.levelIdx >= 2 && s.clean >= 12_000_000,
+        id: 'gerente_deputado_unlock',
+        trigger: (s) => s.hasCompletedInvestigador && !s.hasPaidDeputado,
         payload: {
             type: 'multi',
             payloads: [
                 { type: 'unlock_contact', contactId: 'deputy' },
                 {
                     type: 'incoming_message',
-                    contactId: 'lawyer',
-                    text: 'Tem outro cara que resolve o lado da pressão.',
+                    contactId: 'deputy',
+                    text: 'Soube que o BC tá te incomodando. Posso fazer uns telefonemas. Me procura.',
+                },
+            ],
+        },
+    },
+    {
+        id: 'gerente_juiz_unlock',
+        trigger: (s) => s.hasPaidDeputado && !s.hasContactedJuiz,
+        payload: {
+            type: 'multi',
+            payloads: [
+                { type: 'unlock_contact', contactId: 'judge' },
+                {
+                    type: 'incoming_message',
+                    contactId: 'deputy',
+                    text: 'Falei com um amigo meu. Dr. Gilmar. Ele pode te ajudar. Tá no seu Zep.',
+                },
+            ],
+        },
+    },
+    {
+        id: 'gerente_madame_unlock',
+        trigger: (s) => s.hasContactedJuiz && !s.hasPaidMadame,
+        payload: {
+            type: 'multi',
+            payloads: [
+                { type: 'unlock_contact', contactId: 'madame' },
+                {
+                    type: 'incoming_message',
+                    contactId: 'madame',
+                    text: 'Meu marido me disse que você precisa de orientação. Me procure quando quiser conversar.',
                 },
             ],
         },

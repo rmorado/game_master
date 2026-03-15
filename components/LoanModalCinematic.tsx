@@ -273,7 +273,7 @@ export function LoanModalCinematic() {
   const [isComplete, setIsComplete] = useState(false);
 
   const currentLevel = LEVELS[levelIdx];
-  const maxCPFs = Math.min(cpfs, 100);
+  const maxCPFs = Math.min(cpfs, Math.floor(dirty / 5000));
 
   // Clamp slider if available CPFs drop below current selection
   useEffect(() => {

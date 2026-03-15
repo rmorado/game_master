@@ -86,6 +86,7 @@ export function SellDebtModal() {
             actions.sellDebtPack(currentSellPackId, offerValue);
             setSelectedBank(null);
             setIsComplete(false);
+            actions.setModal('none');
         }, 1800);
     };
 

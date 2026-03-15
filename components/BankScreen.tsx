@@ -87,7 +87,10 @@ export function BankScreen() {
 
             {/* ── Gauges ── */}
             <View style={styles.gauges}>
-                <Gauge label="SUSPEITA (PF)" value={suspicion} color="#ff3b30" />
+                <View style={styles.suspicionRow}>
+                    <Text style={styles.suspicionLabel}>SUSPEITA</Text>
+                    <Text style={styles.suspicionValue}>{Math.round(suspicion)}</Text>
+                </View>
                 <Gauge label="COBRANÇA (CARTEL)" value={pressure} color="#4da6ff" />
             </View>
 
@@ -377,5 +380,22 @@ const styles = StyleSheet.create({
     },
     disabled: {
         opacity: 0.3,
+    },
+    suspicionRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        flex: 1,
+    },
+    suspicionLabel: {
+        color: '#ff3b30',
+        fontSize: 11,
+        fontWeight: '600',
+    },
+    suspicionValue: {
+        color: '#ff3b30',
+        fontSize: 14,
+        fontWeight: 'bold',
+        fontFamily: 'Courier',
     },
 });

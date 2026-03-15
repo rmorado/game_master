@@ -1,6 +1,7 @@
 // app/(tabs)/game.tsx
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useGameStore } from '../../hooks/use-game-store';
+import { useShallow } from 'zustand/react/shallow';
 import { useEffect } from 'react';
 import { BankScreen } from '../../components/BankScreen';
 import { ZepScreen } from '../../components/ZepScreen';
@@ -11,9 +12,10 @@ import { PayModal } from '../../components/PayModal';
 import { SellDebtModal } from '../../components/SellDebtModal';
 import { TutorialOverlay } from '../../components/TutorialOverlay';
 import { NewMessagePopup } from '../../components/NewMessagePopup';
+import { LevelUpScreen } from '../../components/LevelUpScreen';
 
 export default function GameScreen() {
-    const { actions, activeScreen, isGameOver, gameOverReason, gameOverDetail, levelIdx, day, omstreDayStart } = useGameStore(state => ({
+    const { actions, activeScreen, isGameOver, gameOverReason, gameOverDetail, levelIdx, day, omstreDayStart, levelUpScreen } = useGameStore(useShallow(state => ({
         actions: state.actions,
         activeScreen: state.activeScreen,
         isGameOver: state.isGameOver,
@@ -22,12 +24,13 @@ export default function GameScreen() {
         levelIdx: state.levelIdx,
         day: state.day,
         omstreDayStart: state.omstreDayStart,
-    }));
+        levelUpScreen: state.levelUpScreen,
+    })));
 
     useEffect(() => {
         const gameLoop = setInterval(() => {
             actions.tick();
-        }, 1000);
+        }, 10000);
 
         return () => clearInterval(gameLoop);
     }, [actions]);
@@ -64,6 +67,10 @@ export default function GameScreen() {
             return <ZepScreen />;
         }
         return <BankScreen />;
+    }
+
+    if (levelUpScreen !== null) {
+        return <LevelUpScreen />;
     }
 
     return (
