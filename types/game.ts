@@ -130,6 +130,7 @@ export interface DialogueOption {
     response: string | ((state: GameState) => string);
     action?: (state: GameState) => Partial<GameState>;
     unlocks?: string[];
+    requiresUnlock?: boolean;
 }
 
 export interface CharacterDialogue {

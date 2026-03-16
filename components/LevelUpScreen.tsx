@@ -21,11 +21,16 @@ export function LevelUpScreen() {
 
     if (levelUpScreen === null || !event) return null;
 
-    const hasDialogues = event.dialogues.length > 0;
-    const currentDialogue = hasDialogues ? event.dialogues[dialogueIdx] : null;
+    // dialogueIdx starts at -1 (title only), then 0..n for each dialogue line
+    const showingTitle = dialogueIdx < 0;
+    const currentDialogue = !showingTitle && dialogueIdx < event.dialogues.length
+        ? event.dialogues[dialogueIdx]
+        : null;
     const character = currentDialogue?.from && currentDialogue.from !== 'system'
         ? (CHARACTERS as any)[currentDialogue.from]
         : null;
+
+    const isLastStep = !showingTitle && dialogueIdx >= event.dialogues.length - 1;
 
     return (
         <View style={styles.container}>
@@ -53,9 +58,9 @@ export function LevelUpScreen() {
 
             <TouchableOpacity style={styles.tapArea} onPress={advanceLevelDialogue}>
                 <Text style={styles.tapHint}>
-                    {hasDialogues && dialogueIdx < event.dialogues.length - 1
-                        ? 'TOQUE PARA CONTINUAR'
-                        : 'TOQUE PARA JOGAR'}
+                    {isLastStep || event.dialogues.length === 0
+                        ? 'TOQUE PARA JOGAR'
+                        : 'TOQUE PARA CONTINUAR'}
                 </Text>
             </TouchableOpacity>
         </View>

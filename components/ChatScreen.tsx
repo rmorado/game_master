@@ -59,8 +59,9 @@ export function ChatScreen() {
         const dialogue = DIALOGUES[currentChat!];
         if (!dialogue) return null;
 
-        // Filter available options based on conditions
+        // Filter available options based on conditions and unlock requirements
         const availableOptions = dialogue.outgoingOptions.filter(option => {
+            if (option.requiresUnlock && !state.unlockedDialogueOptions.includes(option.id)) return false;
             if (option.condition && !option.condition(state)) return false;
             return true;
         });

@@ -145,7 +145,7 @@ const initialState: GameState = {
     hasContactedJuiz: false,
     hasPaidMadame: false,
     levelUpScreen: null,
-    levelUpDialogueIdx: 0,
+    levelUpDialogueIdx: -1,
     isGameOver: false,
     gameOverReason: '',
     gameOverDetail: '',
@@ -167,7 +167,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
             const event = LEVEL_EVENTS[levelUpScreen];
             if (!event) {
-                set({ levelUpScreen: null, levelUpDialogueIdx: 0, isPaused: false });
+                set({ levelUpScreen: null, levelUpDialogueIdx: -1, isPaused: false });
                 return;
             }
 
@@ -183,7 +183,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 if (event.payloads) {
                     event.payloads.forEach(p => fireEvent(p, get, set));
                 }
-                set({ levelUpScreen: null, levelUpDialogueIdx: 0, isPaused: false });
+                set({ levelUpScreen: null, levelUpDialogueIdx: -1, isPaused: false });
             }
         },
 
@@ -266,7 +266,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 set({
                     levelIdx: newLevel,
                     levelUpScreen: newLevel,
-                    levelUpDialogueIdx: 0,
+                    levelUpDialogueIdx: -1,
                     isPaused: true,
                 });
             }

@@ -224,18 +224,23 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
         outgoingOptions: [
             {
                 id: 'blackmail_pay',
-                text: 'PAGAR (R$300.000 sujo)',
+                text: 'PAGAR (R$300.000)',
                 condition: (state: GameState) =>
-                    !state.hasRespondedToBlackmail && state.dirty >= 300000,
+                    !state.hasRespondedToBlackmail && state.dirty + state.clean >= 300000,
                 response: 'Sábio. Obrigado pela cooperação.',
-                action: (state: GameState) => ({
-                    dirty: state.dirty - 300000,
-                    hasRespondedToBlackmail: true,
-                    unlockedDialogueOptions: [
-                        ...state.unlockedDialogueOptions,
-                        'investigate_bitcoin',
-                    ],
-                }),
+                action: (state: GameState) => {
+                    const cost = 300000;
+                    const fromDirty = Math.min(state.dirty, cost);
+                    return {
+                        dirty: state.dirty - fromDirty,
+                        clean: state.clean - (cost - fromDirty),
+                        hasRespondedToBlackmail: true,
+                        unlockedDialogueOptions: [
+                            ...state.unlockedDialogueOptions,
+                            'investigate_bitcoin',
+                        ],
+                    };
+                },
             },
             {
                 id: 'blackmail_ignore',
@@ -260,12 +265,18 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
             {
                 id: 'buy_100_cpfs',
                 text: 'Comprar 100 CPFs (R$50k)',
+                condition: (state: GameState) => state.dirty + state.clean >= 50000,
                 response: 'Feito. Transferindo agora.',
-                action: (state: GameState) => ({
-                    dirty: state.dirty - 50000,
-                    cpfs: state.cpfs + 100,
-                    cpfsBoughtFromHacker: (state.cpfsBoughtFromHacker || 0) + 100
-                })
+                action: (state: GameState) => {
+                    const cost = 50000;
+                    const fromDirty = Math.min(state.dirty, cost);
+                    return {
+                        dirty: state.dirty - fromDirty,
+                        clean: state.clean - (cost - fromDirty),
+                        cpfs: state.cpfs + 100,
+                        cpfsBoughtFromHacker: (state.cpfsBoughtFromHacker || 0) + 100,
+                    };
+                },
             },
 
             {
@@ -279,37 +290,52 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
             {
                 id: 'buy_1000_cpfs',
                 text: 'Comprar 1.000 CPFs (R$400k)',
-                condition: (state: GameState) => state.hasUnlocked50Pack && state.dirty >= 400000,
+                condition: (state: GameState) => state.hasUnlocked50Pack && state.dirty + state.clean >= 400000,
                 response: 'Negócio fechado. Mandando os pacotes.',
-                action: (state: GameState) => ({
-                    dirty: state.dirty - 400000,
-                    cpfs: state.cpfs + 1000,
-                    cpfsBoughtFromHacker: (state.cpfsBoughtFromHacker || 0) + 1000
-                })
+                action: (state: GameState) => {
+                    const cost = 400000;
+                    const fromDirty = Math.min(state.dirty, cost);
+                    return {
+                        dirty: state.dirty - fromDirty,
+                        clean: state.clean - (cost - fromDirty),
+                        cpfs: state.cpfs + 1000,
+                        cpfsBoughtFromHacker: (state.cpfsBoughtFromHacker || 0) + 1000,
+                    };
+                },
             },
 
             {
                 id: 'buy_5000_cpfs',
                 text: 'Comprar 5.000 CPFs (R$1.5M)',
-                condition: (state: GameState) => state.hasUnlocked50Pack && state.dirty >= 1500000,
+                condition: (state: GameState) => state.hasUnlocked50Pack && state.dirty + state.clean >= 1500000,
                 response: 'Pacote grande. Vai demorar umas horas.',
-                action: (state: GameState) => ({
-                    dirty: state.dirty - 1500000,
-                    cpfs: state.cpfs + 5000,
-                    cpfsBoughtFromHacker: (state.cpfsBoughtFromHacker || 0) + 5000
-                })
+                action: (state: GameState) => {
+                    const cost = 1500000;
+                    const fromDirty = Math.min(state.dirty, cost);
+                    return {
+                        dirty: state.dirty - fromDirty,
+                        clean: state.clean - (cost - fromDirty),
+                        cpfs: state.cpfs + 5000,
+                        cpfsBoughtFromHacker: (state.cpfsBoughtFromHacker || 0) + 5000,
+                    };
+                },
             },
 
             {
                 id: 'buy_10000_cpfs',
                 text: 'Comprar 10.000 CPFs (R$2.5M)',
-                condition: (state: GameState) => state.hasUnlocked50Pack && state.dirty >= 2500000,
+                condition: (state: GameState) => state.hasUnlocked50Pack && state.dirty + state.clean >= 2500000,
                 response: 'Isso é operação pesada. Tá mandado.',
-                action: (state: GameState) => ({
-                    dirty: state.dirty - 2500000,
-                    cpfs: state.cpfs + 10000,
-                    cpfsBoughtFromHacker: (state.cpfsBoughtFromHacker || 0) + 10000
-                })
+                action: (state: GameState) => {
+                    const cost = 2500000;
+                    const fromDirty = Math.min(state.dirty, cost);
+                    return {
+                        dirty: state.dirty - fromDirty,
+                        clean: state.clean - (cost - fromDirty),
+                        cpfs: state.cpfs + 10000,
+                        cpfsBoughtFromHacker: (state.cpfsBoughtFromHacker || 0) + 10000,
+                    };
+                },
             },
 
             {
@@ -328,13 +354,15 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
             {
                 id: 'hire_lawyer',
                 text: 'Preciso esfriar as coisas.',
-                condition: (state: GameState) => state.dirty >= LAWYER_COSTS[state.levelIdx],
+                condition: (state: GameState) => state.dirty + state.clean >= LAWYER_COSTS[state.levelIdx],
                 response: (state: GameState) =>
                     `R$${fmt(LAWYER_COSTS[state.levelIdx])}. Vou ligar.`,
                 action: (state: GameState) => {
                     const cost = LAWYER_COSTS[state.levelIdx];
+                    const fromDirty = Math.min(state.dirty, cost);
                     return {
-                        dirty: state.dirty - cost,
+                        dirty: state.dirty - fromDirty,
+                        clean: state.clean - (cost - fromDirty),
                         suspicion: Math.max(0, state.suspicion - 15),
                     };
                 },
@@ -342,7 +370,7 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
             {
                 id: 'hire_lawyer_broke',
                 text: 'Quanto custa?',
-                condition: (state: GameState) => state.dirty < LAWYER_COSTS[state.levelIdx],
+                condition: (state: GameState) => state.dirty + state.clean < LAWYER_COSTS[state.levelIdx],
                 response: (state: GameState) =>
                     `R$${fmt(LAWYER_COSTS[state.levelIdx])}. Não aceito menos.`,
             },
@@ -356,35 +384,45 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                 id: 'deputy_help_bc',
                 text: 'O Banco Central tá em cima de mim.',
                 condition: (state: GameState) =>
-                    state.hasCompletedInvestigador && !state.hasPaidDeputado && state.dirty >= 500000,
-                response: 'Posso fazer uns telefonemas. R$500k sujo. Tenho uns amigos no judiciário que podem te apresentar alguém.',
-                action: (state: GameState) => ({
-                    dirty: state.dirty - 500000,
-                    hasPaidDeputado: true,
-                    suspicion: Math.max(0, state.suspicion - 10),
-                }),
+                    state.hasCompletedInvestigador && !state.hasPaidDeputado && state.dirty + state.clean >= 500000,
+                response: 'Posso fazer uns telefonemas. R$500k. Tenho uns amigos no judiciário que podem te apresentar alguém.',
+                action: (state: GameState) => {
+                    const cost = 500000;
+                    const fromDirty = Math.min(state.dirty, cost);
+                    return {
+                        dirty: state.dirty - fromDirty,
+                        clean: state.clean - (cost - fromDirty),
+                        hasPaidDeputado: true,
+                        suspicion: Math.max(0, state.suspicion - 10),
+                    };
+                },
             },
             {
                 id: 'deputy_help_bc_broke',
                 text: 'O Banco Central tá em cima de mim.',
                 condition: (state: GameState) =>
-                    state.hasCompletedInvestigador && !state.hasPaidDeputado && state.dirty < 500000,
-                response: 'Posso ajudar, mas custa R$500k sujo. Volta quando tiver.',
+                    state.hasCompletedInvestigador && !state.hasPaidDeputado && state.dirty + state.clean < 500000,
+                response: 'Posso ajudar, mas custa R$500k. Volta quando tiver.',
             },
             {
                 id: 'hire_deputy',
                 text: 'Preciso que recuem.',
-                condition: (state: GameState) => state.dirty >= 200000,
+                condition: (state: GameState) => state.dirty + state.clean >= 200000,
                 response: 'Uma visita. Eles vão entender.',
-                action: (state: GameState) => ({
-                    dirty: state.dirty - 200000,
-                    pressure: Math.max(0, state.pressure - 20),
-                }),
+                action: (state: GameState) => {
+                    const cost = 200000;
+                    const fromDirty = Math.min(state.dirty, cost);
+                    return {
+                        dirty: state.dirty - fromDirty,
+                        clean: state.clean - (cost - fromDirty),
+                        pressure: Math.max(0, state.pressure - 20),
+                    };
+                },
             },
             {
                 id: 'hire_deputy_broke',
                 text: 'Quanto custa?',
-                condition: (state: GameState) => state.dirty < 200000,
+                condition: (state: GameState) => state.dirty + state.clean < 200000,
                 response: 'R$200k. Não trabalho de graça.',
             },
         ],
@@ -438,15 +476,20 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                 text: 'Preciso de mais tempo.',
                 condition: (state: GameState) =>
                     state.unlockedDialogueOptions.includes('judge_first_offer') &&
-                    state.clean >= 500000 &&
+                    state.dirty + state.clean >= 500000 &&
                     state.batches.length > 0,
                 response: 'Fica quieto. 30 dias — e não me ligue de novo tão cedo.',
-                action: (state: GameState) => ({
-                    clean: state.clean - 500000,
-                    batches: state.batches.map((b, i) =>
-                        i === 0 ? { ...b, days: b.days + 30 } : b
-                    ),
-                }),
+                action: (state: GameState) => {
+                    const cost = 500000;
+                    const fromDirty = Math.min(state.dirty, cost);
+                    return {
+                        dirty: state.dirty - fromDirty,
+                        clean: state.clean - (cost - fromDirty),
+                        batches: state.batches.map((b, i) =>
+                            i === 0 ? { ...b, days: b.days + 30 } : b
+                        ),
+                    };
+                },
             },
         ],
     },
@@ -458,29 +501,38 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                 id: 'madame_proposal',
                 text: 'Me disseram que a senhora pode ajudar.',
                 condition: (state: GameState) => !state.hasPaidMadame,
-                response: 'Posso. Ofereço um contrato de consultoria geral e assessoria para orientação junto ao Supremo Tribunal. O valor é R$120M limpos. Quando estiver pronto, me avise.',
+                response: 'Posso. Ofereço um contrato de consultoria geral e assessoria para orientação junto ao Supremo Tribunal. O valor é R$120M. Quando estiver pronto, me avise.',
+                unlocks: ['madame_negotiate', 'madame_pay', 'madame_cant_pay'],
             },
             {
                 id: 'madame_negotiate',
                 text: 'R$120M é muito. Tem como negociar?',
                 condition: (state: GameState) => !state.hasPaidMadame,
+                requiresUnlock: true,
                 response: 'Não. O valor reflete a complexidade e os riscos envolvidos. Quando tiver o valor, me procure. Seus problemas vão desaparecer.',
             },
             {
                 id: 'madame_pay',
-                text: 'Quero fechar o contrato (R$120M limpos)',
-                condition: (state: GameState) => !state.hasPaidMadame && state.clean >= 120000000,
+                text: 'Quero fechar o contrato (R$120M)',
+                condition: (state: GameState) => !state.hasPaidMadame && state.dirty + state.clean >= 120000000,
+                requiresUnlock: true,
                 response: 'Excelente decisão. O contrato está assinado. A partir de agora, considere seus problemas resolvidos.',
-                action: (state: GameState) => ({
-                    clean: state.clean - 120000000,
-                    hasPaidMadame: true,
-                    suspicion: 0,
-                }),
+                action: (state: GameState) => {
+                    const cost = 120000000;
+                    const fromDirty = Math.min(state.dirty, cost);
+                    return {
+                        dirty: state.dirty - fromDirty,
+                        clean: state.clean - (cost - fromDirty),
+                        hasPaidMadame: true,
+                        suspicion: 0,
+                    };
+                },
             },
             {
                 id: 'madame_cant_pay',
                 text: 'Ainda não tenho o valor.',
-                condition: (state: GameState) => !state.hasPaidMadame && state.clean < 120000000,
+                condition: (state: GameState) => !state.hasPaidMadame && state.dirty + state.clean < 120000000,
+                requiresUnlock: true,
                 response: 'Sem pressa. Mas não demore — cada dia que passa, a situação fica mais delicada.',
             },
         ],
