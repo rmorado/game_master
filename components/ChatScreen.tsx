@@ -9,10 +9,6 @@ export function ChatScreen() {
     const { actions, chatHistory, currentChat, tutStep, hasPendingBag, hasUsedNotNow, isTyping } = state;
     const flatListRef = useRef<FlatList>(null);
 
-    const goBack = () => {
-        actions.setActiveScreen('zep');
-    }
-
     const character = currentChat ? getCharacter(currentChat) : undefined;
 
     // Read messages from per-contact chat history
@@ -30,7 +26,6 @@ export function ChatScreen() {
     // Tutorial logic
     const isTutorial = tutStep < 8;
     const shouldHighlightBuy100 = tutStep === 4;
-    const shouldHighlightBack = tutStep === 5;
 
     const renderActions = () => {
         // Drugdealer pending bag — show offer response buttons
@@ -93,16 +88,6 @@ export function ChatScreen() {
     return (
         <View style={styles.chatView}>
             <View style={styles.chatHeader}>
-                <TouchableOpacity
-                    onPress={goBack}
-                    style={[
-                        styles.backButton,
-                        shouldHighlightBack && styles.highlightedBack
-                    ]}
-                    disabled={isTutorial && !shouldHighlightBack}
-                >
-                    <Text style={{fontSize:24, color:'white'}}>←</Text>
-                </TouchableOpacity>
                 <Image source={character?.avatar} style={styles.avatar} />
                 <Text style={{fontWeight:'bold', color: 'white'}}>{character?.name}</Text>
             </View>
@@ -192,15 +177,6 @@ const styles = StyleSheet.create({
     presetBtnAccept: {
         borderColor: '#00ff41',
         backgroundColor: 'rgba(0,255,65,0.08)',
-    },
-    backButton: {
-        padding: 5,
-    },
-    highlightedBack: {
-        backgroundColor: 'rgba(0, 255, 65, 0.2)',
-        borderRadius: 8,
-        borderWidth: 2,
-        borderColor: '#00ff41',
     },
     highlighted: {
         backgroundColor: 'rgba(0, 255, 65, 0.1)',

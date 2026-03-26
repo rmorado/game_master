@@ -43,7 +43,7 @@ export interface GameState {
     nextBagDay: number;
     isPaused: boolean;
     tutStep: number;
-    activeScreen: 'bank' | 'zep' | 'chat';
+    activeApp: 'home' | 'zep' | 'chat' | 'laranjas' | 'bacen' | 'carteira';
     modal: ModalType;
     currentChat: string | null;
     // Per-contact chat history (replaces messages[] and drugdealerMessages[])
@@ -78,6 +78,10 @@ export interface GameState {
     gameOverReason: string;
     gameOverDetail: string;
     omstreDayStart: number;
+    // Android-style nav
+    navHistory: string[];
+    visitedApps: string[];
+    showAppOverview: boolean;
 }
 
 export interface Message {
@@ -105,7 +109,7 @@ export interface BankOffer {
     offerValue: number;
 }
 
-export type ModalType = 'none' | 'loan' | 'pay' | 'sell';
+export type ModalType = 'none' | 'pay';
 
 // ─── Level Transition System ────────────────────────────────────────────────
 

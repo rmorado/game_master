@@ -14,19 +14,19 @@ export const TUTORIAL = [
         id: 0,
         text: "Bem-vindo, Vacaro. Você lava dinheiro pro PCC: eles mandam uma quantia, você devolve pelo menos 60%.",
         target: null,
-        screen: 'bank'
+        screen: 'home'
     },
     {
         id: 1,
         text: "O esquema: empréstimos falsos em nome de CPFs reais, vendidos como dívida pra outros bancos.",
         target: null,
-        screen: 'bank'
+        screen: 'home'
     },
     {
         id: 2,
-        text: "Primeiro a gente compra um pacote de CPFs. Entre no Zep.",
+        text: "Primeiro a gente compra um pacote de CPFs. Entre no ZEP.",
         target: 'nav_zep',
-        screen: 'bank'
+        screen: 'home'
     },
     {
         id: 3,
@@ -42,21 +42,21 @@ export const TUTORIAL = [
     },
     {
         id: 5,
-        text: "Volte ao Banco. Todo mundo aí vai pedir um empréstimo. Logo abaixo do limite pra não ter perguntas do BC.",
-        target: 'btn_back',
+        text: "Volte ao início. Abra o app Laranjas para criar um derivativo.",
+        target: null,
         screen: 'chat'
     },
     {
         id: 6,
         text: "Use CRIAR DERIVATIVO para gerar o derivativo de dívida.",
         target: 'btn_loan',
-        screen: 'bank'
+        screen: 'laranjas'
     },
     {
         id: 7,
-        text: "Pacote pronto! Agora use VENDER DÍVIDA para receber o dinheiro limpo.",
+        text: "Pacote pronto! Abra o BACEN e venda o derivativo para receber dinheiro limpo.",
         target: 'btn_sell',
-        screen: 'bank'
+        screen: 'bacen'
     },
 ];
 

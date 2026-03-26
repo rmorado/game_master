@@ -1,17 +1,12 @@
 // components/MoneyDisplay.tsx
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { formatMoney } from '../utils/format';
 
 interface MoneyDisplayProps {
   dirty: number;
   cpfs: number;
   clean: number;
-}
-
-const formatMoney = (n: number) => {
-    if(n >= 1000000) return (n/1000000).toFixed(1) + "M";
-    if(n >= 1000) return (n/1000).toFixed(0) + "k";
-    return Math.floor(n);
 }
 
 export function MoneyDisplay({ dirty, cpfs, clean }: MoneyDisplayProps) {

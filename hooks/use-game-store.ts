@@ -87,7 +87,7 @@ type GameStore = GameState & {
     actions: {
         tick: () => void;
         receiveBag: (amount: number) => void;
-        setActiveScreen: (screen: 'bank' | 'zep' | 'chat') => void;
+        setActiveApp: (app: GameState['activeApp']) => void;
         setModal: (modal: GameState['modal']) => void;
         confirmLoan: (loanSize: number) => void;
         confirmPay: () => void;
@@ -101,6 +101,9 @@ type GameStore = GameState & {
         advanceLevelDialogue: () => void;
         gameOver: (reason: string, detail: string) => void;
         restartGame: () => void;
+        goBack: () => void;
+        toggleAppOverview: () => void;
+        payPCC: (amount: number) => void;
     };
 };
 
@@ -128,7 +131,7 @@ const initialState: GameState = {
     isPaused: true,
     isTyping: false,
     tutStep: 0,
-    activeScreen: 'bank',
+    activeApp: 'home',
     modal: 'none',
     currentChat: null,
     chatHistory: { drugdealer: [], hacker: [] },
@@ -150,6 +153,9 @@ const initialState: GameState = {
     gameOverReason: '',
     gameOverDetail: '',
     omstreDayStart: 0,
+    navHistory: [],
+    visitedApps: ['home'],
+    showAppOverview: false,
 };
 
 // ─── Store ───────────────────────────────────────────────────────────────────
@@ -306,11 +312,45 @@ export const useGameStore = create<GameStore>((set, get) => ({
             trackedTimeout(() => set({ showNewMessagePopup: false }), MSG_POPUP_DURATION);
         },
 
-        setActiveScreen: (screen) => {
-            const { tutStep, actions } = get();
-            if (tutStep === 2 && screen === 'zep') actions.advanceTutorial();
-            if (tutStep === 5 && screen === 'bank') actions.advanceTutorial();
-            set({ activeScreen: screen });
+        setActiveApp: (app) => {
+            const { tutStep, actions, activeApp, navHistory, visitedApps } = get();
+            if (tutStep === 2 && app === 'zep') actions.advanceTutorial();
+            if (tutStep === 5 && app === 'laranjas') actions.advanceTutorial();
+            const isPaused = app === 'laranjas' || app === 'bacen';
+            const newHistory = activeApp !== app ? [...navHistory, activeApp].slice(-20) : navHistory;
+            const newVisited = visitedApps.includes(app) ? visitedApps : [...visitedApps, app];
+            set({ activeApp: app, isPaused, navHistory: newHistory, visitedApps: newVisited, showAppOverview: false });
+        },
+
+        goBack: () => {
+            const { navHistory, activeApp } = get();
+            if (navHistory.length === 0) {
+                get().actions.setActiveApp('home');
+                return;
+            }
+            const prev = navHistory[navHistory.length - 1] as GameState['activeApp'];
+            const isPaused = prev === 'laranjas' || prev === 'bacen';
+            set({ activeApp: prev, isPaused, navHistory: navHistory.slice(0, -1), showAppOverview: false });
+        },
+
+        toggleAppOverview: () => {
+            set(s => ({ showAppOverview: !s.showAppOverview }));
+        },
+
+        payPCC: (amount: number) => {
+            const { clean, batches } = get();
+            if (amount <= 0 || clean < amount) return;
+            let remaining = amount;
+            const newBatches = [...batches].sort((a, b) => a.id - b.id);
+            const kept: typeof batches = [];
+            for (const batch of newBatches) {
+                if (remaining >= batch.due) {
+                    remaining -= batch.due;
+                } else {
+                    kept.push(batch);
+                }
+            }
+            set({ clean: clean - amount, batches: kept });
         },
 
         setModal: (modal) => {
@@ -340,8 +380,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
             }));
 
             if (tutStep === 6) get().actions.advanceTutorial();
-
-            get().actions.setModal('none');
         },
 
         openSellModal: (packId: number) => {
@@ -357,7 +395,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 };
             });
 
-            set({ currentSellPackId: packId, bankOffers: offers, modal: 'sell', isPaused: true });
+            set({ currentSellPackId: packId, bankOffers: offers, activeApp: 'bacen', isPaused: true });
         },
 
         sellDebtPack: (packId: number, offerValue: number) => {
@@ -376,6 +414,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 hasFirstSoldPack: true,
                 currentSellPackId: null,
                 bankOffers: [],
+                activeApp: 'home' as const,
+                isPaused: false,
             }));
 
             if (tutStep === 7) actions.advanceTutorial();
@@ -444,7 +484,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             if (tutStep === 3 && contactId === 'hacker') actions.advanceTutorial();
 
             set(s => ({
-                activeScreen: 'chat',
+                activeApp: 'chat',
                 currentChat: contactId,
                 unreadCounts: { ...s.unreadCounts, [contactId]: 0 },
             }));

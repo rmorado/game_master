@@ -2,15 +2,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { Batch } from '../types/game';
+import { formatMoney } from '../utils/format';
 
 interface QueueListProps {
   batches: Batch[];
-}
-
-const formatMoney = (n: number) => {
-    if(n >= 1000000) return (n/1000000).toFixed(1) + "M";
-    if(n >= 1000) return (n/1000).toFixed(0) + "k";
-    return Math.floor(n);
 }
 
 export function QueueList({ batches }: QueueListProps) {

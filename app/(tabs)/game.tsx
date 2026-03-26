@@ -1,23 +1,27 @@
 // app/(tabs)/game.tsx
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar } from 'react-native';
 import { useGameStore } from '../../hooks/use-game-store';
 import { useShallow } from 'zustand/react/shallow';
 import { useEffect } from 'react';
-import { BankScreen } from '../../components/BankScreen';
-import { ZepScreen } from '../../components/ZepScreen';
+import { HomeScreen } from '../../components/HomeScreen';
+import { ZepAppScreen } from '../../components/ZepAppScreen';
 import { ChatScreen } from '../../components/ChatScreen';
-import { NavBar } from '../../components/NavBar';
-import { LoanModalCinematic } from '../../components/LoanModalCinematic';
+import { LaranjaScreen } from '../../components/LaranjaScreen';
+import { BacenScreen } from '../../components/BacenScreen';
+import { CarteiraScreen } from '../../components/CarteiraScreen';
 import { PayModal } from '../../components/PayModal';
-import { SellDebtModal } from '../../components/SellDebtModal';
 import { TutorialOverlay } from '../../components/TutorialOverlay';
 import { NewMessagePopup } from '../../components/NewMessagePopup';
 import { LevelUpScreen } from '../../components/LevelUpScreen';
+import { BottomNavBar } from '../../components/BottomNavBar';
+import { AppOverview } from '../../components/AppOverview';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function GameScreen() {
-    const { actions, activeScreen, isGameOver, gameOverReason, gameOverDetail, levelIdx, day, omstreDayStart, levelUpScreen } = useGameStore(useShallow(state => ({
+    const insets = useSafeAreaInsets();
+    const { actions, activeApp, isGameOver, gameOverReason, gameOverDetail, levelIdx, day, omstreDayStart, levelUpScreen } = useGameStore(useShallow(state => ({
         actions: state.actions,
-        activeScreen: state.activeScreen,
+        activeApp: state.activeApp,
         isGameOver: state.isGameOver,
         gameOverReason: state.gameOverReason,
         gameOverDetail: state.gameOverDetail,
@@ -59,27 +63,30 @@ export default function GameScreen() {
         );
     }
 
-    const renderScreen = () => {
-        if (activeScreen === 'chat') {
-            return <ChatScreen />;
-        }
-        if (activeScreen === 'zep') {
-            return <ZepScreen />;
-        }
-        return <BankScreen />;
-    }
-
     if (levelUpScreen !== null) {
         return <LevelUpScreen />;
     }
 
+    const renderApp = () => {
+        switch (activeApp) {
+            case 'zep':     return <ZepAppScreen />;
+            case 'chat':    return <ChatScreen />;
+            case 'laranjas': return <LaranjaScreen />;
+            case 'bacen':   return <BacenScreen />;
+            case 'carteira': return <CarteiraScreen />;
+            default:        return <HomeScreen />;
+        }
+    };
+
     return (
         <View style={styles.container}>
-            {renderScreen()}
-            <NavBar />
-            <LoanModalCinematic />
+            <StatusBar hidden />
+            <View style={[styles.appArea, { paddingTop: insets.top }]}>
+                {renderApp()}
+            </View>
+            <BottomNavBar />
+            <AppOverview />
             <PayModal />
-            <SellDebtModal />
             <TutorialOverlay />
             <NewMessagePopup />
         </View>
@@ -89,9 +96,10 @@ export default function GameScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        alignItems: 'center',
         backgroundColor: '#0f0f0f',
-        paddingTop: 40,
+    },
+    appArea: {
+        flex: 1,
     },
     gameOver: {
         flex: 1,
