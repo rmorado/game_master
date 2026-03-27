@@ -6,6 +6,8 @@ import {
     StyleSheet,
     TouchableOpacity,
     ImageBackground,
+    Image,
+    ImageSourcePropType,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useShallow } from 'zustand/react/shallow';
@@ -14,9 +16,12 @@ import { UI_HOME } from '../constants/dialogues';
 
 // ─── App icon ─────────────────────────────────────────────────────────────────
 
+const ZEP_ICON = require('../assets/images/zep-icon.png') as ImageSourcePropType;
+
 interface AppIconProps {
     label: string;
-    gradient: readonly [string, string];
+    gradient?: readonly [string, string];
+    image?: ImageSourcePropType;
     emoji?: string;
     letter?: string;
     letterColor?: string;
@@ -26,7 +31,7 @@ interface AppIconProps {
     dim?: boolean;
 }
 
-function AppIcon({ label, gradient, emoji, letter, letterColor, badge, onPress, highlight, dim }: AppIconProps) {
+function AppIcon({ label, gradient, image, emoji, letter, letterColor, badge, onPress, highlight, dim }: AppIconProps) {
     return (
         <TouchableOpacity
             style={[styles.appItem, dim && styles.appDim]}
@@ -34,25 +39,29 @@ function AppIcon({ label, gradient, emoji, letter, letterColor, badge, onPress, 
             activeOpacity={0.75}
         >
             <View style={[styles.iconWrapper, highlight && styles.iconHighlight]}>
-                <LinearGradient
-                    colors={gradient}
-                    start={{ x: 0.2, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.iconGradient}
-                >
-                    {/* shine overlay */}
+                {image ? (
+                    <Image source={image} style={styles.iconGradient} resizeMode="cover" />
+                ) : (
                     <LinearGradient
-                        colors={['rgba(255,255,255,0.18)', 'transparent']}
+                        colors={gradient!}
                         start={{ x: 0.2, y: 0 }}
                         end={{ x: 1, y: 1 }}
-                        style={StyleSheet.absoluteFillObject}
-                    />
-                    {emoji ? (
-                        <Text style={styles.iconEmoji}>{emoji}</Text>
-                    ) : (
-                        <Text style={[styles.iconLetter, letterColor ? { color: letterColor } : undefined]}>{letter}</Text>
-                    )}
-                </LinearGradient>
+                        style={styles.iconGradient}
+                    >
+                        {/* shine overlay */}
+                        <LinearGradient
+                            colors={['rgba(255,255,255,0.18)', 'transparent']}
+                            start={{ x: 0.2, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={StyleSheet.absoluteFillObject}
+                        />
+                        {emoji ? (
+                            <Text style={styles.iconEmoji}>{emoji}</Text>
+                        ) : (
+                            <Text style={[styles.iconLetter, letterColor ? { color: letterColor } : undefined]}>{letter}</Text>
+                        )}
+                    </LinearGradient>
+                )}
                 {!!badge && (
                     <View style={styles.badge}>
                         <Text style={styles.badgeText}>{badge}</Text>
@@ -113,8 +122,7 @@ export function HomeScreen() {
                 <View style={styles.grid}>
                     <AppIcon
                         label={UI_HOME.apps.zep}
-                        gradient={['#0ea043', '#075e2e']}
-                        letter="Z"
+                        image={ZEP_ICON}
                         badge={zepBadge}
                         onPress={() => go('zep')}
                         highlight={isTutorial && highlightZep}

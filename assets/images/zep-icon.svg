@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4ade80"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect width="100" height="100" rx="22" fill="url(#bg)"/>
+
+  <!-- Speech bubble with bottom-left tail -->
+  <path d="
+    M 26 14
+    L 74 14
+    Q 82 14 82 22
+    L 82 55
+    Q 82 63 74 63
+    L 40 63
+    L 24 80
+    L 30 63
+    L 26 63
+    Q 18 63 18 55
+    L 18 22
+    Q 18 14 26 14
+    Z
+  " fill="white"/>
+
+  <!-- Three dots -->
+  <circle cx="36" cy="39" r="5.5" fill="#16a34a"/>
+  <circle cx="50" cy="39" r="5.5" fill="#16a34a"/>
+  <circle cx="64" cy="39" r="5.5" fill="#16a34a"/>
+</svg>
