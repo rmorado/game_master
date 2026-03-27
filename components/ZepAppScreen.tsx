@@ -14,7 +14,7 @@ import { getCharacter, UI_ZEP } from '../constants/dialogues';
 
 // Contact order mirrors the mockup
 const CONTACT_ORDER = [
-    'drugdealer', 'druglord', 'hacker', 'judge', 'deputy', 'lawyer', 'madame', 'anonimo', 'investigador',
+    'drugdealer', 'hacker', 'judge', 'deputy', 'lawyer', 'madame', 'anonimo', 'investigador',
 ];
 
 interface ContactRowProps {

@@ -1,21 +1,19 @@
 // components/PayModal.tsx
 import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
 import { UI_PAY_MODAL } from '../constants/dialogues';
 import { formatMoney } from '../utils/format';
 
 export function PayModal() {
-    const { clean, batches, actions, modal } = useGameStore(state => state);
+    const { clean, batches, actions, modal } = useGameStore(useShallow(s => ({
+        clean: s.clean,
+        batches: s.batches,
+        actions: s.actions,
+        modal: s.modal,
+    })));
 
-    const closeModal = () => {
-        actions.setModal('none');
-    }
-
-    const confirmPay = () => {
-        actions.confirmPay();
-    }
-    
     const debt = batches[0];
     const canPay = debt ? Math.min(clean, debt.due) : 0;
 
@@ -24,17 +22,17 @@ export function PayModal() {
             transparent={true}
             visible={modal === 'pay'}
             animationType="slide"
-            onRequestClose={closeModal}
+            onRequestClose={() => actions.setModal('none')}
         >
             <View style={styles.modalOverlay}>
                 <View style={styles.modalCard}>
                     <Text style={styles.title}>{UI_PAY_MODAL.title}</Text>
                     <Text style={styles.payAmount}>{formatMoney(canPay)}</Text>
                     <Text style={styles.payBalance}>{UI_PAY_MODAL.labelBalance(formatMoney(clean))}</Text>
-                    <TouchableOpacity style={styles.confirmBtn} onPress={confirmPay}>
+                    <TouchableOpacity style={styles.confirmBtn} onPress={() => actions.confirmPay()}>
                         <Text style={styles.confirmBtnText}>{UI_PAY_MODAL.btnConfirm}</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={closeModal}>
+                    <TouchableOpacity onPress={() => actions.setModal('none')}>
                         <Text style={styles.cancelLnk}>{UI_PAY_MODAL.btnCancel}</Text>
                     </TouchableOpacity>
                 </View>

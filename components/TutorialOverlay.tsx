@@ -1,15 +1,19 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { TUTORIAL_STEPS } from '../constants/game-data';
-import { UI_TUTORIAL_OVERLAY } from '../constants/dialogues';
+import { useShallow } from 'zustand/react/shallow';
+import { TUTORIAL, UI_TUTORIAL_OVERLAY } from '../constants/dialogues';
 import { useGameStore } from '../hooks/use-game-store';
 
 export function TutorialOverlay() {
-    const { tutStep, activeApp, actions } = useGameStore(state => state);
+    const { tutStep, activeApp, actions } = useGameStore(useShallow(s => ({
+        tutStep: s.tutStep,
+        activeApp: s.activeApp,
+        actions: s.actions,
+    })));
 
-    if (tutStep >= TUTORIAL_STEPS.length) return null;
+    if (tutStep >= TUTORIAL.length) return null;
 
-    const step = TUTORIAL_STEPS[tutStep];
+    const step = TUTORIAL[tutStep];
 
     // btn_back: ChatScreen handles its own highlighting — no overlay needed
     if (step.target === 'btn_back') return null;
@@ -38,7 +42,7 @@ export function TutorialOverlay() {
     }
 
     // Non-info steps: floating text box at per-step position, passes all touches through
-    const pos = (step as any).boxPosition ?? { bottom: 170 };
+    const pos = step.boxPosition ?? { bottom: 170 };
     return (
         <View style={[styles.floatingContainer, pos]} pointerEvents="none">
             <View style={styles.tutorialBox}>

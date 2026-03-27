@@ -140,8 +140,6 @@ const initialState: GameState = {
     cpfsBoughtFromHacker: 0,
     hasUnlocked50Pack: false,
     unlockedDialogueOptions: [],
-    hasFirstSoldPack: false,
-    hasFirstPaidDebt: false,
     hasRespondedToBlackmail: false,
     hasCompletedInvestigador: false,
     hasPaidDeputado: false,
@@ -204,7 +202,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         },
 
         tick: () => {
-            if (get().isPaused || get().isGameOver) return;
+            const { isPaused, isGameOver } = get();
+            if (isPaused || isGameOver) return;
 
             set(state => ({ day: state.day + 1 }));
 
@@ -277,8 +276,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 });
             }
             // Track O Mestre start day
-            if (get().levelIdx === 3 && get().omstreDayStart === 0) {
-                set({ omstreDayStart: get().day });
+            const { levelIdx: currentLevelIdx, omstreDayStart, day: currentDay } = get();
+            if (currentLevelIdx === 3 && omstreDayStart === 0) {
+                set({ omstreDayStart: currentDay });
             }
 
             // ── Scripted event loop ──
@@ -323,7 +323,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         },
 
         goBack: () => {
-            const { navHistory, activeApp } = get();
+            const { navHistory } = get();
             if (navHistory.length === 0) {
                 get().actions.setActiveApp('home');
                 return;
@@ -411,7 +411,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 totalWashed: s.totalWashed + offerValue,
                 suspicion: s.suspicion + suspicionIncrease,
                 debtPacks: s.debtPacks.filter(p => p.id !== packId),
-                hasFirstSoldPack: true,
                 currentSellPackId: null,
                 bankOffers: [],
                 activeApp: 'home' as const,
@@ -473,7 +472,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 clean: s.clean - amount,
                 batches: newBatches,
                 pressure: Math.max(0, s.pressure - 10),
-                hasFirstPaidDebt: true,
             }));
 
             get().actions.setModal('none');

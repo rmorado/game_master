@@ -6,7 +6,7 @@ import { getCharacter, DIALOGUES, UI_CHAT } from '../constants/dialogues';
 
 export function ChatScreen() {
     const state = useGameStore(s => s);
-    const { actions, chatHistory, currentChat, tutStep, hasPendingBag, hasUsedNotNow, isTyping } = state;
+    const { actions, chatHistory, currentChat, tutStep, hasPendingBag, hasUsedNotNow, isTyping, unlockedDialogueOptions } = state;
     const flatListRef = useRef<FlatList>(null);
 
     const character = currentChat ? getCharacter(currentChat) : undefined;
@@ -56,7 +56,7 @@ export function ChatScreen() {
 
         // Filter available options based on conditions and unlock requirements
         const availableOptions = dialogue.outgoingOptions.filter(option => {
-            if (option.requiresUnlock && !state.unlockedDialogueOptions.includes(option.id)) return false;
+            if (option.requiresUnlock && !unlockedDialogueOptions.includes(option.id)) return false;
             if (option.condition && !option.condition(state)) return false;
             return true;
         });
@@ -89,7 +89,7 @@ export function ChatScreen() {
         <View style={styles.chatView}>
             <View style={styles.chatHeader}>
                 <Image source={character?.avatar} style={styles.avatar} />
-                <Text style={{fontWeight:'bold', color: 'white'}}>{character?.name}</Text>
+                <Text style={styles.headerName}>{character?.name}</Text>
             </View>
             <FlatList
                 ref={flatListRef}
@@ -135,6 +135,10 @@ const styles = StyleSheet.create({
         height: 35,
         borderRadius: 17.5,
         backgroundColor: '#333',
+    },
+    headerName: {
+        fontWeight: 'bold',
+        color: 'white',
     },
     chatMsgs: {
         flex: 1,

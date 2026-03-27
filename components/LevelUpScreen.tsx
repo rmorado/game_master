@@ -1,14 +1,17 @@
 // components/LevelUpScreen.tsx
 import { useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
-import { LEVEL_EVENTS } from '../constants/dialogues';
-import { CHARACTERS } from '../constants/dialogues';
+import { LEVEL_EVENTS, CHARACTERS, UI_LEVEL_UP } from '../constants/dialogues';
 
 export function LevelUpScreen() {
-    const levelUpScreen = useGameStore(s => s.levelUpScreen);
-    const dialogueIdx = useGameStore(s => s.levelUpDialogueIdx);
-    const advanceLevelDialogue = useGameStore(s => s.actions.advanceLevelDialogue);
+    const { levelUpScreen, levelUpDialogueIdx: dialogueIdx, actions } = useGameStore(useShallow(s => ({
+        levelUpScreen: s.levelUpScreen,
+        levelUpDialogueIdx: s.levelUpDialogueIdx,
+        actions: s.actions,
+    })));
+    const { advanceLevelDialogue } = actions;
 
     const event = levelUpScreen !== null ? LEVEL_EVENTS[levelUpScreen] : null;
 
@@ -35,7 +38,7 @@ export function LevelUpScreen() {
     return (
         <View style={styles.container}>
             <View style={styles.titleBox}>
-                <Text style={styles.titleLabel}>NÍVEL</Text>
+                <Text style={styles.titleLabel}>{UI_LEVEL_UP.label}</Text>
                 <Text style={styles.title}>{event.title}</Text>
                 {event.subtitle && (
                     <Text style={styles.subtitle}>{event.subtitle}</Text>
@@ -59,8 +62,8 @@ export function LevelUpScreen() {
             <TouchableOpacity style={styles.tapArea} onPress={advanceLevelDialogue}>
                 <Text style={styles.tapHint}>
                     {isLastStep || event.dialogues.length === 0
-                        ? 'TOQUE PARA JOGAR'
-                        : 'TOQUE PARA CONTINUAR'}
+                        ? UI_LEVEL_UP.tapToPlay
+                        : UI_LEVEL_UP.tapToContinue}
                 </Text>
             </TouchableOpacity>
         </View>

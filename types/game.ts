@@ -60,8 +60,6 @@ export interface GameState {
     hasUnlocked50Pack: boolean;
     unlockedDialogueOptions: string[];
     // Blackmail event state
-    hasFirstSoldPack: boolean;
-    hasFirstPaidDebt: boolean;
     hasRespondedToBlackmail: boolean;
     // Gerente chain state
     hasCompletedInvestigador: boolean;
@@ -124,6 +122,15 @@ export interface LevelEvent {
     dialogues: LevelDialogue[];         // sequence of messages player taps through
     unlocks?: string[];                 // contact ids to unlock
     payloads?: EventPayload[];          // additional scripted event payloads to fire
+}
+
+// Tutorial step type
+export interface TutorialStep {
+    id: number;
+    text: string;
+    target: string | null;
+    screen: GameState['activeApp'];
+    boxPosition?: { top?: number; bottom?: number };
 }
 
 // Dialogue system types

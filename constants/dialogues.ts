@@ -1,7 +1,7 @@
 // constants/dialogues.ts
 // Centralized dialogue and text content for O Mestre
 
-import { CharacterDialogue, GameState, LevelEvent, ScriptedEvent } from '../types/game';
+import { CharacterDialogue, GameState, LevelEvent, ScriptedEvent, TutorialStep } from '../types/game';
 import { formatMoney as fmt } from '../utils/format';
 
 // ============================================================================
@@ -9,7 +9,7 @@ import { formatMoney as fmt } from '../utils/format';
 // ============================================================================
 
 // Tutorial messages (step-by-step guide for new players)
-export const TUTORIAL = [
+export const TUTORIAL: TutorialStep[] = [
     {
         id: 0,
         text: "Bem-vindo, Vacaro. Você lava dinheiro pro PCC: eles mandam uma quantia, você devolve pelo menos 60%.",
@@ -45,7 +45,7 @@ export const TUTORIAL = [
     },
     {
         id: 5,
-        text: "Volte ao início. Abra o app Laranjas para criar um derivativo.",
+        text: "Agora vamos criar uns empréstimos em nome dessas pessoas. Saia do Zep.",
         target: null,
         screen: 'chat'
     },
@@ -90,7 +90,7 @@ export const UI_LARANJAS = {
     labelCpfSelected: "CPF selecionados",
     labelUsar:        "usar",
     labelLoan:        "empréstimo gerado",
-    processingTitle:  "GERANDO CPFs...",
+    processingTitle:  "Criando empréstimos nos nomes da lista...",
     processingLabel:  "PROCESSANDO PACOTE",
     successIcon:      "✓",
     successTitle:     "DERIVATIVO CRIADO",
@@ -174,17 +174,17 @@ export const UI_TUTORIAL_OVERLAY = {
     tapToContinue: "(Toque para continuar)",
 };
 
+// UI Labels - Level up screen
+export const UI_LEVEL_UP = {
+    label: "NÍVEL",
+    tapToPlay: "TOQUE PARA JOGAR",
+    tapToContinue: "TOQUE PARA CONTINUAR",
+};
+
 // UI Labels - Game over screen
 export const UI_GAME_OVER = {
     masterDays: (days: number) => `Dias como O Mestre: ${days}`,
     restartBtn: "NOVA PARTIDA",
-};
-
-// Transaction messages
-export const SYSTEM_MESSAGES = {
-    transferring: "Transferindo...",
-    done: "Feito.",
-    insufficientFunds: "Saldo insuficiente.",
 };
 
 // ============================================================================
