@@ -36,7 +36,7 @@ export function LevelUpScreen() {
     const isLastStep = !showingTitle && dialogueIdx >= event.dialogues.length - 1;
 
     return (
-        <View style={styles.container}>
+        <TouchableOpacity style={styles.container} activeOpacity={1} onPress={advanceLevelDialogue}>
             <View style={styles.titleBox}>
                 <Text style={styles.titleLabel}>{UI_LEVEL_UP.label}</Text>
                 <Text style={styles.title}>{event.title}</Text>
@@ -59,14 +59,14 @@ export function LevelUpScreen() {
                 </View>
             )}
 
-            <TouchableOpacity style={styles.tapArea} onPress={advanceLevelDialogue}>
+            <View style={styles.tapArea}>
                 <Text style={styles.tapHint}>
                     {isLastStep || event.dialogues.length === 0
                         ? UI_LEVEL_UP.tapToPlay
                         : UI_LEVEL_UP.tapToContinue}
                 </Text>
-            </TouchableOpacity>
-        </View>
+            </View>
+        </TouchableOpacity>
     );
 }
 
