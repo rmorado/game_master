@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useGameStore } from '../hooks/use-game-store';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { TUTORIAL_STEPS } from '../constants/game-data';
+import { useGameStore } from '../hooks/use-game-store';
 
 export function TutorialOverlay() {
     const { tutStep, activeApp, actions } = useGameStore(state => state);
@@ -36,9 +36,10 @@ export function TutorialOverlay() {
         );
     }
 
-    // Non-info steps: floating text box anchored to bottom, passes all touches through
+    // Non-info steps: floating text box at per-step position, passes all touches through
+    const pos = (step as any).boxPosition ?? { bottom: 170 };
     return (
-        <View style={styles.floatingContainer} pointerEvents="none">
+        <View style={[styles.floatingContainer, pos]} pointerEvents="none">
             <View style={styles.tutorialBox}>
                 <Text style={styles.text}>{step.text}</Text>
             </View>
@@ -56,7 +57,6 @@ const styles = StyleSheet.create({
     },
     floatingContainer: {
         position: 'absolute',
-        top: 70,
         left: 20,
         right: 20,
         zIndex: 9999,

@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useGameStore } from '../hooks/use-game-store';
 import { useShallow } from 'zustand/react/shallow';
+import { useGameStore } from '../hooks/use-game-store';
 
 export function BottomNavBar() {
     const { actions, navHistory, showAppOverview } = useGameStore(useShallow(s => ({
@@ -40,19 +40,19 @@ const ICON_SIZE  = 20;
 const styles = StyleSheet.create({
     bar: {
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-end',
         justifyContent: 'space-around',
         backgroundColor: '#0a0a0a',
         borderTopWidth: StyleSheet.hairlineWidth,
         borderTopColor: 'rgba(255,255,255,0.08)',
-        paddingTop: 10,
+        paddingTop: 20,
     },
     btn: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 8,
-        minHeight: 44,
+        paddingVertical: 0,
+        minHeight: 0,
     },
     square: {
         width: ICON_SIZE,

@@ -85,7 +85,6 @@ export function LaranjaScreen() {
         timer2.current = setTimeout(() => {
             setScreenState('idle');
             progressAnim.setValue(0);
-            actions.setActiveApp('home');
         }, 4200);
     };
 

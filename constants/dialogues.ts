@@ -26,19 +26,22 @@ export const TUTORIAL = [
         id: 2,
         text: "Primeiro a gente compra um pacote de CPFs. Entre no ZEP.",
         target: 'nav_zep',
-        screen: 'home'
+        screen: 'home',
+        boxPosition: { bottom: 450 },
     },
     {
         id: 3,
         text: "Este é o Hacker. Ele vende identidades. Laranjas que nem sabem que estão na feira.",
         target: 'contact_hacker',
-        screen: 'zep'
+        screen: 'zep',
+        boxPosition: { top: 380 },
     },
     {
         id: 4,
         text: "Compre 100 CPFs.",
         target: 'btn_buy_100',
-        screen: 'chat'
+        screen: 'chat',
+        boxPosition: { top: 380 },
     },
     {
         id: 5,
@@ -50,13 +53,15 @@ export const TUTORIAL = [
         id: 6,
         text: "Use CRIAR DERIVATIVO para gerar o derivativo de dívida.",
         target: 'btn_loan',
-        screen: 'laranjas'
+        screen: 'laranjas',
+        boxPosition: { top: 120 },
     },
     {
         id: 7,
         text: "Pacote pronto! Abra o BACEN e venda o derivativo para receber dinheiro limpo.",
         target: 'btn_sell',
-        screen: 'bacen'
+        screen: 'laranjas',
+        boxPosition: { top: 250 },
     },
 ];
 
