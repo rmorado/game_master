@@ -120,8 +120,8 @@ export function HomeScreen() {
                     />
                     <AppIcon
                         label="BACEN"
-                        gradient={['#fde047', '#f59e0b']}
-                        letter="A"
+                        gradient={['#fef08a', '#facc15']}
+                        letter="B"
                         badge={bacenBadge}
                         onPress={() => go('bacen')}
                         dim={isTutorial && tutStep < 7}

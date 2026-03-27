@@ -48,14 +48,14 @@ const loadStyles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 14,
         borderBottomWidth: 1,
-        borderColor: 'rgba(124,58,237,0.15)',
+        borderColor: 'rgba(29,78,216,0.15)',
         gap: 12,
     },
     bankDot: {
         width: 8,
         height: 8,
         borderRadius: 4,
-        backgroundColor: '#7c3aed',
+        backgroundColor: '#1d4ed8',
     },
     bankName: {
         flex: 1,
@@ -65,7 +65,7 @@ const loadStyles = StyleSheet.create({
     },
     readyText: {
         fontSize: 11,
-        color: '#a78bfa',
+        color: '#60a5fa',
         fontWeight: '700',
         letterSpacing: 0.5,
     },
@@ -126,27 +126,27 @@ function OfferCard({ bankName, discountRate, offerValue, isBest, index, onAccept
 
 const offerStyles = StyleSheet.create({
     card: {
-        backgroundColor: '#130a30',
+        backgroundColor: '#0a1628',
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: 'rgba(124,58,237,0.25)',
+        borderColor: 'rgba(29,78,216,0.25)',
         padding: 16,
         marginBottom: 12,
     },
     cardBest: {
-        borderColor: '#7c3aed',
-        backgroundColor: 'rgba(124,58,237,0.08)',
+        borderColor: '#1d4ed8',
+        backgroundColor: 'rgba(29,78,216,0.08)',
     },
     bestBadge: {
         alignSelf: 'flex-start',
-        backgroundColor: 'rgba(124,58,237,0.25)',
+        backgroundColor: 'rgba(29,78,216,0.25)',
         borderRadius: 4,
         paddingHorizontal: 8,
         paddingVertical: 3,
         marginBottom: 10,
     },
     bestBadgeText: {
-        color: '#a78bfa',
+        color: '#60a5fa',
         fontSize: 10,
         fontWeight: '700',
         letterSpacing: 0.5,
@@ -161,7 +161,7 @@ const offerStyles = StyleSheet.create({
         width: 32,
         height: 32,
         borderRadius: 8,
-        backgroundColor: 'rgba(124,58,237,0.15)',
+        backgroundColor: 'rgba(29,78,216,0.15)',
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -198,13 +198,13 @@ const offerStyles = StyleSheet.create({
         letterSpacing: 0.5,
     },
     offerValue: {
-        color: '#a78bfa',
+        color: '#60a5fa',
         fontSize: 22,
         fontWeight: '700',
         fontFamily: 'Courier',
     },
     acceptBtn: {
-        backgroundColor: '#7c3aed',
+        backgroundColor: '#1d4ed8',
         borderRadius: 8,
         paddingVertical: 13,
         alignItems: 'center',
@@ -282,7 +282,7 @@ export function BacenScreen() {
             <View style={styles.header}>
                 <View style={styles.headerLogo}>
                     <View style={styles.logoMark}>
-                        <Text style={styles.logoLetter}>A</Text>
+                        <Text style={styles.logoLetter}>B</Text>
                     </View>
                     <View>
                         <Text style={styles.wordmark}>BACEN</Text>
@@ -400,12 +400,12 @@ export function BacenScreen() {
 const styles = StyleSheet.create({
     screen: {
         flex: 1,
-        backgroundColor: '#0b0118',
+        backgroundColor: '#060e1f',
     },
     header: {
-        backgroundColor: '#110222',
+        backgroundColor: '#0d1530',
         borderBottomWidth: 1,
-        borderColor: '#2a1250',
+        borderColor: '#1e3a7a',
         paddingTop: 14,
         paddingBottom: 14,
         paddingHorizontal: 16,
@@ -445,15 +445,15 @@ const styles = StyleSheet.create({
         textTransform: 'uppercase',
     },
     corpBadge: {
-        backgroundColor: 'rgba(124,58,237,0.2)',
+        backgroundColor: 'rgba(29,78,216,0.2)',
         borderWidth: 1,
-        borderColor: 'rgba(124,58,237,0.4)',
+        borderColor: 'rgba(29,78,216,0.4)',
         borderRadius: 6,
         paddingHorizontal: 8,
         paddingVertical: 3,
     },
     corpText: {
-        color: '#a78bfa',
+        color: '#60a5fa',
         fontSize: 10,
         fontWeight: '600',
         letterSpacing: 0.5,
@@ -500,8 +500,8 @@ const styles = StyleSheet.create({
         borderRadius: 4,
     },
     packRowSelected: {
-        backgroundColor: 'rgba(124,58,237,0.08)',
-        borderColor: 'rgba(124,58,237,0.2)',
+        backgroundColor: 'rgba(29,78,216,0.08)',
+        borderColor: 'rgba(29,78,216,0.2)',
         borderWidth: 1,
     },
     packSelectedBar: {
@@ -510,23 +510,23 @@ const styles = StyleSheet.create({
         top: 0,
         bottom: 0,
         width: 3,
-        backgroundColor: '#7c3aed',
+        backgroundColor: '#1d4ed8',
         borderRadius: 2,
     },
     packIdBadge: {
         width: 42,
         height: 42,
         borderRadius: 8,
-        backgroundColor: 'rgba(124,58,237,0.15)',
+        backgroundColor: 'rgba(29,78,216,0.15)',
         borderWidth: 1,
-        borderColor: 'rgba(124,58,237,0.3)',
+        borderColor: 'rgba(29,78,216,0.3)',
         alignItems: 'center',
         justifyContent: 'center',
     },
     packIdText: {
         fontSize: 10,
         fontWeight: '700',
-        color: '#a78bfa',
+        color: '#60a5fa',
         letterSpacing: 0.5,
     },
     packInfo: {
@@ -560,17 +560,17 @@ const styles = StyleSheet.create({
         padding: 16,
         paddingTop: 12,
         borderTopWidth: 1,
-        borderColor: '#2a1250',
+        borderColor: '#1e3a7a',
         gap: 8,
     },
     offerBtn: {
-        backgroundColor: '#7c3aed',
+        backgroundColor: '#1d4ed8',
         borderRadius: 8,
         paddingVertical: 16,
         alignItems: 'center',
     },
     offerBtnHighlight: {
-        shadowColor: '#7c3aed',
+        shadowColor: '#1d4ed8',
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.7,
         shadowRadius: 12,
@@ -603,7 +603,7 @@ const styles = StyleSheet.create({
     },
     successIcon: {
         fontSize: 52,
-        color: '#7c3aed',
+        color: '#1d4ed8',
     },
     successTitle: {
         color: '#fff',

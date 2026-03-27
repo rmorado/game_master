@@ -212,7 +212,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             const lvl = LEVELS[state.levelIdx];
 
             // ── Bag spawn ──
-            if (state.day >= state.nextBagDay && !state.hasPendingBag) {
+            if (state.tutStep >= 8 && state.day >= state.nextBagDay && !state.hasPendingBag) {
                 const amount = lvl.bagSize;
                 set(s => ({
                     hasPendingBag: true,
@@ -283,7 +283,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
             // ── Scripted event loop ──
             const snapshot = get();
-            if (snapshot.eventsTriggered.length < SCRIPTED_EVENTS.length) {
+            if (snapshot.tutStep >= 8 && snapshot.eventsTriggered.length < SCRIPTED_EVENTS.length) {
                 SCRIPTED_EVENTS.forEach(event => {
                     if (
                         !snapshot.eventsTriggered.includes(event.id) &&
