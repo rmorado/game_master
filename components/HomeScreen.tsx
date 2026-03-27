@@ -10,6 +10,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
+import { UI_HOME } from '../constants/dialogues';
 
 // ─── App icon ─────────────────────────────────────────────────────────────────
 
@@ -18,13 +19,14 @@ interface AppIconProps {
     gradient: readonly [string, string];
     emoji?: string;
     letter?: string;
+    letterColor?: string;
     badge?: number;
     onPress: () => void;
     highlight?: boolean;
     dim?: boolean;
 }
 
-function AppIcon({ label, gradient, emoji, letter, badge, onPress, highlight, dim }: AppIconProps) {
+function AppIcon({ label, gradient, emoji, letter, letterColor, badge, onPress, highlight, dim }: AppIconProps) {
     return (
         <TouchableOpacity
             style={[styles.appItem, dim && styles.appDim]}
@@ -48,7 +50,7 @@ function AppIcon({ label, gradient, emoji, letter, badge, onPress, highlight, di
                     {emoji ? (
                         <Text style={styles.iconEmoji}>{emoji}</Text>
                     ) : (
-                        <Text style={styles.iconLetter}>{letter}</Text>
+                        <Text style={[styles.iconLetter, letterColor ? { color: letterColor } : undefined]}>{letter}</Text>
                     )}
                 </LinearGradient>
                 {!!badge && (
@@ -110,7 +112,7 @@ export function HomeScreen() {
                 {/* App grid */}
                 <View style={styles.grid}>
                     <AppIcon
-                        label="ZEP"
+                        label={UI_HOME.apps.zep}
                         gradient={['#0ea043', '#075e2e']}
                         letter="Z"
                         badge={zepBadge}
@@ -119,15 +121,16 @@ export function HomeScreen() {
                         dim={isTutorial && !highlightZep && tutStep !== 0 && tutStep !== 1}
                     />
                     <AppIcon
-                        label="BACEN"
+                        label={UI_HOME.apps.bacen}
                         gradient={['#fef08a', '#facc15']}
                         letter="B"
+                        letterColor="#1d4ed8"
                         badge={bacenBadge}
                         onPress={() => go('bacen')}
                         dim={isTutorial && tutStep < 7}
                     />
                     <AppIcon
-                        label="Laranjas"
+                        label={UI_HOME.apps.laranjas}
                         gradient={['#ff6a00', '#c94300']}
                         emoji="🍊"
                         badge={laranjasBadge}
@@ -136,20 +139,20 @@ export function HomeScreen() {
                         dim={isTutorial && !highlightLaranjas && tutStep < 5}
                     />
                     <AppIcon
-                        label="Calendário"
+                        label={UI_HOME.apps.calendario}
                         gradient={['#2563eb', '#1340a0']}
                         emoji="📅"
                         onPress={() => {}}
                         dim={true}
                     />
                     <AppIcon
-                        label="Carteira"
+                        label={UI_HOME.apps.carteira}
                         gradient={['#111111', '#0a0a0a']}
                         emoji="💰"
                         onPress={() => go('carteira')}
                     />
                     <AppIcon
-                        label="Dossiê"
+                        label={UI_HOME.apps.dossie}
                         gradient={['#b91c1c', '#6b0f0f']}
                         emoji="📁"
                         badge={dossieBadge}
@@ -157,7 +160,7 @@ export function HomeScreen() {
                         dim={true}
                     />
                     <AppIcon
-                        label="News"
+                        label={UI_HOME.apps.news}
                         gradient={['#1d4ed8', '#0f2a80']}
                         emoji="📰"
                         onPress={() => {}}

@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
-import { getCharacter } from '../constants/dialogues';
+import { getCharacter, UI_ZEP } from '../constants/dialogues';
 
 // Contact order mirrors the mockup
 const CONTACT_ORDER = [
@@ -57,11 +57,11 @@ function ContactRow({ contactId, lastMessage, isMe, unread, hasPending, onPress,
             <View style={styles.info}>
                 <View style={styles.topRow}>
                     <Text style={styles.name}>{char.name}</Text>
-                    <Text style={styles.time}>agora</Text>
+                    <Text style={styles.time}>{UI_ZEP.timeLabel}</Text>
                 </View>
                 <View style={styles.bottomRow}>
                     <Text style={styles.preview} numberOfLines={1}>
-                        {isMe && <Text style={styles.checkmarks}>✓✓ </Text>}
+                        {isMe && <Text style={styles.checkmarks}>{UI_ZEP.checkmarks}</Text>}
                         {lastMessage}
                     </Text>
                     {showBadge && (
@@ -110,23 +110,23 @@ export function ZepAppScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <View style={styles.headerCenter}>
-                    <Text style={styles.wordmark}>ZEP</Text>
+                    <Text style={styles.wordmark}>{UI_ZEP.wordmark}</Text>
                 </View>
 
                 <View style={styles.headerActions}>
                     <TouchableOpacity style={styles.iconBtn}>
-                        <Text style={styles.iconBtnText}>⌕</Text>
+                        <Text style={styles.iconBtnText}>{UI_ZEP.searchIcon}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.iconBtn}>
-                        <Text style={styles.iconBtnText}>⋮</Text>
+                        <Text style={styles.iconBtnText}>{UI_ZEP.menuIcon}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
 
             {/* Search bar */}
             <View style={styles.searchBar}>
-                <Text style={styles.searchIcon}>⌕</Text>
-                <Text style={styles.searchPlaceholder}>Buscar conversa...</Text>
+                <Text style={styles.searchIcon}>{UI_ZEP.searchIcon}</Text>
+                <Text style={styles.searchPlaceholder}>{UI_ZEP.searchPlaceholder}</Text>
             </View>
 
             {/* Contact list */}
@@ -154,7 +154,7 @@ export function ZepAppScreen() {
 
             {/* FAB */}
             <TouchableOpacity style={styles.fab}>
-                <Text style={styles.fabIcon}>✉</Text>
+                <Text style={styles.fabIcon}>{UI_ZEP.fabIcon}</Text>
             </TouchableOpacity>
         </View>
     );

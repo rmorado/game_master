@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { TUTORIAL_STEPS } from '../constants/game-data';
+import { UI_TUTORIAL_OVERLAY } from '../constants/dialogues';
 import { useGameStore } from '../hooks/use-game-store';
 
 export function TutorialOverlay() {
@@ -30,7 +31,7 @@ export function TutorialOverlay() {
             >
                 <View style={styles.tutorialBox}>
                     <Text style={styles.text}>{step.text}</Text>
-                    <Text style={styles.subText}>(Toque para continuar)</Text>
+                    <Text style={styles.subText}>{UI_TUTORIAL_OVERLAY.tapToContinue}</Text>
                 </View>
             </TouchableOpacity>
         );

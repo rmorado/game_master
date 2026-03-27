@@ -1,6 +1,7 @@
 // app/(tabs)/game.tsx
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar } from 'react-native';
 import { useGameStore } from '../../hooks/use-game-store';
+import { UI_GAME_OVER } from '../../constants/dialogues';
 import { useShallow } from 'zustand/react/shallow';
 import { useEffect } from 'react';
 import { HomeScreen } from '../../components/HomeScreen';
@@ -49,15 +50,13 @@ export default function GameScreen() {
                 <Text style={styles.gameOverReason}>{gameOverReason}</Text>
                 <Text style={styles.gameOverDetail}>{gameOverDetail}</Text>
                 {masterDays !== null && (
-                    <Text style={styles.gameOverScore}>
-                        Dias como O Mestre: {masterDays}
-                    </Text>
+                    <Text style={styles.gameOverScore}>{UI_GAME_OVER.masterDays(masterDays)}</Text>
                 )}
                 <TouchableOpacity
                     style={styles.restartBtn}
                     onPress={() => actions.restartGame()}
                 >
-                    <Text style={styles.restartBtnText}>NOVA PARTIDA</Text>
+                    <Text style={styles.restartBtnText}>{UI_GAME_OVER.restartBtn}</Text>
                 </TouchableOpacity>
             </View>
         );

@@ -2,7 +2,7 @@
 import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from 'react-native';
 import { useGameStore } from '../hooks/use-game-store';
-import { getCharacter, DIALOGUES } from '../constants/dialogues';
+import { getCharacter, DIALOGUES, UI_CHAT } from '../constants/dialogues';
 
 export function ChatScreen() {
     const state = useGameStore(s => s);
@@ -36,14 +36,14 @@ export function ChatScreen() {
                         style={[styles.presetBtn, styles.presetBtnAccept]}
                         onPress={() => actions.respondToBag(true)}
                     >
-                        <Text style={styles.presetBtnText}>OK, manda.</Text>
+                        <Text style={styles.presetBtnText}>{UI_CHAT.bagAccept}</Text>
                     </TouchableOpacity>
                     {!hasUsedNotNow && (
                         <TouchableOpacity
                             style={styles.presetBtn}
                             onPress={() => actions.respondToBag(false)}
                         >
-                            <Text style={[styles.presetBtnText, { color: '#aaa' }]}>Não agora.</Text>
+                            <Text style={[styles.presetBtnText, { color: '#aaa' }]}>{UI_CHAT.bagDecline}</Text>
                         </TouchableOpacity>
                     )}
                 </>

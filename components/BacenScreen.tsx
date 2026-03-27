@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
+import { UI_BACEN } from '../constants/dialogues';
 import { formatMoney } from '../utils/format';
 
 type SellStep = 'list' | 'loading' | 'offers';
@@ -34,9 +35,9 @@ function BankLoadRow({ name, delay, onReady }: { name: string; delay: number; on
             <View style={loadStyles.bankDot} />
             <Text style={loadStyles.bankName}>{name}</Text>
             {ready ? (
-                <Text style={loadStyles.readyText}>RESPONDEU</Text>
+                <Text style={loadStyles.readyText}>{UI_BACEN.bankReady}</Text>
             ) : (
-                <Text style={loadStyles.waitText}>aguardando...</Text>
+                <Text style={loadStyles.waitText}>{UI_BACEN.bankWaiting}</Text>
             )}
         </Animated.View>
     );
@@ -101,12 +102,12 @@ function OfferCard({ bankName, discountRate, offerValue, isBest, index, onAccept
         <Animated.View style={[offerStyles.card, isBest && offerStyles.cardBest, { opacity: fade, transform: [{ translateY: slide }] }]}>
             {isBest && (
                 <View style={offerStyles.bestBadge}>
-                    <Text style={offerStyles.bestBadgeText}>MELHOR OFERTA</Text>
+                    <Text style={offerStyles.bestBadgeText}>{UI_BACEN.bestOffer}</Text>
                 </View>
             )}
             <View style={offerStyles.cardHeader}>
                 <View style={offerStyles.bankIcon}>
-                    <Text style={offerStyles.bankIconText}>🏦</Text>
+                    <Text style={offerStyles.bankIconText}>{UI_BACEN.bankIcon}</Text>
                 </View>
                 <Text style={offerStyles.bankName}>{bankName}</Text>
                 <View style={offerStyles.discountBadge}>
@@ -114,11 +115,11 @@ function OfferCard({ bankName, discountRate, offerValue, isBest, index, onAccept
                 </View>
             </View>
             <View style={offerStyles.cardBody}>
-                <Text style={offerStyles.offerLabel}>Oferta</Text>
+                <Text style={offerStyles.offerLabel}>{UI_BACEN.offerLabel}</Text>
                 <Text style={offerStyles.offerValue}>R$ {formatMoney(offerValue)}</Text>
             </View>
             <TouchableOpacity style={offerStyles.acceptBtn} onPress={onAccept} activeOpacity={0.8}>
-                <Text style={offerStyles.acceptBtnText}>CONFIRMAR</Text>
+                <Text style={offerStyles.acceptBtnText}>{UI_BACEN.confirmBtn}</Text>
             </TouchableOpacity>
         </Animated.View>
     );
@@ -285,12 +286,12 @@ export function BacenScreen() {
                         <Text style={styles.logoLetter}>B</Text>
                     </View>
                     <View>
-                        <Text style={styles.wordmark}>BACEN</Text>
-                        <Text style={styles.subtitle}>Plataforma Interbancária</Text>
+                        <Text style={styles.wordmark}>{UI_BACEN.wordmark}</Text>
+                        <Text style={styles.subtitle}>{UI_BACEN.subtitle}</Text>
                     </View>
                 </View>
                 <View style={styles.corpBadge}>
-                    <Text style={styles.corpText}>CORP</Text>
+                    <Text style={styles.corpText}>{UI_BACEN.corpBadge}</Text>
                 </View>
             </View>
 
@@ -299,8 +300,8 @@ export function BacenScreen() {
                     {sellStep === 'loading' ? (
                         // ── Loading state ──────────────────────────────────────
                         <ScrollView contentContainerStyle={styles.section}>
-                            <Text style={styles.sectionLabel}>BUSCANDO OFERTAS</Text>
-                            <Text style={styles.loadingHint}>Procurando ofertas de outros bancos...</Text>
+                            <Text style={styles.sectionLabel}>{UI_BACEN.sectionLoading}</Text>
+                            <Text style={styles.loadingHint}>{UI_BACEN.loadingHint}</Text>
                             {bankOffers.map((offer, i) => (
                                 <BankLoadRow
                                     key={offer.bankName}
@@ -313,7 +314,7 @@ export function BacenScreen() {
                     ) : sellStep === 'offers' ? (
                         // ── Offers state ───────────────────────────────────────
                         <ScrollView contentContainerStyle={styles.section} showsVerticalScrollIndicator={false}>
-                            <Text style={styles.sectionLabel}>OFERTAS RECEBIDAS</Text>
+                            <Text style={styles.sectionLabel}>{UI_BACEN.sectionOffers}</Text>
                             {bankOffers.map((offer, i) => (
                                 <OfferCard
                                     key={offer.bankName}
@@ -329,25 +330,25 @@ export function BacenScreen() {
                                 style={styles.cancelLink}
                                 onPress={() => setSellStep('list')}
                             >
-                                <Text style={styles.cancelLinkText}>Cancelar</Text>
+                                <Text style={styles.cancelLinkText}>{UI_BACEN.cancelLink}</Text>
                             </TouchableOpacity>
                         </ScrollView>
 
                     ) : successPackId ? (
                         // ── Success state ──────────────────────────────────────
                         <View style={styles.successContainer}>
-                            <Text style={styles.successIcon}>✓</Text>
-                            <Text style={styles.successTitle}>DERIVATIVO VENDIDO</Text>
-                            <Text style={styles.successSub}>Dinheiro limpo adicionado à carteira</Text>
+                            <Text style={styles.successIcon}>{UI_BACEN.successIcon}</Text>
+                            <Text style={styles.successTitle}>{UI_BACEN.successTitle}</Text>
+                            <Text style={styles.successSub}>{UI_BACEN.successSub}</Text>
                         </View>
 
                     ) : (
                         // ── Pack list ──────────────────────────────────────────
                         <>
                             <ScrollView style={styles.packList} showsVerticalScrollIndicator={false}>
-                                <Text style={styles.sectionLabel}>DERIVATIVOS EM CARTEIRA</Text>
+                                <Text style={styles.sectionLabel}>{UI_BACEN.sectionPackList}</Text>
                                 {debtPacks.length === 0 ? (
-                                    <Text style={styles.emptyText}>Nenhum derivativo criado ainda.</Text>
+                                    <Text style={styles.emptyText}>{UI_BACEN.emptyPacks}</Text>
                                 ) : (
                                     debtPacks.map(pack => (
                                         <TouchableOpacity
@@ -361,16 +362,12 @@ export function BacenScreen() {
                                                 <Text style={styles.packIdText}>#{pack.id % 10000}</Text>
                                             </View>
                                             <View style={styles.packInfo}>
-                                                <Text style={styles.packName}>Derivativo — {pack.cpfsUsed} CPF</Text>
-                                                <Text style={styles.packMeta}>
-                                                    Emitido dia {pack.dayCreated} · vence dia {pack.dayCreated + 90}
-                                                </Text>
+                                                <Text style={styles.packName}>{UI_BACEN.packName(pack.cpfsUsed)}</Text>
+                                                <Text style={styles.packMeta}>{UI_BACEN.packMeta(pack.dayCreated)}</Text>
                                             </View>
                                             <View style={styles.packRight}>
                                                 <Text style={styles.packValue}>R$ {formatMoney(pack.value)}</Text>
-                                                <Text style={styles.packDays}>
-                                                    {90 - (pack.dayCreated)} dias
-                                                </Text>
+                                                <Text style={styles.packDays}>{UI_BACEN.packDays(90 - pack.dayCreated)}</Text>
                                             </View>
                                         </TouchableOpacity>
                                     ))
@@ -387,7 +384,7 @@ export function BacenScreen() {
                                     onPress={handleOfferPack}
                                     disabled={!selectedPackId}
                                 >
-                                    <Text style={styles.offerBtnText}>OFERECER DERIVATIVO</Text>
+                                    <Text style={styles.offerBtnText}>{UI_BACEN.offerBtn}</Text>
                                 </TouchableOpacity>
                             </View>
                         </>

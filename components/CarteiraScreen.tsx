@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import Slider from '@react-native-community/slider';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
+import { UI_CARTEIRA } from '../constants/dialogues';
 import { formatBRL } from '../utils/format';
 
 const GREEN = '#22c55e';
@@ -32,24 +33,24 @@ export function CarteiraScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <Text style={styles.backArrow}>‹</Text>
-                <Text style={styles.appName}>carteira</Text>
+                <Text style={styles.appName}>{UI_CARTEIRA.appName}</Text>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
                 {/* Balances */}
                 <View style={styles.balanceSection}>
                     <View style={styles.balanceRow}>
-                        <Text style={styles.balanceLabel}>sujo</Text>
+                        <Text style={styles.balanceLabel}>{UI_CARTEIRA.labelDirty}</Text>
                         <View style={styles.balanceRight}>
-                            <Text style={styles.balanceCurrency}>R$</Text>
+                            <Text style={styles.balanceCurrency}>{UI_CARTEIRA.currency}</Text>
                             <Text style={[styles.balanceValue, styles.colorDirty]}>{formatBRL(dirty)}</Text>
                         </View>
                     </View>
                     <View style={styles.divider} />
                     <View style={styles.balanceRow}>
-                        <Text style={styles.balanceLabel}>limpo</Text>
+                        <Text style={styles.balanceLabel}>{UI_CARTEIRA.labelClean}</Text>
                         <View style={styles.balanceRight}>
-                            <Text style={styles.balanceCurrency}>R$</Text>
+                            <Text style={styles.balanceCurrency}>{UI_CARTEIRA.currency}</Text>
                             <Text style={[styles.balanceValue, styles.colorClean]}>{formatBRL(clean)}</Text>
                         </View>
                     </View>
@@ -57,14 +58,14 @@ export function CarteiraScreen() {
 
                 {/* Transfer section */}
                 <View style={styles.transferSection}>
-                    <Text style={styles.sectionTitle}>TRANSFERIR PARA PCC</Text>
+                    <Text style={styles.sectionTitle}>{UI_CARTEIRA.sectionTransfer}</Text>
 
                     {/* Percentage row */}
                     <View style={styles.pctRow}>
-                        <Text style={styles.pctLabel}>enviar</Text>
+                        <Text style={styles.pctLabel}>{UI_CARTEIRA.labelEnviar}</Text>
                         <View style={styles.pctRight}>
                             <Text style={styles.pctValue}>{pct}%</Text>
-                            <Text style={styles.pctSub}> do limpo</Text>
+                            <Text style={styles.pctSub}>{UI_CARTEIRA.labelDoLimpo}</Text>
                         </View>
                     </View>
 
@@ -82,7 +83,7 @@ export function CarteiraScreen() {
                             thumbTintColor={GREEN}
                         />
                         <TouchableOpacity style={styles.maxBtn} onPress={() => setPct(100)}>
-                            <Text style={styles.maxBtnText}>MAX</Text>
+                            <Text style={styles.maxBtnText}>{UI_CARTEIRA.maxBtn}</Text>
                         </TouchableOpacity>
                     </View>
 
@@ -90,11 +91,9 @@ export function CarteiraScreen() {
 
                     {/* Amount preview */}
                     <View style={styles.amountSection}>
-                        <Text style={styles.amountLabel}>a enviar</Text>
-                        <Text style={styles.amountValue}>R$ {formatBRL(transferAmount)}</Text>
-                        <Text style={styles.amountRest}>
-                            resta R$ {formatBRL(remaining)} limpo
-                        </Text>
+                        <Text style={styles.amountLabel}>{UI_CARTEIRA.labelAEnviar}</Text>
+                        <Text style={styles.amountValue}>{UI_CARTEIRA.currency} {formatBRL(transferAmount)}</Text>
+                        <Text style={styles.amountRest}>{UI_CARTEIRA.labelResta(formatBRL(remaining))}</Text>
                     </View>
 
                     <View style={styles.divider} />
@@ -106,13 +105,13 @@ export function CarteiraScreen() {
                         disabled={!canSend}
                         activeOpacity={0.8}
                     >
-                        <Text style={styles.sendBtnText}>ENVIAR</Text>
+                        <Text style={styles.sendBtnText}>{UI_CARTEIRA.sendBtn}</Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* Histórico */}
                 <View style={styles.historicoSection}>
-                    <Text style={styles.sectionTitle}>HISTÓRICO</Text>
+                    <Text style={styles.sectionTitle}>{UI_CARTEIRA.sectionHistory}</Text>
                 </View>
             </ScrollView>
         </View>

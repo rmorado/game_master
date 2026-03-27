@@ -72,54 +72,112 @@ export const BANKS = [
     { id: 'sapo',     name: 'Banco SAPO' },
 ];
 
-// UI Labels - Bank Screen
-export const UI_BANK = {
-    btnCreateLoan: "📦 CRIAR DERIVATIVO",
-    btnSellPack:   "💰 VENDER DÍVIDA",
-    btnPayDebt:    "💸 PAGAR",
-    packSection:   "DERIVATIVOS PRONTOS",
-    packEmpty:     "Nenhum derivativo. Crie um empréstimo.",
-    debtSection:   "DÍVIDAS A PAGAR",
-    debtEmpty:     "Sem dívidas pendentes.",
-};
-
-// UI Labels - Sell Modal
-export const UI_SELL = {
-    title:         "VENDER PACOTE DE DÍVIDA",
-    subtitle:      "Escolha um comprador",
-    faceValue:     "Valor nominal",
-    discount:      "Desconto",
-    offer:         "Oferta",
-    accept:        "ACEITAR",
-    successTitle:  "✅ PACOTE VENDIDO",
-    successSub:    "Dinheiro limpo depositado na conta",
-    cancel:        "❌ FECHAR",
-};
-
-// UI Labels - Loan Modal (Cinematic)
-export const UI_LOAN_CINEMATIC = {
-    title:           "REQUERIMENTO DE EMPRÉSTIMOS",
-    subtitle:        "Selecione a quantidade de CPFs",
-    sectionValues:   "📊 VALORES DA OPERAÇÃO",
-    labelCpfs:       "CPFs Utilizados:",
-    labelDirty:      "Custo total da dívida:",
-    labelClean:      "Valor de venda total:",
-    labelSuspicion:  "Taxa de Suspeita:",
-    sectionCpfs:     "💾 CPFs SELECIONADOS",
-    btnConfirm:      "🔒 CRIAR DÍVIDA CONSOLIDADA",
-    btnCancel:       "❌ CANCELAR",
-    processingTitle: "Criando Dívida Consolidada",
-    processingLabel: "PROCESSANDO...",
-    successTitle:    "✅ PRONTO",
-    successSubtitle: "Pacote de dívida pronto para venda",
-};
-
 // UI Labels - Pay Modal
 export const UI_PAY_MODAL = {
     title: "PAGAR PCC",
     labelBalance: (amount: string) => `Saldo Limpo: ${amount}`,
     btnConfirm: "CONFIRMAR PAGAMENTO",
     btnCancel: "Cancelar",
+};
+
+// UI Labels - Laranjas screen
+export const UI_LARANJAS = {
+    appName:          "laranjas",
+    ctaBtn:           "CRIAR DERIVATIVO",
+    warning:          "⚠ aumenta suspeita",
+    maxBtn:           "MAX",
+    labelCpfAvail:    "CPF disponíveis",
+    labelCpfSelected: "CPF selecionados",
+    labelUsar:        "usar",
+    labelLoan:        "empréstimo gerado",
+    processingTitle:  "GERANDO CPFs...",
+    processingLabel:  "PROCESSANDO PACOTE",
+    successIcon:      "✓",
+    successTitle:     "DERIVATIVO CRIADO",
+    successSub:       "Pronto para venda no BACEN",
+};
+
+// UI Labels - BACEN screen
+export const UI_BACEN = {
+    wordmark:        "BACEN",
+    subtitle:        "Plataforma Interbancária",
+    corpBadge:       "CORP",
+    offerBtn:        "OFERECER DERIVATIVO",
+    sectionLoading:  "BUSCANDO OFERTAS",
+    loadingHint:     "Procurando ofertas de outros bancos...",
+    sectionOffers:   "OFERTAS RECEBIDAS",
+    cancelLink:      "Cancelar",
+    sectionPackList: "DERIVATIVOS EM CARTEIRA",
+    emptyPacks:      "Nenhum derivativo criado ainda.",
+    confirmBtn:      "CONFIRMAR",
+    bestOffer:       "MELHOR OFERTA",
+    offerLabel:      "Oferta",
+    bankReady:       "RESPONDEU",
+    bankWaiting:     "aguardando...",
+    bankIcon:        "🏦",
+    successIcon:     "✓",
+    successTitle:    "DERIVATIVO VENDIDO",
+    successSub:      "Dinheiro limpo adicionado à carteira",
+    packName:        (cpfsUsed: number) => `Derivativo — ${cpfsUsed} CPF`,
+    packMeta:        (dayCreated: number) => `Emitido dia ${dayCreated} · vence dia ${dayCreated + 90}`,
+    packDays:        (days: number) => `${days} dias`,
+};
+
+// UI Labels - Carteira screen
+export const UI_CARTEIRA = {
+    appName:         "carteira",
+    labelDirty:      "sujo",
+    labelClean:      "limpo",
+    currency:        "R$",
+    sectionTransfer: "TRANSFERIR PARA PCC",
+    labelEnviar:     "enviar",
+    labelDoLimpo:    " do limpo",
+    maxBtn:          "MAX",
+    labelAEnviar:    "a enviar",
+    labelResta:      (remaining: string) => `resta R$ ${remaining} limpo`,
+    sendBtn:         "ENVIAR",
+    sectionHistory:  "HISTÓRICO",
+};
+
+// UI Labels - Home screen app icons
+export const UI_HOME = {
+    apps: {
+        zep:       "ZEP",
+        bacen:     "BACEN",
+        laranjas:  "Laranjas",
+        calendario:"Calendário",
+        carteira:  "Carteira",
+        dossie:    "Dossiê",
+        news:      "News",
+    },
+};
+
+// UI Labels - ZEP app screen
+export const UI_ZEP = {
+    wordmark:          "ZEP",
+    searchIcon:        "⌕",
+    menuIcon:          "⋮",
+    searchPlaceholder: "Buscar conversa...",
+    timeLabel:         "agora",
+    checkmarks:        "✓✓ ",
+    fabIcon:           "✉",
+};
+
+// UI Labels - Chat screen
+export const UI_CHAT = {
+    bagAccept:  "OK, manda.",
+    bagDecline: "Não agora.",
+};
+
+// UI Labels - Tutorial overlay
+export const UI_TUTORIAL_OVERLAY = {
+    tapToContinue: "(Toque para continuar)",
+};
+
+// UI Labels - Game over screen
+export const UI_GAME_OVER = {
+    masterDays: (days: number) => `Dias como O Mestre: ${days}`,
+    restartBtn: "NOVA PARTIDA",
 };
 
 // Transaction messages

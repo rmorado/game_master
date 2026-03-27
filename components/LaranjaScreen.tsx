@@ -11,6 +11,7 @@ import Slider from '@react-native-community/slider';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
 import { LEVELS } from '../constants/game-data';
+import { UI_LARANJAS } from '../constants/dialogues';
 import { formatBRL } from '../utils/format';
 
 const ORANGE = '#f97316';
@@ -98,23 +99,23 @@ export function LaranjaScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <Text style={styles.backArrow}>‹</Text>
-                <Text style={styles.appName}>laranjas</Text>
+                <Text style={styles.appName}>{UI_LARANJAS.appName}</Text>
             </View>
 
             {screenState === 'success' ? (
                 <View style={styles.successContainer}>
-                    <Text style={styles.successIcon}>✓</Text>
-                    <Text style={styles.successTitle}>DERIVATIVO CRIADO</Text>
-                    <Text style={styles.successSub}>Pronto para venda no BACEN</Text>
+                    <Text style={styles.successIcon}>{UI_LARANJAS.successIcon}</Text>
+                    <Text style={styles.successTitle}>{UI_LARANJAS.successTitle}</Text>
+                    <Text style={styles.successSub}>{UI_LARANJAS.successSub}</Text>
                 </View>
 
             ) : screenState === 'processing' ? (
                 <View style={styles.processingContainer}>
-                    <Text style={styles.processingTitle}>GERANDO CPFs...</Text>
+                    <Text style={styles.processingTitle}>{UI_LARANJAS.processingTitle}</Text>
                     <View style={styles.progressBar}>
                         <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
                     </View>
-                    <Text style={styles.processingLabel}>PROCESSANDO PACOTE</Text>
+                    <Text style={styles.processingLabel}>{UI_LARANJAS.processingLabel}</Text>
                     <View style={styles.cpfFlash}>
                         {cpfPreview.map((cpf, i) => (
                             <Text key={i} style={styles.cpfFlashItem}>{cpf}</Text>
@@ -129,19 +130,19 @@ export function LaranjaScreen() {
 
                     {/* CPF rows */}
                     <View style={styles.row}>
-                        <Text style={styles.rowLabel}>CPF disponíveis</Text>
+                        <Text style={styles.rowLabel}>{UI_LARANJAS.labelCpfAvail}</Text>
                         <Text style={styles.rowValue}>{cpfs}</Text>
                     </View>
                     <View style={styles.divider} />
                     <View style={styles.row}>
-                        <Text style={styles.rowLabel}>CPF selecionados</Text>
+                        <Text style={styles.rowLabel}>{UI_LARANJAS.labelCpfSelected}</Text>
                         <Text style={styles.rowValue}>{clampedSlider}</Text>
                     </View>
                     <View style={styles.divider} />
 
                     {/* Usar / percentage */}
                     <View style={styles.usarRow}>
-                        <Text style={styles.usarLabel}>usar</Text>
+                        <Text style={styles.usarLabel}>{UI_LARANJAS.labelUsar}</Text>
                         <View style={styles.usarRight}>
                             <Text style={styles.pct}>{pct}%</Text>
                             <Text style={styles.pctSub}> — {clampedSlider} CPF</Text>
@@ -162,7 +163,7 @@ export function LaranjaScreen() {
                             thumbTintColor={ORANGE}
                         />
                         <TouchableOpacity style={styles.maxBtn} onPress={() => setSliderValue(maxCPFs)}>
-                            <Text style={styles.maxBtnText}>MAX</Text>
+                            <Text style={styles.maxBtnText}>{UI_LARANJAS.maxBtn}</Text>
                         </TouchableOpacity>
                     </View>
 
@@ -170,7 +171,7 @@ export function LaranjaScreen() {
 
                     {/* Loan amount */}
                     <View style={styles.loanBlock}>
-                        <Text style={styles.loanLabel}>empréstimo gerado</Text>
+                        <Text style={styles.loanLabel}>{UI_LARANJAS.labelLoan}</Text>
                         <Text style={styles.loanAmount}>R$ {formatBRL(loanValue)}</Text>
                     </View>
 
@@ -185,10 +186,10 @@ export function LaranjaScreen() {
                         disabled={!canConfirm || (tutStep < 6 && tutStep !== 0)}
                         activeOpacity={0.8}
                     >
-                        <Text style={styles.ctaText}>CRIAR DERIVATIVO</Text>
+                        <Text style={styles.ctaText}>{UI_LARANJAS.ctaBtn}</Text>
                     </TouchableOpacity>
 
-                    <Text style={styles.warning}>⚠ aumenta suspeita</Text>
+                    <Text style={styles.warning}>{UI_LARANJAS.warning}</Text>
                 </View>
             )}
         </View>
