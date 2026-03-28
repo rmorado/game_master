@@ -57,7 +57,6 @@ export interface GameState {
     hasUsedNotNow: boolean;
     // Dialogue system state
     cpfsBoughtFromHacker: number;
-    hasUnlocked50Pack: boolean;
     unlockedDialogueOptions: string[];
     // Blackmail event state
     hasRespondedToBlackmail: boolean;

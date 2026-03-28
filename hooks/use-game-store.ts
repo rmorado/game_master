@@ -112,12 +112,12 @@ type GameStore = GameState & {
 
 const initialState: GameState = {
     day: 1,
-    dirty: 5000000,
+    dirty: 20000000,
     clean: 0,
     cpfs: 0,
     suspicion: 0,
     pressure: 0,
-    batches: [{ id: 1, due: 3500000, days: 90 }],
+    batches: [{ id: 1, due: 14000000, days: 90 }],
     debtPacks: [],
     currentSellPackId: null,
     bankOffers: [],
@@ -139,7 +139,6 @@ const initialState: GameState = {
     unreadCounts: {},
     showNewMessagePopup: false,
     cpfsBoughtFromHacker: 0,
-    hasUnlocked50Pack: false,
     unlockedDialogueOptions: [],
     hasRespondedToBlackmail: false,
     hasCompletedInvestigador: false,
