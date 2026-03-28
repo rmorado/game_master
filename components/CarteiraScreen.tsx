@@ -16,7 +16,7 @@ export function CarteiraScreen() {
         actions: s.actions,
     })));
 
-    const [pct, setPct] = useState(50);
+    const [pct, setPct] = useState(0);
 
     const transferAmount = Math.floor(clean * (pct / 100));
     const remaining = clean - transferAmount;
@@ -25,7 +25,7 @@ export function CarteiraScreen() {
     const handleSend = () => {
         if (!canSend) return;
         actions.payPCC(transferAmount);
-        setPct(50);
+        setPct(0);
     };
 
     return (

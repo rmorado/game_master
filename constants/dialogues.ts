@@ -60,7 +60,7 @@ export const TUTORIAL: TutorialStep[] = [
         id: 7,
         text: "Pacote pronto! Abra o BACEN e venda o derivativo para receber dinheiro limpo.",
         target: 'btn_sell',
-        screen: 'laranjas',
+        screen: 'bacen',
         boxPosition: { top: 250 },
     },
 ];

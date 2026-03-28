@@ -2,7 +2,7 @@
 import { create } from 'zustand';
 import { GameState, Batch, DebtPack, BankOffer, EventPayload } from '../types/game';
 import { LEVELS } from '../constants/game-data';
-import { BANKS, SCRIPTED_EVENTS, DIALOGUES, LEVEL_EVENTS } from '../constants/dialogues';
+import { BANKS, SCRIPTED_EVENTS, DIALOGUES, LEVEL_EVENTS, TUTORIAL } from '../constants/dialogues';
 import { formatMoney } from '../utils/format';
 
 const MSG_POPUP_DURATION = 3000;
@@ -96,6 +96,7 @@ type GameStore = GameState & {
         respondToBag: (accept: boolean) => void;
         chat: (contactId: string) => void;
         advanceTutorial: () => void;
+        skipTutorial: () => void;
         dismissNewMessagePopup: () => void;
         chooseDialogueOption: (optionId: string) => void;
         advanceLevelDialogue: () => void;
@@ -163,6 +164,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     actions: {
         advanceTutorial: () => {
             set(state => ({ tutStep: state.tutStep + 1 }));
+        },
+
+        skipTutorial: () => {
+            set({ tutStep: TUTORIAL.length, isPaused: false });
         },
 
         advanceLevelDialogue: () => {
