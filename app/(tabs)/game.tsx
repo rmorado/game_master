@@ -10,6 +10,7 @@ import { ChatScreen } from '../../components/ChatScreen';
 import { LaranjaScreen } from '../../components/LaranjaScreen';
 import { BacenScreen } from '../../components/BacenScreen';
 import { CarteiraScreen } from '../../components/CarteiraScreen';
+import { DossieScreen } from '../../components/DossieScreen';
 import { PayModal } from '../../components/PayModal';
 import { TutorialOverlay } from '../../components/TutorialOverlay';
 import { NewMessagePopup } from '../../components/NewMessagePopup';
@@ -73,6 +74,7 @@ export default function GameScreen() {
             case 'laranjas': return <LaranjaScreen />;
             case 'bacen':   return <BacenScreen />;
             case 'carteira': return <CarteiraScreen />;
+            case 'dossie':  return <DossieScreen />;
             default:        return <HomeScreen />;
         }
     };

@@ -140,6 +140,9 @@ const initialState: GameState = {
     bagEscalationStage: 0,
     levelIdx: 0,
     totalWashed: 0,
+    totalReceived: 0,
+    totalPaid: 0,
+    transfersByContact: {},
     contacts: { drugdealer: true, hacker: true },
     eventsTriggered: [],
     nextBagDay: 2,
@@ -347,6 +350,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             const depositMsg = `Malote de ${formatMoney(amount)} depositado. Movimenta isso logo.`;
             set(s => ({
                 dirty: s.dirty + amount,
+                totalReceived: s.totalReceived + amount,
                 batches: [...s.batches, newBatch],
                 ...notifyPopup(s, 'drugdealer', depositMsg),
             }));
@@ -360,7 +364,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             if (tutStep === 6 && app === 'laranjas') actions.advanceTutorial();
             if (tutStep === 9 && app === 'bacen') actions.advanceTutorial();
             if (tutStep === 13 && app === 'carteira') actions.advanceTutorial();
-            const isPaused = app === 'laranjas' || app === 'bacen';
+            const isPaused = app === 'laranjas' || app === 'bacen' || app === 'dossie';
             const newHistory = activeApp !== app ? [...navHistory, activeApp].slice(-20) : navHistory;
             const newVisited = visitedApps.includes(app) ? visitedApps : [...visitedApps, app];
             set({ activeApp: app, isPaused, navHistory: newHistory, visitedApps: newVisited, showAppOverview: false });
@@ -373,7 +377,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 return;
             }
             const prev = navHistory[navHistory.length - 1] as GameState['activeApp'];
-            const isPaused = prev === 'laranjas' || prev === 'bacen';
+            const isPaused = prev === 'laranjas' || prev === 'bacen' || prev === 'dossie';
             set({ activeApp: prev, isPaused, navHistory: navHistory.slice(0, -1), showAppOverview: false });
         },
 
@@ -397,6 +401,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
             set(s => ({
                 clean: clean - amount,
                 batches: kept,
+                totalPaid: s.totalPaid + amount,
+                transfersByContact: { ...s.transfersByContact, drugdealer: (s.transfersByContact.drugdealer ?? 0) + amount },
                 ...(tutStep === 15 ? { tutStep: 16 } : {}),
                 ...notifyPopup(s, 'drugdealer', UI_CHAT.pccConfirmation),
             }));
@@ -478,6 +484,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 const newBatch: Batch = { id: Date.now(), due, days: 90 };
                 set(s => ({
                     dirty: s.dirty + pendingBagAmount,
+                    totalReceived: s.totalReceived + pendingBagAmount,
                     batches: [...s.batches, newBatch],
                     hasPendingBag: false,
                     pendingBagAmount: 0,

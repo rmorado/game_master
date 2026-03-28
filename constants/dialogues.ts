@@ -421,6 +421,7 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                 action: (state: GameState) => ({
                     dirty: state.dirty - pack.cost,
                     cpfs: state.cpfs + pack.qty,
+                    transfersByContact: { ...state.transfersByContact, hacker: (state.transfersByContact.hacker ?? 0) + pack.cost },
                 }),
             })),
 

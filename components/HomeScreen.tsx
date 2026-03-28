@@ -99,7 +99,7 @@ export function HomeScreen() {
     const highlightBacen = tutStep === 9;
     const highlightCarteira = tutStep === 13;
 
-    const go = (app: 'zep' | 'laranjas' | 'bacen' | 'carteira') => {
+    const go = (app: 'zep' | 'laranjas' | 'bacen' | 'carteira' | 'dossie') => {
         actions.setActiveApp(app);
     };
 
@@ -169,8 +169,7 @@ export function HomeScreen() {
                         gradient={['#b91c1c', '#6b0f0f']}
                         emoji="📁"
                         badge={dossieBadge}
-                        onPress={() => {}}
-                        dim={true}
+                        onPress={() => go('dossie')}
                     />
                     <AppIcon
                         label={UI_HOME.apps.news}

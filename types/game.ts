@@ -38,12 +38,15 @@ export interface GameState {
     bankOffers: BankOffer[];
     levelIdx: number;
     totalWashed: number;
+    totalReceived: number;
+    totalPaid: number;
+    transfersByContact: Record<string, number>;
     contacts: Record<string, boolean>;
     eventsTriggered: string[];
     nextBagDay: number;
     isPaused: boolean;
     tutStep: number;
-    activeApp: 'home' | 'zep' | 'chat' | 'laranjas' | 'bacen' | 'carteira';
+    activeApp: 'home' | 'zep' | 'chat' | 'laranjas' | 'bacen' | 'carteira' | 'dossie';
     modal: ModalType;
     currentChat: string | null;
     // Per-contact chat history (replaces messages[] and drugdealerMessages[])
