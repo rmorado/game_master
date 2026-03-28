@@ -50,7 +50,7 @@ export function LaranjaScreen() {
     const loanValue = clampedSlider * 5000;
     const insufficientDirty = dirty < loanValue;
     const canConfirm = cpfs >= 1 && !insufficientDirty;
-    const shouldHighlight = tutStep === 6;
+    const shouldHighlight = tutStep === 7;
 
     useEffect(() => {
         if (sliderValue > maxCPFs) setSliderValue(maxCPFs);
@@ -180,11 +180,11 @@ export function LaranjaScreen() {
                     <TouchableOpacity
                         style={[
                             styles.cta,
-                            (!canConfirm || (tutStep < 6 && tutStep !== 0)) && styles.ctaDisabled,
+                            (!canConfirm || (tutStep < 7 && tutStep !== 0)) && styles.ctaDisabled,
                             shouldHighlight && styles.ctaHighlight,
                         ]}
                         onPress={handleConfirm}
-                        disabled={!canConfirm || (tutStep < 6 && tutStep !== 0)}
+                        disabled={!canConfirm || (tutStep < 7 && tutStep !== 0)}
                         activeOpacity={0.8}
                     >
                         <Text style={styles.ctaText}>{UI_LARANJAS.ctaBtn}</Text>

@@ -10,18 +10,21 @@ import { formatMoney as fmt } from '../utils/format';
 
 // Tutorial messages (step-by-step guide for new players)
 export const TUTORIAL: TutorialStep[] = [
+    // 0 — Welcome
     {
         id: 0,
         text: "Bem-vindo, Vacaro. Você lava dinheiro pro PCC: eles mandam uma quantia, você devolve pelo menos 60%.",
         target: null,
-        screen: 'home'
+        screen: 'home',
     },
+    // 1 — Scheme explanation
     {
         id: 1,
         text: "O esquema: empréstimos falsos em nome de CPFs reais, vendidos como dívida pra outros bancos.",
         target: null,
-        screen: 'home'
+        screen: 'home',
     },
+    // 2 — Open ZEP
     {
         id: 2,
         text: "Primeiro a gente compra um pacote de CPFs. Entre no ZEP.",
@@ -29,6 +32,7 @@ export const TUTORIAL: TutorialStep[] = [
         screen: 'home',
         boxPosition: { bottom: 450 },
     },
+    // 3 — Tap hacker
     {
         id: 3,
         text: "Este é o Hacker. Ele vende identidades. Laranjas que nem sabem que estão na feira.",
@@ -36,6 +40,7 @@ export const TUTORIAL: TutorialStep[] = [
         screen: 'zep',
         boxPosition: { top: 380 },
     },
+    // 4 — Buy CPFs
     {
         id: 4,
         text: "Compre 100 CPFs.",
@@ -43,25 +48,95 @@ export const TUTORIAL: TutorialStep[] = [
         screen: 'chat',
         boxPosition: { top: 380 },
     },
+    // 5 — Leave ZEP (info)
     {
         id: 5,
-        text: "Agora vamos criar uns empréstimos em nome dessas pessoas. Saia do Zep.",
+        text: "Bom. Agora vamos criar uns empréstimos falsos em nome dessas pessoas. Volte ao início.",
         target: null,
-        screen: 'chat'
+        screen: 'chat',
     },
+    // 6 — Open LARANJAS (NEW)
     {
         id: 6,
+        text: "Abra o LARANJAS.",
+        target: 'nav_laranjas',
+        screen: 'home',
+        boxPosition: { bottom: 450 },
+    },
+    // 7 — Create derivativo (was step 6)
+    {
+        id: 7,
         text: "Use CRIAR DERIVATIVO para gerar o derivativo de dívida.",
         target: 'btn_loan',
         screen: 'laranjas',
         boxPosition: { top: 120 },
     },
+    // 8 — Derivativo created (info, NEW)
     {
-        id: 7,
-        text: "Pacote pronto! Abra o BACEN e venda o derivativo para receber dinheiro limpo.",
+        id: 8,
+        text: "Derivativo criado. Agora precisamos vender pra receber o dinheiro limpo. Volte ao início.",
+        target: null,
+        screen: 'laranjas',
+    },
+    // 9 — Open BACEN (NEW)
+    {
+        id: 9,
+        text: "Abra o BACEN.",
+        target: 'nav_bacen',
+        screen: 'home',
+        boxPosition: { bottom: 450 },
+    },
+    // 10 — BACEN explanation (info, NEW)
+    {
+        id: 10,
+        text: "No BACEN você vende derivativos para outros bancos. Escolha a melhor oferta.",
+        target: null,
+        screen: 'bacen',
+    },
+    // 11 — Sell derivativo (was step 7)
+    {
+        id: 11,
+        text: "Ofereça o derivativo.",
         target: 'btn_sell',
         screen: 'bacen',
         boxPosition: { top: 250 },
+    },
+    // 12 — Money received, go pay PCC (info, NEW)
+    {
+        id: 12,
+        text: "Dinheiro limpo. Última etapa: devolver ao PCC.",
+        target: null,
+        screen: 'home',
+    },
+    // 13 — Open CARTEIRA (NEW)
+    {
+        id: 13,
+        text: "Abra a CARTEIRA.",
+        target: 'nav_carteira',
+        screen: 'home',
+        boxPosition: { bottom: 450 },
+    },
+    // 14 — Carteira explanation (info, NEW)
+    {
+        id: 14,
+        text: "Aqui você controla quanto devolve ao PCC. Use o slider e confirme.",
+        target: null,
+        screen: 'carteira',
+    },
+    // 15 — Send payment (NEW)
+    {
+        id: 15,
+        text: "Envie o pagamento.",
+        target: 'btn_pay',
+        screen: 'carteira',
+        boxPosition: { bottom: 200 },
+    },
+    // 16 — Congratulation (info, NEW)
+    {
+        id: 16,
+        text: "Loop completo. A lavanderia está aberta.",
+        target: null,
+        screen: 'carteira',
     },
 ];
 
@@ -165,11 +240,12 @@ export const UI_ZEP = {
 
 // UI Labels - Chat screen
 export const UI_CHAT = {
-    bagAccept:  "OK, manda.",
-    bagDecline: "Não agora.",
-    bagAcceptLater: "Pronto, pode mandar",
-    escalation1: 'E aí? Vai movimentar ou não?',
-    escalation2: 'Tô perdendo a paciência. Manda logo.',
+    bagAccept:        "OK, manda.",
+    bagDecline:       "Não agora.",
+    bagAcceptLater:   "Pronto, pode mandar",
+    escalation1:      'E aí? Vai movimentar ou não?',
+    escalation2:      'Tô perdendo a paciência. Manda logo.',
+    pccConfirmation:  'Recebemos. Obrigado.',
 };
 
 // UI Labels - Tutorial overlay

@@ -378,8 +378,8 @@ export function BacenScreen() {
                                 <TouchableOpacity
                                     style={[
                                         styles.offerBtn,
-                                        (!selectedPackId || (tutStep < 7 && tutStep !== 0)) && styles.offerBtnDisabled,
-                                        tutStep === 7 && styles.offerBtnHighlight,
+                                        (!selectedPackId || (tutStep < 11 && tutStep !== 0)) && styles.offerBtnDisabled,
+                                        tutStep === 11 && styles.offerBtnHighlight,
                                     ]}
                                     onPress={handleOfferPack}
                                     disabled={!selectedPackId}

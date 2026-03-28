@@ -231,7 +231,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             const lvl = LEVELS[state.levelIdx];
 
             // ── Bag spawn ──
-            if (state.tutStep >= 8 && state.day >= state.nextBagDay && !state.hasPendingBag) {
+            if (state.tutStep >= TUTORIAL.length && state.day >= state.nextBagDay && !state.hasPendingBag) {
                 const amount = lvl.bagSize;
                 const bagMsg = `Tenho R$${formatMoney(amount)} pra lavar. Posso mandar agora?`;
                 set(s => ({
@@ -325,7 +325,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
             // ── Scripted event loop ──
             const snapshot = get();
-            if (snapshot.tutStep >= 8 && snapshot.eventsTriggered.length < SCRIPTED_EVENTS.length) {
+            if (snapshot.tutStep >= TUTORIAL.length && snapshot.eventsTriggered.length < SCRIPTED_EVENTS.length) {
                 SCRIPTED_EVENTS.forEach(event => {
                     if (
                         !snapshot.eventsTriggered.includes(event.id) &&
@@ -357,7 +357,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
         setActiveApp: (app) => {
             const { tutStep, actions, activeApp, navHistory, visitedApps } = get();
             if (tutStep === 2 && app === 'zep') actions.advanceTutorial();
-            if (tutStep === 5 && app === 'laranjas') actions.advanceTutorial();
+            if (tutStep === 6 && app === 'laranjas') actions.advanceTutorial();
+            if (tutStep === 9 && app === 'bacen') actions.advanceTutorial();
+            if (tutStep === 13 && app === 'carteira') actions.advanceTutorial();
             const isPaused = app === 'laranjas' || app === 'bacen';
             const newHistory = activeApp !== app ? [...navHistory, activeApp].slice(-20) : navHistory;
             const newVisited = visitedApps.includes(app) ? visitedApps : [...visitedApps, app];
@@ -380,7 +382,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         },
 
         payPCC: (amount: number) => {
-            const { clean, batches } = get();
+            const { clean, batches, tutStep } = get();
             if (amount <= 0 || clean < amount) return;
             let remaining = amount;
             const newBatches = [...batches].sort((a, b) => a.id - b.id);
@@ -392,7 +394,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
                     kept.push(batch);
                 }
             }
-            set({ clean: clean - amount, batches: kept });
+            set(s => ({
+                clean: clean - amount,
+                batches: kept,
+                ...(tutStep === 15 ? { tutStep: 16 } : {}),
+                ...notifyPopup(s, 'drugdealer', UI_CHAT.pccConfirmation),
+            }));
+            trackedTimeout(() => set({ showNewMessagePopup: false }), MSG_POPUP_DURATION);
         },
 
         setModal: (modal) => {
@@ -421,7 +429,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 debtPacks: [...s.debtPacks, newPack],
             }));
 
-            if (tutStep === 6) get().actions.advanceTutorial();
+            if (tutStep === 7) get().actions.advanceTutorial();
         },
 
         openSellModal: (packId: number) => {
@@ -438,6 +446,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             });
 
             set({ currentSellPackId: packId, bankOffers: offers, activeApp: 'bacen', isPaused: true });
+            if (get().tutStep === 11) get().actions.advanceTutorial();
         },
 
         sellDebtPack: (packId: number, offerValue: number) => {
@@ -459,7 +468,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 isPaused: false,
             }));
 
-            if (tutStep === 7) actions.advanceTutorial();
         },
 
         respondToBag: (accept: boolean) => {

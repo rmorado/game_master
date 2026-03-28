@@ -4,17 +4,21 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import Slider from '@react-native-community/slider';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
-import { UI_CARTEIRA } from '../constants/dialogues';
+import { UI_CARTEIRA, TUTORIAL } from '../constants/dialogues';
 import { formatBRL } from '../utils/format';
 
 const GREEN = '#22c55e';
 
 export function CarteiraScreen() {
-    const { dirty, clean, actions } = useGameStore(useShallow(s => ({
+    const { dirty, clean, tutStep, actions } = useGameStore(useShallow(s => ({
         dirty: s.dirty,
         clean: s.clean,
+        tutStep: s.tutStep,
         actions: s.actions,
     })));
+
+    const isTutorial = tutStep < TUTORIAL.length;
+    const highlightSend = isTutorial && tutStep === 15;
 
     const [pct, setPct] = useState(0);
 
@@ -70,19 +74,24 @@ export function CarteiraScreen() {
                     </View>
 
                     {/* Slider + MAX */}
-                    <View style={styles.sliderRow}>
+                    <View style={[styles.sliderRow, isTutorial && tutStep !== 15 && { opacity: 0.35 }]}>
                         <Slider
                             style={styles.slider}
                             value={pct}
-                            onValueChange={setPct}
+                            onValueChange={isTutorial && tutStep !== 15 ? undefined : setPct}
                             minimumValue={0}
                             maximumValue={100}
                             step={1}
                             minimumTrackTintColor={GREEN}
                             maximumTrackTintColor="#1e1e2a"
                             thumbTintColor={GREEN}
+                            disabled={isTutorial && tutStep !== 15}
                         />
-                        <TouchableOpacity style={styles.maxBtn} onPress={() => setPct(100)}>
+                        <TouchableOpacity
+                            style={styles.maxBtn}
+                            onPress={() => setPct(100)}
+                            disabled={isTutorial && tutStep !== 15}
+                        >
                             <Text style={styles.maxBtnText}>{UI_CARTEIRA.maxBtn}</Text>
                         </TouchableOpacity>
                     </View>
@@ -100,9 +109,9 @@ export function CarteiraScreen() {
 
                     {/* Send button */}
                     <TouchableOpacity
-                        style={[styles.sendBtn, !canSend && styles.sendBtnDisabled]}
+                        style={[styles.sendBtn, !canSend && styles.sendBtnDisabled, highlightSend && styles.sendBtnHighlight]}
                         onPress={handleSend}
-                        disabled={!canSend}
+                        disabled={!canSend || (isTutorial && tutStep !== 15)}
                         activeOpacity={0.8}
                     >
                         <Text style={styles.sendBtnText}>{UI_CARTEIRA.sendBtn}</Text>
@@ -284,6 +293,13 @@ const styles = StyleSheet.create({
     },
     sendBtnDisabled: {
         opacity: 0.3,
+    },
+    sendBtnHighlight: {
+        shadowColor: GREEN,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.8,
+        shadowRadius: 12,
+        elevation: 8,
     },
     sendBtnText: {
         color: '#fff',

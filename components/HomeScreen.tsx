@@ -12,7 +12,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
-import { UI_HOME } from '../constants/dialogues';
+import { UI_HOME, TUTORIAL } from '../constants/dialogues';
 
 // ─── App icon ─────────────────────────────────────────────────────────────────
 
@@ -93,9 +93,11 @@ export function HomeScreen() {
     const laranjasBadge = cpfs > 0 ? 1 : 0;
     const dossieBadge = (suspicion > 70 || pressure > 70) ? 1 : 0;
 
-    const isTutorial = tutStep < 8;
+    const isTutorial = tutStep < TUTORIAL.length;
     const highlightZep = tutStep === 2;
-    const highlightLaranjas = tutStep === 5;
+    const highlightLaranjas = tutStep === 6;
+    const highlightBacen = tutStep === 9;
+    const highlightCarteira = tutStep === 13;
 
     const go = (app: 'zep' | 'laranjas' | 'bacen' | 'carteira') => {
         actions.setActiveApp(app);
@@ -135,7 +137,8 @@ export function HomeScreen() {
                         letterColor="#1d4ed8"
                         badge={bacenBadge}
                         onPress={() => go('bacen')}
-                        dim={isTutorial && tutStep < 7}
+                        highlight={isTutorial && highlightBacen}
+                        dim={isTutorial && !highlightBacen && tutStep < 9}
                     />
                     <AppIcon
                         label={UI_HOME.apps.laranjas}
@@ -144,7 +147,7 @@ export function HomeScreen() {
                         badge={laranjasBadge}
                         onPress={() => go('laranjas')}
                         highlight={isTutorial && highlightLaranjas}
-                        dim={isTutorial && !highlightLaranjas && tutStep < 5}
+                        dim={isTutorial && !highlightLaranjas && tutStep < 6}
                     />
                     <AppIcon
                         label={UI_HOME.apps.calendario}
@@ -158,6 +161,8 @@ export function HomeScreen() {
                         gradient={['#111111', '#0a0a0a']}
                         emoji="💰"
                         onPress={() => go('carteira')}
+                        highlight={isTutorial && highlightCarteira}
+                        dim={isTutorial && !highlightCarteira && tutStep < 13}
                     />
                     <AppIcon
                         label={UI_HOME.apps.dossie}
