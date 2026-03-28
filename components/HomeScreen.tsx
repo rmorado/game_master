@@ -76,14 +76,12 @@ function AppIcon({ label, gradient, image, emoji, letter, letterColor, badge, on
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function HomeScreen() {
-    const { unreadCounts, hasPendingBag, cpfs, batches, suspicion, pressure, tutStep, actions } =
+    const { unreadCounts, hasPendingBag, cpfs, batches, tutStep, actions } =
         useGameStore(useShallow(s => ({
             unreadCounts: s.unreadCounts,
             hasPendingBag: s.hasPendingBag,
             cpfs: s.cpfs,
             batches: s.batches,
-            suspicion: s.suspicion,
-            pressure: s.pressure,
             tutStep: s.tutStep,
             actions: s.actions,
         })));
@@ -91,9 +89,7 @@ export function HomeScreen() {
     const zepBadge = (hasPendingBag || Object.values(unreadCounts).some(n => n > 0)) ? 1 : 0;
     const bacenBadge = batches.some(b => b.days < 30) ? batches.filter(b => b.days < 30).length : 0;
     const laranjasBadge = cpfs > 0 ? 1 : 0;
-    const dossieBadge = (suspicion > 70 || pressure > 70) ? 1 : 0;
-
-    const isTutorial = tutStep < TUTORIAL.length;
+const isTutorial = tutStep < TUTORIAL.length;
     const highlightZep = tutStep === 2;
     const highlightLaranjas = tutStep === 6;
     const highlightBacen = tutStep === 9;
@@ -168,7 +164,6 @@ export function HomeScreen() {
                         label={UI_HOME.apps.dossie}
                         gradient={['#b91c1c', '#6b0f0f']}
                         emoji="📁"
-                        badge={dossieBadge}
                         onPress={() => go('dossie')}
                     />
                     <AppIcon
