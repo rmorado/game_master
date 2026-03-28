@@ -10,7 +10,6 @@ import {
 import Slider from '@react-native-community/slider';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
-import { LEVELS } from '../constants/game-data';
 import { UI_LARANJAS } from '../constants/dialogues';
 import { formatBRL } from '../utils/format';
 
@@ -24,10 +23,9 @@ const generateFakeCPF = () => {
 type ScreenState = 'idle' | 'processing' | 'success';
 
 export function LaranjaScreen() {
-    const { cpfs, dirty, levelIdx, tutStep, actions } = useGameStore(useShallow(s => ({
+    const { cpfs, dirty, tutStep, actions } = useGameStore(useShallow(s => ({
         cpfs: s.cpfs,
         dirty: s.dirty,
-        levelIdx: s.levelIdx,
         tutStep: s.tutStep,
         actions: s.actions,
     })));
@@ -45,13 +43,13 @@ export function LaranjaScreen() {
         };
     }, []);
 
-    const currentLevel = LEVELS[levelIdx];
-    const maxCPFs = Math.max(1, Math.min(cpfs, Math.floor(dirty / 5000)));
+    const maxCPFs = Math.max(1, cpfs);
     const clampedSlider = Math.max(1, Math.min(sliderValue, maxCPFs));
 
     const pct = cpfs > 0 ? Math.round((clampedSlider / maxCPFs) * 100) : 0;
     const loanValue = clampedSlider * 5000;
-    const canConfirm = cpfs >= clampedSlider && dirty >= loanValue && cpfs >= 1;
+    const insufficientDirty = dirty < loanValue;
+    const canConfirm = cpfs >= 1 && !insufficientDirty;
     const shouldHighlight = tutStep === 6;
 
     useEffect(() => {
@@ -173,6 +171,9 @@ export function LaranjaScreen() {
                     <View style={styles.loanBlock}>
                         <Text style={styles.loanLabel}>{UI_LARANJAS.labelLoan}</Text>
                         <Text style={styles.loanAmount}>R$ {formatBRL(loanValue)}</Text>
+                        {insufficientDirty && (
+                            <Text style={styles.insufficientWarning}>⚠ sujo insuficiente</Text>
+                        )}
                     </View>
 
                     {/* CTA */}
@@ -359,6 +360,13 @@ const styles = StyleSheet.create({
         fontFamily: 'Courier',
         textAlign: 'center',
         opacity: 0.7,
+    },
+    insufficientWarning: {
+        color: '#ef4444',
+        fontSize: 12,
+        fontFamily: 'Courier',
+        marginTop: 4,
+        opacity: 0.8,
     },
 
     // Processing

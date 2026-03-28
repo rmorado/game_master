@@ -167,6 +167,9 @@ export const UI_ZEP = {
 export const UI_CHAT = {
     bagAccept:  "OK, manda.",
     bagDecline: "Não agora.",
+    bagAcceptLater: "Pronto, pode mandar",
+    escalation1: 'E aí? Vai movimentar ou não?',
+    escalation2: 'Tô perdendo a paciência. Manda logo.',
 };
 
 // UI Labels - Tutorial overlay
@@ -336,7 +339,8 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
             ...CPF_PACKS.map(pack => ({
                 id: `buy_${pack.qty}_cpfs`,
                 text: `Comprar ${pack.qty.toLocaleString('pt-BR')} CPFs (R$${fmt(pack.cost)})`,
-                condition: (state: GameState) => state.levelIdx >= pack.minLevel && state.dirty >= pack.cost,
+                showCondition: (state: GameState) => state.levelIdx >= pack.minLevel,
+                condition: (state: GameState) => state.dirty >= pack.cost,
                 response: pack.response,
                 action: (state: GameState) => ({
                     dirty: state.dirty - pack.cost,
@@ -348,8 +352,12 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                 id: 'investigate_bitcoin',
                 text: 'Investigar endereço Bitcoin',
                 condition: (state: GameState) =>
-                    state.unlockedDialogueOptions.includes('investigate_bitcoin'),
+                    state.unlockedDialogueOptions.includes('investigate_bitcoin') &&
+                    state.investigateBitcoinDay === 0,
                 response: 'Vou rastrear. Isso leva tempo — te aviso.',
+                action: (state: GameState) => ({
+                    investigateBitcoinDay: state.day,
+                }),
             }
         ]
     },
@@ -486,7 +494,8 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
             {
                 id: 'madame_proposal',
                 text: 'Me disseram que a senhora pode ajudar.',
-                condition: (state: GameState) => !state.hasPaidMadame,
+                condition: (state: GameState) =>
+                    !state.hasPaidMadame && !state.unlockedDialogueOptions.includes('madame_negotiate'),
                 response: `Posso. Ofereço um contrato de consultoria geral e assessoria para orientação junto ao Supremo Tribunal. O valor é R$${fmt(MADAME_COST)}. Quando estiver pronto, me avise.`,
                 unlocks: ['madame_negotiate', 'madame_pay', 'madame_cant_pay'],
             },
@@ -631,6 +640,17 @@ export const SCRIPTED_EVENTS: ScriptedEvent[] = [
         id: 'judge_offer_2',
         trigger: (s) => s.levelIdx === 3 && s.omstreDayStart > 0 && (s.day - s.omstreDayStart) >= 30,
         payload: { type: 'unlock_dialogue_option', optionId: 'judge_offer_2' },
+    },
+
+    // ── Hacker follow-up: Bitcoin investigation result ──
+    {
+        id: 'bitcoin_investigation_result',
+        trigger: (s) => s.investigateBitcoinDay > 0 && s.day >= s.investigateBitcoinDay + 10,
+        payload: {
+            type: 'incoming_message',
+            contactId: 'hacker',
+            text: 'Rastreei o endereço. Usaram mixer, mas achei um padrão. Quem te mandou aquilo sabe o que faz. Cuidado.',
+        },
     },
 
     // ── Pressure warning messages ──

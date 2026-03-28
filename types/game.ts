@@ -51,15 +51,19 @@ export interface GameState {
     // Per-contact unread badge counts (replaces hasUnreadZepMessages)
     unreadCounts: { [contactId: string]: number };
     showNewMessagePopup: boolean;
+    popupSender: string;
+    popupPreview: string;
     // Pending bag (drug dealer offer)
     hasPendingBag: boolean;
     pendingBagAmount: number;
     hasUsedNotNow: boolean;
+    bagRejectedOnDay: number;
+    bagEscalationStage: number;
     // Dialogue system state
-    cpfsBoughtFromHacker: number;
     unlockedDialogueOptions: string[];
     // Blackmail event state
     hasRespondedToBlackmail: boolean;
+    investigateBitcoinDay: number;       // day when player asked hacker to trace BTC (0 = not started)
     // Gerente chain state
     hasCompletedInvestigador: boolean;
     hasPaidDeputado: boolean;
@@ -136,6 +140,7 @@ export interface TutorialStep {
 export interface DialogueOption {
     id: string;
     text: string;
+    showCondition?: (state: GameState) => boolean;
     condition?: (state: GameState) => boolean;
     response: string | ((state: GameState) => string);
     action?: (state: GameState) => Partial<GameState>;

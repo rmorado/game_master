@@ -30,6 +30,16 @@ export function ChatScreen() {
     const renderActions = () => {
         // Drugdealer pending bag — show offer response buttons
         if (currentChat === 'drugdealer' && hasPendingBag) {
+            if (hasUsedNotNow) {
+                return (
+                    <TouchableOpacity
+                        style={[styles.presetBtn, styles.presetBtnAccept]}
+                        onPress={() => actions.respondToBag(true)}
+                    >
+                        <Text style={styles.presetBtnText}>{UI_CHAT.bagAcceptLater}</Text>
+                    </TouchableOpacity>
+                );
+            }
             return (
                 <>
                     <TouchableOpacity
@@ -38,14 +48,12 @@ export function ChatScreen() {
                     >
                         <Text style={styles.presetBtnText}>{UI_CHAT.bagAccept}</Text>
                     </TouchableOpacity>
-                    {!hasUsedNotNow && (
-                        <TouchableOpacity
-                            style={styles.presetBtn}
-                            onPress={() => actions.respondToBag(false)}
-                        >
-                            <Text style={[styles.presetBtnText, { color: '#aaa' }]}>{UI_CHAT.bagDecline}</Text>
-                        </TouchableOpacity>
-                    )}
+                    <TouchableOpacity
+                        style={styles.presetBtn}
+                        onPress={() => actions.respondToBag(false)}
+                    >
+                        <Text style={[styles.presetBtnText, { color: '#aaa' }]}>{UI_CHAT.bagDecline}</Text>
+                    </TouchableOpacity>
                 </>
             );
         }
@@ -54,18 +62,19 @@ export function ChatScreen() {
         const dialogue = DIALOGUES[currentChat!];
         if (!dialogue) return null;
 
-        // Filter available options based on conditions and unlock requirements
-        const availableOptions = dialogue.outgoingOptions.filter(option => {
+        const visibleOptions = dialogue.outgoingOptions.filter(option => {
             if (option.requiresUnlock && !unlockedDialogueOptions.includes(option.id)) return false;
-            if (option.condition && !option.condition(state)) return false;
+            const visCheck = option.showCondition || option.condition;
+            if (visCheck && !visCheck(state)) return false;
             return true;
         });
 
         return (
             <>
-                {availableOptions.map(option => {
+                {visibleOptions.map(option => {
+                    const canUse = !option.condition || option.condition(state);
                     const isHighlighted = shouldHighlightBuy100 && option.id === 'buy_100_cpfs';
-                    const isDisabled = isTutorial && !isHighlighted;
+                    const isDisabled = (!canUse) || (isTutorial && !isHighlighted);
                     return (
                         <TouchableOpacity
                             key={option.id}
@@ -88,6 +97,9 @@ export function ChatScreen() {
     return (
         <View style={styles.chatView}>
             <View style={styles.chatHeader}>
+                <TouchableOpacity onPress={() => actions.setActiveApp('zep')}>
+                    <Text style={styles.backArrow}>‹</Text>
+                </TouchableOpacity>
                 <Image source={character?.avatar} style={styles.avatar} />
                 <Text style={styles.headerName}>{character?.name}</Text>
             </View>
@@ -126,9 +138,15 @@ const styles = StyleSheet.create({
         backgroundColor: '#202c33',
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 10,
+        gap: 8,
         borderBottomWidth: 1,
         borderColor: '#333',
+    },
+    backArrow: {
+        color: '#aaa',
+        fontSize: 28,
+        lineHeight: 32,
+        paddingRight: 2,
     },
     avatar: {
         width: 35,

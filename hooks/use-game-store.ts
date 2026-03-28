@@ -2,10 +2,10 @@
 import { create } from 'zustand';
 import { GameState, Batch, DebtPack, BankOffer, EventPayload } from '../types/game';
 import { LEVELS } from '../constants/game-data';
-import { BANKS, SCRIPTED_EVENTS, DIALOGUES, LEVEL_EVENTS, TUTORIAL } from '../constants/dialogues';
+import { BANKS, SCRIPTED_EVENTS, DIALOGUES, LEVEL_EVENTS, TUTORIAL, UI_CHAT } from '../constants/dialogues';
 import { formatMoney } from '../utils/format';
 
-const MSG_POPUP_DURATION = 3000;
+const MSG_POPUP_DURATION = 2000;
 
 // ─── Timeout tracking (cleared on restart) ──────────────────────────────────
 
@@ -22,6 +22,8 @@ function trackedTimeout(fn: () => void, ms: number) {
 
 // ─── Chat helper ────────────────────────────────────────────────────────────
 
+let msgIdCounter = 0;
+
 function appendMsg(
     state: Pick<GameState, 'chatHistory' | 'unreadCounts'>,
     contactId: string,
@@ -34,7 +36,7 @@ function appendMsg(
             ...state.chatHistory,
             [contactId]: [
                 ...(state.chatHistory[contactId] || []),
-                { id: Date.now().toString(), text, me },
+                { id: String(++msgIdCounter), text, me },
             ],
         },
     };
@@ -45,6 +47,19 @@ function appendMsg(
         };
     }
     return result;
+}
+
+function notifyPopup(
+    state: Pick<GameState, 'chatHistory' | 'unreadCounts'>,
+    contactId: string,
+    text: string,
+) {
+    return {
+        ...appendMsg(state, contactId, text, false, true),
+        showNewMessagePopup: true,
+        popupSender: contactId,
+        popupPreview: text.slice(0, 60),
+    };
 }
 
 // ─── fireEvent helper ────────────────────────────────────────────────────────
@@ -61,10 +76,7 @@ function fireEvent(
             }));
             break;
         case 'incoming_message':
-            set(s => ({
-                ...appendMsg(s, payload.contactId, payload.text, false, true),
-                showNewMessagePopup: true,
-            }));
+            set(s => notifyPopup(s, payload.contactId, payload.text));
             trackedTimeout(() => set({ showNewMessagePopup: false }), MSG_POPUP_DURATION);
             break;
         case 'unlock_dialogue_option':
@@ -124,6 +136,8 @@ const initialState: GameState = {
     hasPendingBag: false,
     pendingBagAmount: 0,
     hasUsedNotNow: false,
+    bagRejectedOnDay: 0,
+    bagEscalationStage: 0,
     levelIdx: 0,
     totalWashed: 0,
     contacts: { drugdealer: true, hacker: true },
@@ -138,9 +152,11 @@ const initialState: GameState = {
     chatHistory: { drugdealer: [], hacker: [] },
     unreadCounts: {},
     showNewMessagePopup: false,
-    cpfsBoughtFromHacker: 0,
+    popupSender: '',
+    popupPreview: '',
     unlockedDialogueOptions: [],
     hasRespondedToBlackmail: false,
+    investigateBitcoinDay: 0,
     hasCompletedInvestigador: false,
     hasPaidDeputado: false,
     hasContactedJuiz: false,
@@ -217,14 +233,36 @@ export const useGameStore = create<GameStore>((set, get) => ({
             // ── Bag spawn ──
             if (state.tutStep >= 8 && state.day >= state.nextBagDay && !state.hasPendingBag) {
                 const amount = lvl.bagSize;
+                const bagMsg = `Tenho R$${formatMoney(amount)} pra lavar. Posso mandar agora?`;
                 set(s => ({
                     hasPendingBag: true,
                     pendingBagAmount: amount,
-                    showNewMessagePopup: true,
                     nextBagDay: s.day + lvl.bagInterval + Math.floor(Math.random() * 5),
-                    ...appendMsg(s, 'drugdealer', `Tenho R$${formatMoney(amount)} pra lavar. Posso mandar agora?`, false, true),
+                    ...notifyPopup(s, 'drugdealer', bagMsg),
                 }));
                 trackedTimeout(() => set({ showNewMessagePopup: false }), MSG_POPUP_DURATION);
+            }
+
+            // ── Bag rejection escalation ──
+            const bagState = get();
+            if (bagState.hasPendingBag && bagState.hasUsedNotNow && bagState.bagRejectedOnDay > 0) {
+                const daysSinceReject = bagState.day - bagState.bagRejectedOnDay;
+                if (daysSinceReject >= 30 && bagState.bagEscalationStage < 3) {
+                    set(s => ({
+                        bagEscalationStage: 3,
+                        pressure: Math.min(100, s.pressure + 5),
+                    }));
+                } else if (daysSinceReject >= 20 && bagState.bagEscalationStage < 2) {
+                    set(s => ({
+                        bagEscalationStage: 2,
+                        ...appendMsg(s, 'drugdealer', UI_CHAT.escalation2, false, true),
+                    }));
+                } else if (daysSinceReject >= 10 && bagState.bagEscalationStage < 1) {
+                    set(s => ({
+                        bagEscalationStage: 1,
+                        ...appendMsg(s, 'drugdealer', UI_CHAT.escalation1, false, true),
+                    }));
+                }
             }
 
             // ── Debt countdown + default ──
@@ -306,11 +344,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
             const due = amount * 0.7;
             const newBatch: Batch = { id: Date.now(), due, days: 90 };
 
+            const depositMsg = `Malote de ${formatMoney(amount)} depositado. Movimenta isso logo.`;
             set(s => ({
                 dirty: s.dirty + amount,
                 batches: [...s.batches, newBatch],
-                showNewMessagePopup: true,
-                ...appendMsg(s, 'drugdealer', `Malote de ${formatMoney(amount)} depositado. Movimenta isso logo.`, false, true),
+                ...notifyPopup(s, 'drugdealer', depositMsg),
             }));
 
             trackedTimeout(() => set({ showNewMessagePopup: false }), MSG_POPUP_DURATION);
@@ -425,14 +463,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
         },
 
         respondToBag: (accept: boolean) => {
-            const { pendingBagAmount } = get();
+            const { pendingBagAmount, day } = get();
 
             if (accept) {
-                const due = Math.floor(pendingBagAmount * 0.7);
+                const due = pendingBagAmount * 0.7;
                 const newBatch: Batch = { id: Date.now(), due, days: 90 };
                 set(s => ({
                     dirty: s.dirty + pendingBagAmount,
                     batches: [...s.batches, newBatch],
+                    hasPendingBag: false,
+                    pendingBagAmount: 0,
+                    hasUsedNotNow: false,
+                    bagRejectedOnDay: 0,
+                    bagEscalationStage: 0,
                     ...appendMsg(s, 'drugdealer', 'OK, manda.', true),
                 }));
                 trackedTimeout(() => {
@@ -444,6 +487,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 set(s => ({
                     ...appendMsg(s, 'drugdealer', 'Não agora.', true),
                     hasUsedNotNow: true,
+                    bagRejectedOnDay: day,
+                    bagEscalationStage: 0,
                 }));
                 trackedTimeout(() => {
                     set(s => ({
@@ -451,8 +496,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
                     }));
                 }, 500);
             }
-
-            set({ hasPendingBag: false, pendingBagAmount: 0 });
         },
 
         confirmPay: () => {
@@ -505,6 +548,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             const option = dialogue.outgoingOptions.find((o: any) => o.id === optionId);
             if (!option) return;
 
+            if (option.showCondition && !option.showCondition(state)) return;
             if (option.condition && !option.condition(state)) return;
 
             const response = typeof option.response === 'function'

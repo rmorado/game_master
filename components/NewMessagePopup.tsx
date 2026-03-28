@@ -1,15 +1,22 @@
 // components/NewMessagePopup.tsx
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
+import { getCharacter } from '../constants/dialogues';
 
 export function NewMessagePopup() {
-    const { showNewMessagePopup, actions } = useGameStore(state => ({
+    const { showNewMessagePopup, popupSender, popupPreview, actions } = useGameStore(useShallow(state => ({
         showNewMessagePopup: state.showNewMessagePopup,
-        actions: state.actions
-    }));
+        popupSender: state.popupSender,
+        popupPreview: state.popupPreview,
+        actions: state.actions,
+    })));
 
     if (!showNewMessagePopup) return null;
+
+    const character = popupSender ? getCharacter(popupSender) : undefined;
+    const name = character?.name ?? 'ZEP';
 
     return (
         <TouchableOpacity
@@ -17,9 +24,12 @@ export function NewMessagePopup() {
             onPress={() => actions.dismissNewMessagePopup()}
             activeOpacity={0.9}
         >
-            <View style={styles.popupContent}>
-                <Text style={styles.popupText}>💰 NOVA MENSAGEM</Text>
-                <Text style={styles.popupSubtext}>Toque para dispensar</Text>
+            {character?.avatar && (
+                <Image source={character.avatar} style={styles.avatar} />
+            )}
+            <View style={styles.textWrap}>
+                <Text style={styles.name} numberOfLines={1}>{name}</Text>
+                <Text style={styles.preview} numberOfLines={1}>{popupPreview}</Text>
             </View>
         </TouchableOpacity>
     );
@@ -28,30 +38,40 @@ export function NewMessagePopup() {
 const styles = StyleSheet.create({
     popup: {
         position: 'absolute',
-        top: 60,
-        left: 20,
-        right: 20,
+        top: 54,
+        left: 12,
+        right: 12,
         zIndex: 10000,
-        backgroundColor: '#005c4b',
-        borderRadius: 12,
-        padding: 15,
+        backgroundColor: '#1a2e23',
+        borderRadius: 14,
+        paddingVertical: 10,
+        paddingHorizontal: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.4,
+        shadowRadius: 6,
         elevation: 8,
     },
-    popupContent: {
-        alignItems: 'center',
+    avatar: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: '#333',
     },
-    popupText: {
-        color: 'white',
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 4,
+    textWrap: {
+        flex: 1,
     },
-    popupSubtext: {
-        color: '#ccc',
+    name: {
+        color: '#fff',
+        fontSize: 13,
+        fontWeight: '700',
+    },
+    preview: {
+        color: 'rgba(255,255,255,0.55)',
         fontSize: 12,
+        marginTop: 1,
     },
 });
