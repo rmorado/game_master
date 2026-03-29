@@ -373,9 +373,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
         },
 
         goBack: () => {
-            const { navHistory } = get();
+            const { navHistory, tutStep, actions } = get();
+            if (tutStep === 5) actions.advanceTutorial();
             if (navHistory.length === 0) {
-                get().actions.setActiveApp('home');
+                actions.setActiveApp('home');
                 return;
             }
             const prev = navHistory[navHistory.length - 1] as GameState['activeApp'];

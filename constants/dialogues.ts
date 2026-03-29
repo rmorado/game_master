@@ -52,8 +52,9 @@ export const TUTORIAL: TutorialStep[] = [
     {
         id: 5,
         text: "Bom. Agora vamos criar uns empréstimos falsos em nome dessas pessoas. Volte ao início.",
-        target: null,
+        target: 'btn_back',
         screen: 'chat',
+        boxPosition: { bottom: 90 },
     },
     // 6 — Open LARANJAS (NEW)
     {

@@ -24,9 +24,6 @@ export function TutorialOverlay() {
 
     const step = TUTORIAL[tutStep];
 
-    // btn_back: ChatScreen handles its own highlighting — no overlay needed
-    if (step.target === 'btn_back') return null;
-
     // Only show overlay if we are on the correct screen
     if (step.screen && step.screen !== activeApp) {
         if (step.target !== 'nav_zep') return null;

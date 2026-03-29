@@ -5,10 +5,11 @@ import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
 
 export function BottomNavBar() {
-    const { actions, navHistory, showAppOverview } = useGameStore(useShallow(s => ({
+    const { actions, navHistory, showAppOverview, tutStep } = useGameStore(useShallow(s => ({
         actions: s.actions,
         navHistory: s.navHistory,
         showAppOverview: s.showAppOverview,
+        tutStep: s.tutStep,
     })));
     const insets = useSafeAreaInsets();
     const canGoBack = navHistory.length > 0;
@@ -27,7 +28,7 @@ export function BottomNavBar() {
 
             {/* Triangle — back */}
             <TouchableOpacity style={styles.btn} onPress={actions.goBack} activeOpacity={0.6}>
-                <View style={[styles.triangle, !canGoBack && styles.dimmed]} />
+                <View style={[styles.triangle, !canGoBack && styles.dimmed, tutStep === 5 && styles.highlighted]} />
             </TouchableOpacity>
         </View>
     );
@@ -83,5 +84,13 @@ const styles = StyleSheet.create({
     },
     dimmed: {
         borderRightColor: ICON_DIM,
+    },
+    highlighted: {
+        borderRightColor: '#fff',
+        shadowColor: '#fff',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.9,
+        shadowRadius: 8,
+        elevation: 6,
     },
 });
