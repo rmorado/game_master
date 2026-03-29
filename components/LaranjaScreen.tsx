@@ -31,6 +31,7 @@ export function LaranjaScreen() {
     })));
 
     const [sliderValue, setSliderValue] = useState(1);
+    const [sliderKey, setSliderKey] = useState(0);
     const [screenState, setScreenState] = useState<ScreenState>('idle');
     const [progressAnim] = useState(new Animated.Value(0));
     const timer1 = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -59,6 +60,7 @@ export function LaranjaScreen() {
     // Set to max when entering the screen
     useEffect(() => {
         setSliderValue(maxCPFs);
+        setSliderKey(k => k + 1);
     }, []);
 
     const cpfPreview = useMemo(() =>
@@ -150,6 +152,7 @@ export function LaranjaScreen() {
                     {/* Slider + MAX */}
                     <View style={styles.sliderRow}>
                         <Slider
+                            key={sliderKey}
                             style={styles.slider}
                             value={clampedSlider}
                             onValueChange={setSliderValue}
@@ -160,7 +163,7 @@ export function LaranjaScreen() {
                             maximumTrackTintColor="#2a2a2a"
                             thumbTintColor={ORANGE}
                         />
-                        <TouchableOpacity style={styles.maxBtn} onPress={() => setSliderValue(maxCPFs)}>
+                        <TouchableOpacity style={styles.maxBtn} onPress={() => { setSliderValue(maxCPFs); setSliderKey(k => k + 1); }}>
                             <Text style={styles.maxBtnText}>{UI_LARANJAS.maxBtn}</Text>
                         </TouchableOpacity>
                     </View>
