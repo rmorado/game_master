@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
 import { UI_HOME, TUTORIAL } from '../constants/dialogues';
+import { DebugMenu } from './DebugMenu';
 
 // ─── App icon ─────────────────────────────────────────────────────────────────
 
@@ -111,7 +112,7 @@ const isTutorial = tutStep < TUTORIAL.length;
                 style={styles.overlay}
             >
                 {/* Dynamic Island */}
-                <View style={styles.island} />
+                <DebugMenu />
 
                 {/* Spacer — wallpaper fills the middle */}
                 <View style={styles.spacer} />
@@ -192,14 +193,6 @@ const styles = StyleSheet.create({
     overlay: {
         flex: 1,
         paddingHorizontal: 0,
-    },
-    island: {
-        alignSelf: 'center',
-        marginTop: 12,
-        width: 120,
-        height: 34,
-        backgroundColor: '#050505',
-        borderRadius: 20,
     },
     spacer: {
         flex: 1,

@@ -117,6 +117,8 @@ type GameStore = GameState & {
         goBack: () => void;
         toggleAppOverview: () => void;
         payPCC: (amount: number) => void;
+        debugForceLevel: (idx: number) => void;
+        debugAddResources: (dirty: number, clean: number, cpfs: number) => void;
     };
 };
 
@@ -309,7 +311,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             const currentLvl = LEVELS[afterState.levelIdx];
             if (
                 currentLvl.goal !== null &&
-                afterState.totalWashed >= currentLvl.goal &&
+                afterState.totalPaid >= currentLvl.goal &&
                 afterState.levelIdx < 3
             ) {
                 const newLevel = afterState.levelIdx + 1;
@@ -456,7 +458,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         },
 
         sellDebtPack: (packId: number, offerValue: number) => {
-            const { tutStep, actions, debtPacks, levelIdx } = get();
+            const { debtPacks, levelIdx } = get();
             const pack = debtPacks.find(p => p.id === packId);
             const lvl = LEVELS[levelIdx];
             const suspicionIncrease = pack
@@ -591,6 +593,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
                     actions.advanceTutorial();
                 }
             }, 1000);
+        },
+
+        debugForceLevel: (idx: number) => {
+            set({ levelIdx: idx, levelUpScreen: idx, levelUpDialogueIdx: -1, isPaused: true });
+        },
+
+        debugAddResources: (dirty: number, clean: number, cpfs: number) => {
+            set(s => ({ dirty: s.dirty + dirty, clean: s.clean + clean, cpfs: s.cpfs + cpfs }));
         },
     },
 }));
