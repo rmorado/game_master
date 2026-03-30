@@ -135,7 +135,7 @@ const initialState: GameState = {
     bagEscalationStage: 0,
     levelIdx: 0,
     totalWashed: 0,
-    totalReceived: 0,
+    totalReceived: 20000000,
     totalPaid: 0,
     transfersByContact: {},
     contacts: { drugdealer: true, hacker: true },
