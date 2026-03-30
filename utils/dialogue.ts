@@ -2,6 +2,7 @@
 // Pure functions for the declarative dialogue system
 
 import { Condition, ConditionSet, ComparisonOp, Effect, GameState } from '../types/game';
+import { LEVELS } from '../constants/game-data';
 
 function compare(a: number, op: ComparisonOp, b: number): boolean {
     switch (op) {
@@ -88,6 +89,14 @@ export function applyEffects(effects: Effect[], state: GameState): Partial<GameS
             case 'setDay':
                 patch[effect.field] = state.day;
                 break;
+            case 'requestBag': {
+                const amount = LEVELS[state.levelIdx].bagSize;
+                const batches = patch.batches ?? state.batches;
+                patch.dirty = get('dirty') + amount;
+                patch.totalReceived = get('totalReceived') + amount;
+                patch.batches = [...batches, { id: Date.now(), due: amount * 0.7, days: 90 }];
+                break;
+            }
         }
     }
 

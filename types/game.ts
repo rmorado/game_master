@@ -150,7 +150,8 @@ export type Effect =
     | { type: 'set'; resource: 'suspicion' | 'pressure'; value: number }
     | { type: 'extendBatch'; index: number; days: number }
     | { type: 'trackTransfer'; contactId: string; amount: number | ((s: GameState) => number) }
-    | { type: 'setDay'; field: 'investigateBitcoinDay' };
+    | { type: 'setDay'; field: 'investigateBitcoinDay' }
+    | { type: 'requestBag' };
 
 export interface DialogueOption {
     id: string;

@@ -375,6 +375,30 @@ const CPF_PACKS = [
 ];
 
 export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
+    drugdealer: {
+        characterId: 'drugdealer',
+        options: [
+            {
+                id: 'request_bag',
+                text: 'Preciso de mais dinheiro.',
+                visible: [
+                    { type: 'custom', fn: (s: GameState) => !s.eventsTriggered.includes('pressure_warning_police') || s.dialoguesSeen.includes('ack_federais'), description: 'before police warning or after ack' },
+                ],
+                response: 'Certo. Mandando agora.',
+                effects: [{ type: 'requestBag' }],
+            },
+            {
+                id: 'ack_federais',
+                text: 'Vou falar com meu advogado.',
+                visible: [
+                    { type: 'custom', fn: (s: GameState) => s.eventsTriggered.includes('pressure_warning_police'), description: 'after police warning' },
+                    { type: 'dialogueNotSeen', optionId: 'ack_federais' },
+                ],
+                response: 'Faz isso. E rápido.',
+            },
+        ],
+    },
+
     anonimo: {
         characterId: 'anonimo',
         options: [
@@ -386,7 +410,10 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                 ],
                 enabled: [{ type: 'resource', resource: 'dirty', op: 'gte', value: BLACKMAIL_COST }],
                 response: 'Sábio. Obrigado pela cooperação.',
-                effects: [{ type: 'spend', resource: 'dirty', amount: BLACKMAIL_COST }],
+                effects: [
+                    { type: 'spend', resource: 'dirty', amount: BLACKMAIL_COST },
+                    { type: 'trackTransfer', contactId: 'anonimo', amount: BLACKMAIL_COST },
+                ],
             },
             {
                 id: 'blackmail_ignore',
@@ -628,7 +655,7 @@ export const SCRIPTED_EVENTS: ScriptedEvent[] = [
     // ── Blackmail event ──
     {
         id: 'blackmail_intro',
-        trigger: (s) => s.suspicion >= 150,
+        trigger: (s) => s.suspicion >= 50,
         payload: {
             type: 'multi',
             payloads: [
