@@ -14,7 +14,6 @@ export interface Level {
 export type EventPayload =
     | { type: 'unlock_contact'; contactId: string }
     | { type: 'incoming_message'; contactId: string; text: string }
-    | { type: 'unlock_dialogue_option'; optionId: string }
     | { type: 'multi'; payloads: EventPayload[] };
 
 export interface ScriptedEvent {
@@ -63,15 +62,8 @@ export interface GameState {
     bagRejectedOnDay: number;
     bagEscalationStage: number;
     // Dialogue system state
-    unlockedDialogueOptions: string[];
-    // Blackmail event state
-    hasRespondedToBlackmail: boolean;
+    dialoguesSeen: string[];
     investigateBitcoinDay: number;       // day when player asked hacker to trace BTC (0 = not started)
-    // Gerente chain state
-    hasCompletedInvestigador: boolean;
-    hasPaidDeputado: boolean;
-    hasContactedJuiz: boolean;
-    hasPaidMadame: boolean;
     // Chat typing indicator
     isTyping: boolean;
     // Level transition state
@@ -139,19 +131,40 @@ export interface TutorialStep {
     boxPosition?: { top?: number; bottom?: number };
 }
 
-// Dialogue system types
+// ─── Declarative Dialogue System ────────────────────────────────────────────
+
+export type ComparisonOp = 'gte' | 'lte' | 'gt' | 'lt' | 'eq';
+
+export type Condition =
+    | { type: 'resource'; resource: 'dirty' | 'clean' | 'cpfs' | 'suspicion' | 'pressure'; op: ComparisonOp; value: number | ((s: GameState) => number) }
+    | { type: 'dialogueSeen'; optionId: string }
+    | { type: 'dialogueNotSeen'; optionId: string }
+    | { type: 'level'; op: ComparisonOp; value: number }
+    | { type: 'hasBatches' }
+    | { type: 'custom'; fn: (s: GameState) => boolean; description: string };
+
+export type ConditionSet = Condition[];
+
+export type Effect =
+    | { type: 'spend'; resource: 'dirty' | 'clean'; amount: number | ((s: GameState) => number) }
+    | { type: 'gain'; resource: 'dirty' | 'clean' | 'cpfs'; amount: number | ((s: GameState) => number) }
+    | { type: 'adjust'; resource: 'suspicion' | 'pressure'; delta: number; min?: number; max?: number }
+    | { type: 'set'; resource: 'suspicion' | 'pressure'; value: number }
+    | { type: 'extendBatch'; index: number; days: number }
+    | { type: 'trackTransfer'; contactId: string; amount: number | ((s: GameState) => number) }
+    | { type: 'setDay'; field: 'investigateBitcoinDay' };
+
 export interface DialogueOption {
     id: string;
-    text: string;
-    showCondition?: (state: GameState) => boolean;
-    condition?: (state: GameState) => boolean;
-    response: string | ((state: GameState) => string);
-    action?: (state: GameState) => Partial<GameState>;
-    unlocks?: string[];
-    requiresUnlock?: boolean;
+    text: string | ((s: GameState) => string);
+    visible?: ConditionSet;
+    enabled?: ConditionSet;
+    response: string | ((s: GameState) => string);
+    disabledResponse?: string | ((s: GameState) => string);
+    effects?: Effect[];
 }
 
 export interface CharacterDialogue {
     characterId: string;
-    outgoingOptions: DialogueOption[];
+    options: DialogueOption[];
 }

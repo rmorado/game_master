@@ -1,7 +1,7 @@
 // constants/dialogues.ts
 // Centralized dialogue and text content for O Mestre
 
-import { CharacterDialogue, GameState, LevelEvent, ScriptedEvent, TutorialStep } from '../types/game';
+import { CharacterDialogue, GameState, LevelEvent, ScriptedEvent, TutorialStep, DialogueOption } from '../types/game';
 import { formatMoney as fmt } from '../utils/format';
 
 // ============================================================================
@@ -159,17 +159,17 @@ export const UI_PAY_MODAL = {
 // UI Labels - Laranjas screen
 export const UI_LARANJAS = {
     appName:          "laranjas",
-    ctaBtn:           "CRIAR DERIVATIVO",
+    ctaBtn:           "CRIAR CARTEIRA DE CRÉDITO",
     warning:          "⚠ aumenta suspeita",
     maxBtn:           "MAX",
     labelCpfAvail:    "CPF disponíveis",
     labelCpfSelected: "CPF selecionados",
     labelUsar:        "usar",
     labelLoan:        "empréstimo gerado",
-    processingTitle:  "Criando empréstimos nos nomes da lista...",
-    processingLabel:  "PROCESSANDO PACOTE",
+    processingTitle:  "Criando empréstimos nos nomes da lista. Amalgando pedidos. Gerando ",
+    processingLabel:  "PROCESSANDO DÍVIDA E INTEGRANDO AO PRODUTO",
     successIcon:      "✓",
-    successTitle:     "DERIVATIVO CRIADO",
+    successTitle:     "CARTEIRA CRIADA",
     successSub:       "Pronto para venda no BACEN",
 };
 
@@ -178,21 +178,21 @@ export const UI_BACEN = {
     wordmark:        "BACEN",
     subtitle:        "Plataforma Interbancária",
     corpBadge:       "CORP",
-    offerBtn:        "OFERECER DERIVATIVO",
+    offerBtn:        "OFERECER CARTEIRA",
     sectionLoading:  "BUSCANDO OFERTAS",
     loadingHint:     "Procurando ofertas de outros bancos...",
     sectionOffers:   "OFERTAS RECEBIDAS",
     cancelLink:      "Cancelar",
-    sectionPackList: "DERIVATIVOS EM CARTEIRA",
-    emptyPacks:      "Nenhum derivativo criado ainda.",
-    confirmBtn:      "CONFIRMAR",
+    sectionPackList: "CRÉDITO EM CARTEIRA",
+    emptyPacks:      "Nenhuma carteira disponível.",
+    confirmBtn:      "CESSAR CARTEIRA DE CRÉDITO",
     bestOffer:       "MELHOR OFERTA",
     offerLabel:      "Oferta",
     bankReady:       "RESPONDEU",
     bankWaiting:     "aguardando...",
     bankIcon:        "🏦",
     successIcon:     "✓",
-    successTitle:    "DERIVATIVO VENDIDO",
+    successTitle:    "CARTEIRA VENDIDA",
     successSub:      "Dinheiro limpo adicionado à carteira",
     packName:        (cpfsUsed: number) => `Derivativo — ${cpfsUsed} CPF`,
     packMeta:        (dayCreated: number) => `Emitido dia ${dayCreated} · vence dia ${dayCreated + 90}`,
@@ -201,7 +201,7 @@ export const UI_BACEN = {
 
 // UI Labels - Carteira screen
 export const UI_CARTEIRA = {
-    appName:         "carteira",
+    appName:         "COFRE",
     labelDirty:      "sujo",
     labelClean:      "limpo",
     currency:        "R$",
@@ -218,11 +218,11 @@ export const UI_CARTEIRA = {
 // UI Labels - Home screen app icons
 export const UI_HOME = {
     apps: {
-        zep:       "ZEP",
-        bacen:     "BACEN",
+        zep:       "ZepZep",
+        bacen:     "BaCen",
         laranjas:  "Laranjas",
         calendario:"Calendário",
-        carteira:  "Carteira",
+        carteira:  "Cofre",
         dossie:    "Dossiê",
         news:      "News",
     },
@@ -246,7 +246,7 @@ export const UI_CHAT = {
     bagAcceptLater:   "Pronto, pode mandar",
     escalation1:      'E aí? Vai movimentar ou não?',
     escalation2:      'Tô perdendo a paciência. Manda logo.',
-    pccConfirmation:  'Recebemos. Obrigado.',
+    pccConfirmation:  '🔥',
 };
 
 // UI Labels - Tutorial overlay
@@ -377,159 +377,138 @@ const CPF_PACKS = [
 export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
     anonimo: {
         characterId: 'anonimo',
-        outgoingOptions: [
+        options: [
             {
                 id: 'blackmail_pay',
                 text: `PAGAR (R$${fmt(BLACKMAIL_COST)})`,
-                condition: (state: GameState) =>
-                    !state.hasRespondedToBlackmail && state.dirty >= BLACKMAIL_COST,
+                visible: [
+                    { type: 'dialogueNotSeen', optionId: 'blackmail_pay' },
+                    { type: 'dialogueNotSeen', optionId: 'blackmail_ignore' },
+                ],
+                enabled: [{ type: 'resource', resource: 'dirty', op: 'gte', value: BLACKMAIL_COST }],
                 response: 'Sábio. Obrigado pela cooperação.',
-                action: (state: GameState) => ({
-                    dirty: state.dirty - BLACKMAIL_COST,
-                    hasRespondedToBlackmail: true,
-                    unlockedDialogueOptions: [
-                        ...state.unlockedDialogueOptions,
-                        'investigate_bitcoin',
-                    ],
-                }),
+                effects: [{ type: 'spend', resource: 'dirty', amount: BLACKMAIL_COST }],
             },
             {
                 id: 'blackmail_ignore',
                 text: 'IGNORAR',
-                condition: (state: GameState) => !state.hasRespondedToBlackmail,
+                visible: [
+                    { type: 'dialogueNotSeen', optionId: 'blackmail_pay' },
+                    { type: 'dialogueNotSeen', optionId: 'blackmail_ignore' },
+                ],
                 response: 'Você vai se arrepender.',
-                action: (state: GameState) => ({
-                    hasRespondedToBlackmail: true,
-                    unlockedDialogueOptions: [
-                        ...state.unlockedDialogueOptions,
-                        'investigate_bitcoin',
-                    ],
-                }),
             },
         ],
     },
 
     hacker: {
         characterId: 'hacker',
-
-        outgoingOptions: [
-            ...CPF_PACKS.map(pack => ({
+        options: [
+            ...CPF_PACKS.map((pack): DialogueOption => ({
                 id: `buy_${pack.qty}_cpfs`,
                 text: `Comprar ${pack.qty.toLocaleString('pt-BR')} CPFs (R$${fmt(pack.cost)})`,
-                showCondition: (state: GameState) => state.levelIdx >= pack.minLevel,
-                condition: (state: GameState) => state.dirty >= pack.cost,
+                visible: [{ type: 'level', op: 'gte', value: pack.minLevel }],
+                enabled: [{ type: 'resource', resource: 'dirty', op: 'gte', value: pack.cost }],
                 response: pack.response,
-                action: (state: GameState) => ({
-                    dirty: state.dirty - pack.cost,
-                    cpfs: state.cpfs + pack.qty,
-                    transfersByContact: { ...state.transfersByContact, hacker: (state.transfersByContact.hacker ?? 0) + pack.cost },
-                }),
+                effects: [
+                    { type: 'spend', resource: 'dirty', amount: pack.cost },
+                    { type: 'gain', resource: 'cpfs', amount: pack.qty },
+                    { type: 'trackTransfer', contactId: 'hacker', amount: pack.cost },
+                ],
             })),
 
             {
                 id: 'investigate_bitcoin',
                 text: 'Investigar endereço Bitcoin',
-                condition: (state: GameState) =>
-                    state.unlockedDialogueOptions.includes('investigate_bitcoin') &&
-                    state.investigateBitcoinDay === 0,
+                visible: [
+                    { type: 'custom', fn: (s: GameState) => s.dialoguesSeen.includes('blackmail_pay') || s.dialoguesSeen.includes('blackmail_ignore'), description: 'after blackmail response' },
+                    { type: 'custom', fn: (s: GameState) => s.investigateBitcoinDay === 0, description: 'not already investigating' },
+                ],
                 response: 'Vou rastrear. Isso leva tempo — te aviso.',
-                action: (state: GameState) => ({
-                    investigateBitcoinDay: state.day,
-                }),
-            }
-        ]
+                effects: [{ type: 'setDay', field: 'investigateBitcoinDay' }],
+            },
+        ],
     },
 
     lawyer: {
         characterId: 'lawyer',
-        outgoingOptions: [
+        options: [
             {
                 id: 'hire_lawyer',
                 text: 'Preciso esfriar as coisas.',
-                condition: (state: GameState) => state.dirty >= LAWYER_COSTS[state.levelIdx],
-                response: (state: GameState) =>
-                    `R$${fmt(LAWYER_COSTS[state.levelIdx])}. Vou ligar.`,
-                action: (state: GameState) => ({
-                    dirty: state.dirty - LAWYER_COSTS[state.levelIdx],
-                    suspicion: Math.max(0, state.suspicion - 15),
-                }),
-            },
-            {
-                id: 'hire_lawyer_broke',
-                text: 'Quanto custa?',
-                condition: (state: GameState) => state.dirty < LAWYER_COSTS[state.levelIdx],
-                response: (state: GameState) =>
-                    `R$${fmt(LAWYER_COSTS[state.levelIdx])}. Não aceito menos.`,
+                enabled: [{ type: 'resource', resource: 'dirty', op: 'gte', value: (s: GameState) => LAWYER_COSTS[s.levelIdx] }],
+                response: (s: GameState) => `R$${fmt(LAWYER_COSTS[s.levelIdx])}. Vou ligar.`,
+                disabledResponse: (s: GameState) => `R$${fmt(LAWYER_COSTS[s.levelIdx])}. Não aceito menos.`,
+                effects: [
+                    { type: 'spend', resource: 'dirty', amount: (s: GameState) => LAWYER_COSTS[s.levelIdx] },
+                    { type: 'adjust', resource: 'suspicion', delta: -15 },
+                    { type: 'trackTransfer', contactId: 'lawyer', amount: (s: GameState) => LAWYER_COSTS[s.levelIdx] },
+                ],
             },
         ],
     },
 
     deputy: {
         characterId: 'deputy',
-        outgoingOptions: [
+        options: [
             {
                 id: 'deputy_help_bc',
                 text: 'O Banco Central tá em cima de mim.',
-                condition: (state: GameState) =>
-                    state.hasCompletedInvestigador && !state.hasPaidDeputado && state.dirty >= DEPUTY_COST,
+                visible: [
+                    { type: 'custom', fn: (s: GameState) => s.dialoguesSeen.includes('investigador_comply') || s.dialoguesSeen.includes('investigador_stall'), description: 'after investigador interaction' },
+                    { type: 'dialogueNotSeen', optionId: 'deputy_help_bc' },
+                ],
+                enabled: [{ type: 'resource', resource: 'dirty', op: 'gte', value: DEPUTY_COST }],
                 response: `Posso fazer uns telefonemas. R$${fmt(DEPUTY_COST)}. Tenho uns amigos no judiciário que podem te apresentar alguém.`,
-                action: (state: GameState) => ({
-                    dirty: state.dirty - DEPUTY_COST,
-                    hasPaidDeputado: true,
-                    suspicion: Math.max(0, state.suspicion - 10),
-                }),
-            },
-            {
-                id: 'deputy_help_bc_broke',
-                text: 'O Banco Central tá em cima de mim.',
-                condition: (state: GameState) =>
-                    state.hasCompletedInvestigador && !state.hasPaidDeputado && state.dirty < DEPUTY_COST,
-                response: `Posso ajudar, mas custa R$${fmt(DEPUTY_COST)}. Volta quando tiver.`,
+                disabledResponse: `Posso ajudar, mas custa R$${fmt(DEPUTY_COST)}. Volta quando tiver.`,
+                effects: [
+                    { type: 'spend', resource: 'dirty', amount: DEPUTY_COST },
+                    { type: 'adjust', resource: 'suspicion', delta: -10 },
+                    { type: 'trackTransfer', contactId: 'deputy', amount: DEPUTY_COST },
+                ],
             },
             {
                 id: 'hire_deputy',
                 text: 'Preciso que recuem.',
-                condition: (state: GameState) => state.dirty >= DEPUTY_COST,
+                enabled: [{ type: 'resource', resource: 'dirty', op: 'gte', value: DEPUTY_COST }],
                 response: 'Uma visita. Eles vão entender.',
-                action: (state: GameState) => ({
-                    dirty: state.dirty - DEPUTY_COST,
-                    pressure: Math.max(0, state.pressure - 20),
-                }),
-            },
-            {
-                id: 'hire_deputy_broke',
-                text: 'Quanto custa?',
-                condition: (state: GameState) => state.dirty < DEPUTY_COST,
-                response: `R$${fmt(DEPUTY_COST)}. Não trabalho de graça.`,
+                disabledResponse: `R$${fmt(DEPUTY_COST)}. Não trabalho de graça.`,
+                effects: [
+                    { type: 'spend', resource: 'dirty', amount: DEPUTY_COST },
+                    { type: 'adjust', resource: 'pressure', delta: -20 },
+                    { type: 'trackTransfer', contactId: 'deputy', amount: DEPUTY_COST },
+                ],
             },
         ],
     },
 
     investigador: {
         characterId: 'investigador',
-        outgoingOptions: [
+        options: [
             {
                 id: 'investigador_comply',
                 text: 'Vou providenciar os documentos.',
-                condition: (state: GameState) => !state.hasCompletedInvestigador,
+                visible: [
+                    { type: 'dialogueNotSeen', optionId: 'investigador_comply' },
+                    { type: 'dialogueNotSeen', optionId: 'investigador_stall' },
+                ],
                 response: 'Ótimo. Aguardo em até 48 horas. Qualquer irregularidade será encaminhada ao Ministério Público.',
-                action: (state: GameState) => ({
-                    hasCompletedInvestigador: true,
-                }),
             },
             {
                 id: 'investigador_stall',
                 text: 'Posso ter mais tempo?',
-                condition: (state: GameState) => !state.hasCompletedInvestigador,
+                visible: [
+                    { type: 'dialogueNotSeen', optionId: 'investigador_comply' },
+                    { type: 'dialogueNotSeen', optionId: 'investigador_stall' },
+                ],
                 response: 'Não. O prazo é regulamentar. Envie os documentos ou vamos abrir um processo formal.',
-                action: (state: GameState) => ({
-                    hasCompletedInvestigador: true,
-                }),
             },
             {
                 id: 'investigador_done',
                 text: 'Alguma novidade?',
-                condition: (state: GameState) => state.hasCompletedInvestigador,
+                visible: [
+                    { type: 'custom', fn: (s: GameState) => s.dialoguesSeen.includes('investigador_comply') || s.dialoguesSeen.includes('investigador_stall'), description: 'after investigador interaction' },
+                ],
                 response: 'A análise está em andamento. Não saia do país.',
             },
         ],
@@ -537,71 +516,68 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
 
     judge: {
         characterId: 'judge',
-        outgoingOptions: [
+        options: [
             {
                 id: 'judge_intro_talk',
                 text: 'O deputado me mandou falar com o senhor.',
-                condition: (state: GameState) =>
-                    state.hasPaidDeputado && !state.hasContactedJuiz,
+                visible: [
+                    { type: 'dialogueSeen', optionId: 'deputy_help_bc' },
+                    { type: 'dialogueNotSeen', optionId: 'judge_intro_talk' },
+                ],
                 response: 'Nós não deveríamos estar tendo essa conversa. Mas... minha esposa tem um escritório de advocacia. Dra. Helena. Ela faz consultoria para orientação junto ao Supremo. Qualquer solicitação, fale diretamente com ela.',
-                action: (state: GameState) => ({
-                    hasContactedJuiz: true,
-                }),
             },
             {
                 id: 'judge_first_offer',
                 text: 'Preciso de mais tempo.',
-                condition: (state: GameState) =>
-                    state.unlockedDialogueOptions.includes('judge_first_offer') &&
-                    state.dirty >= JUDGE_COST &&
-                    state.batches.length > 0,
+                visible: [{ type: 'dialogueSeen', optionId: 'judge_intro_talk' }],
+                enabled: [
+                    { type: 'resource', resource: 'dirty', op: 'gte', value: JUDGE_COST },
+                    { type: 'hasBatches' },
+                ],
                 response: 'Fica quieto. 30 dias — e não me ligue de novo tão cedo.',
-                action: (state: GameState) => ({
-                    dirty: state.dirty - JUDGE_COST,
-                    batches: state.batches.map((b, i) =>
-                        i === 0 ? { ...b, days: b.days + 30 } : b
-                    ),
-                }),
+                disabledResponse: 'Não posso fazer nada sem ter o que estender.',
+                effects: [
+                    { type: 'spend', resource: 'dirty', amount: JUDGE_COST },
+                    { type: 'extendBatch', index: 0, days: 30 },
+                    { type: 'trackTransfer', contactId: 'judge', amount: JUDGE_COST },
+                ],
             },
         ],
     },
 
     madame: {
         characterId: 'madame',
-        outgoingOptions: [
+        options: [
             {
                 id: 'madame_proposal',
                 text: 'Me disseram que a senhora pode ajudar.',
-                condition: (state: GameState) =>
-                    !state.hasPaidMadame && !state.unlockedDialogueOptions.includes('madame_negotiate'),
+                visible: [{ type: 'dialogueNotSeen', optionId: 'madame_proposal' }],
                 response: `Posso. Ofereço um contrato de consultoria geral e assessoria para orientação junto ao Supremo Tribunal. O valor é R$${fmt(MADAME_COST)}. Quando estiver pronto, me avise.`,
-                unlocks: ['madame_negotiate', 'madame_pay', 'madame_cant_pay'],
             },
             {
                 id: 'madame_negotiate',
                 text: `R$${fmt(MADAME_COST)} é muito. Tem como negociar?`,
-                condition: (state: GameState) => !state.hasPaidMadame,
-                requiresUnlock: true,
+                visible: [
+                    { type: 'dialogueSeen', optionId: 'madame_proposal' },
+                    { type: 'dialogueNotSeen', optionId: 'madame_pay' },
+                ],
                 response: 'Não. O valor reflete a complexidade e os riscos envolvidos. Quando tiver o valor, me procure. Seus problemas vão desaparecer.',
             },
             {
                 id: 'madame_pay',
                 text: `Quero fechar o contrato (R$${fmt(MADAME_COST)})`,
-                condition: (state: GameState) => !state.hasPaidMadame && state.dirty >= MADAME_COST,
-                requiresUnlock: true,
+                visible: [
+                    { type: 'dialogueSeen', optionId: 'madame_proposal' },
+                    { type: 'dialogueNotSeen', optionId: 'madame_pay' },
+                ],
+                enabled: [{ type: 'resource', resource: 'dirty', op: 'gte', value: MADAME_COST }],
                 response: 'Excelente decisão. O contrato está assinado. A partir de agora, considere seus problemas resolvidos.',
-                action: (state: GameState) => ({
-                    dirty: state.dirty - MADAME_COST,
-                    hasPaidMadame: true,
-                    suspicion: 0,
-                }),
-            },
-            {
-                id: 'madame_cant_pay',
-                text: 'Ainda não tenho o valor.',
-                condition: (state: GameState) => !state.hasPaidMadame && state.dirty < MADAME_COST,
-                requiresUnlock: true,
-                response: 'Sem pressa. Mas não demore — cada dia que passa, a situação fica mais delicada.',
+                disabledResponse: 'Sem pressa. Mas não demore — cada dia que passa, a situação fica mais delicada.',
+                effects: [
+                    { type: 'spend', resource: 'dirty', amount: MADAME_COST },
+                    { type: 'set', resource: 'suspicion', value: 0 },
+                    { type: 'trackTransfer', contactId: 'madame', amount: MADAME_COST },
+                ],
             },
         ],
     },
@@ -669,7 +645,9 @@ export const SCRIPTED_EVENTS: ScriptedEvent[] = [
     // ── Gerente chain: Investigador → Deputado → Juiz → Madame ──
     {
         id: 'gerente_deputado_unlock',
-        trigger: (s) => s.hasCompletedInvestigador && !s.hasPaidDeputado,
+        trigger: (s) =>
+            (s.dialoguesSeen.includes('investigador_comply') || s.dialoguesSeen.includes('investigador_stall'))
+            && !s.dialoguesSeen.includes('deputy_help_bc'),
         payload: {
             type: 'multi',
             payloads: [
@@ -684,7 +662,8 @@ export const SCRIPTED_EVENTS: ScriptedEvent[] = [
     },
     {
         id: 'gerente_juiz_unlock',
-        trigger: (s) => s.hasPaidDeputado && !s.hasContactedJuiz,
+        trigger: (s) =>
+            s.dialoguesSeen.includes('deputy_help_bc') && !s.dialoguesSeen.includes('judge_intro_talk'),
         payload: {
             type: 'multi',
             payloads: [
@@ -699,7 +678,8 @@ export const SCRIPTED_EVENTS: ScriptedEvent[] = [
     },
     {
         id: 'gerente_madame_unlock',
-        trigger: (s) => s.hasContactedJuiz && !s.hasPaidMadame,
+        trigger: (s) =>
+            s.dialoguesSeen.includes('judge_intro_talk') && !s.dialoguesSeen.includes('madame_pay'),
         payload: {
             type: 'multi',
             payloads: [
@@ -711,13 +691,6 @@ export const SCRIPTED_EVENTS: ScriptedEvent[] = [
                 },
             ],
         },
-    },
-
-    // ── Judge dialogue unlocks (score-gated) ──
-    {
-        id: 'judge_offer_2',
-        trigger: (s) => s.levelIdx === 3 && s.omstreDayStart > 0 && (s.day - s.omstreDayStart) >= 30,
-        payload: { type: 'unlock_dialogue_option', optionId: 'judge_offer_2' },
     },
 
     // ── Hacker follow-up: Bitcoin investigation result ──

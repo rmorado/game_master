@@ -18,13 +18,10 @@ function getContactStatus(
     state: {
         hasPendingBag: boolean;
         hasUsedNotNow: boolean;
-        hasCompletedInvestigador: boolean;
-        hasRespondedToBlackmail: boolean;
-        hasPaidDeputado: boolean;
-        hasContactedJuiz: boolean;
-        hasPaidMadame: boolean;
+        dialoguesSeen: string[];
     }
 ): StatusConfig {
+    const seen = state.dialoguesSeen;
     switch (id) {
         case 'drugdealer':
             if (state.hasPendingBag) return { label: 'Pendente', color: AMBER };
@@ -33,21 +30,23 @@ function getContactStatus(
         case 'hacker':
             return { label: 'Ativo', color: GREEN };
         case 'investigador':
-            if (!state.hasCompletedInvestigador) return { label: 'Urgente', color: '#ef4444' };
+            if (!seen.includes('investigador_comply') && !seen.includes('investigador_stall'))
+                return { label: 'Urgente', color: '#ef4444' };
             return { label: 'Concluído', color: MUTED };
         case 'anonimo':
-            if (!state.hasRespondedToBlackmail) return { label: 'Pendente', color: AMBER };
+            if (!seen.includes('blackmail_pay') && !seen.includes('blackmail_ignore'))
+                return { label: 'Pendente', color: AMBER };
             return { label: 'Resolvido', color: MUTED };
         case 'lawyer':
             return { label: 'Ativo', color: GREEN };
         case 'deputy':
-            if (state.hasPaidDeputado) return { label: 'Concluído', color: MUTED };
+            if (seen.includes('deputy_help_bc')) return { label: 'Concluído', color: MUTED };
             return { label: 'Ativo', color: GREEN };
         case 'judge':
-            if (state.hasContactedJuiz) return { label: 'Concluído', color: MUTED };
+            if (seen.includes('judge_intro_talk')) return { label: 'Concluído', color: MUTED };
             return { label: 'Ativo', color: GREEN };
         case 'madame':
-            if (state.hasPaidMadame) return { label: 'Concluído', color: MUTED };
+            if (seen.includes('madame_pay')) return { label: 'Concluído', color: MUTED };
             return { label: 'Ativo', color: GREEN };
         default:
             return { label: 'Ativo', color: GREEN };
@@ -59,9 +58,7 @@ const CONTACT_ORDER = ['drugdealer', 'hacker', 'investigador', 'anonimo', 'lawye
 export function DossieScreen() {
     const {
         dirty, clean, cpfs, totalReceived, totalPaid, transfersByContact,
-        contacts, hasPendingBag, hasUsedNotNow,
-        hasCompletedInvestigador, hasRespondedToBlackmail,
-        hasPaidDeputado, hasContactedJuiz, hasPaidMadame,
+        contacts, hasPendingBag, hasUsedNotNow, dialoguesSeen,
         actions,
     } = useGameStore(useShallow(s => ({
         dirty: s.dirty,
@@ -73,15 +70,11 @@ export function DossieScreen() {
         contacts: s.contacts,
         hasPendingBag: s.hasPendingBag,
         hasUsedNotNow: s.hasUsedNotNow,
-        hasCompletedInvestigador: s.hasCompletedInvestigador,
-        hasRespondedToBlackmail: s.hasRespondedToBlackmail,
-        hasPaidDeputado: s.hasPaidDeputado,
-        hasContactedJuiz: s.hasContactedJuiz,
-        hasPaidMadame: s.hasPaidMadame,
+        dialoguesSeen: s.dialoguesSeen,
         actions: s.actions,
     })));
 
-    const statusState = { hasPendingBag, hasUsedNotNow, hasCompletedInvestigador, hasRespondedToBlackmail, hasPaidDeputado, hasContactedJuiz, hasPaidMadame };
+    const statusState = { hasPendingBag, hasUsedNotNow, dialoguesSeen };
     const unlockedContacts = CONTACT_ORDER.filter(id => contacts[id]);
 
     return (

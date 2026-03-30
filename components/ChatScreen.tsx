@@ -3,10 +3,11 @@ import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from 'react-native';
 import { useGameStore } from '../hooks/use-game-store';
 import { getCharacter, DIALOGUES, UI_CHAT } from '../constants/dialogues';
+import { evaluateConditionSet } from '../utils/dialogue';
 
 export function ChatScreen() {
     const state = useGameStore(s => s);
-    const { actions, chatHistory, currentChat, tutStep, hasPendingBag, hasUsedNotNow, isTyping, unlockedDialogueOptions } = state;
+    const { actions, chatHistory, currentChat, tutStep, hasPendingBag, hasUsedNotNow, isTyping } = state;
     const flatListRef = useRef<FlatList>(null);
 
     const character = currentChat ? getCharacter(currentChat) : undefined;
@@ -62,31 +63,29 @@ export function ChatScreen() {
         const dialogue = DIALOGUES[currentChat!];
         if (!dialogue) return null;
 
-        const visibleOptions = dialogue.outgoingOptions.filter(option => {
-            if (option.requiresUnlock && !unlockedDialogueOptions.includes(option.id)) return false;
-            const visCheck = option.showCondition || option.condition;
-            if (visCheck && !visCheck(state)) return false;
-            return true;
-        });
+        const visibleOptions = dialogue.options.filter(option =>
+            !option.visible || evaluateConditionSet(option.visible, state)
+        );
 
         return (
             <>
                 {visibleOptions.map(option => {
-                    const canUse = !option.condition || option.condition(state);
+                    const isEnabled = !option.enabled || evaluateConditionSet(option.enabled, state);
                     const isHighlighted = shouldHighlightBuy100 && option.id === 'buy_100_cpfs';
-                    const isDisabled = (!canUse) || (isTutorial && !isHighlighted);
+                    const isTutDisabled = isTutorial && !isHighlighted;
+                    const text = typeof option.text === 'function' ? option.text(state) : option.text;
                     return (
                         <TouchableOpacity
                             key={option.id}
                             style={[
                                 styles.presetBtn,
                                 isHighlighted && styles.highlighted,
-                                isDisabled && styles.disabled
+                                (!isEnabled || isTutDisabled) && styles.disabled,
                             ]}
                             onPress={() => actions.chooseDialogueOption(option.id)}
-                            disabled={isDisabled}
+                            disabled={isTutDisabled}
                         >
-                            <Text style={styles.presetBtnText}>{option.text}</Text>
+                            <Text style={styles.presetBtnText}>{text}</Text>
                         </TouchableOpacity>
                     );
                 })}

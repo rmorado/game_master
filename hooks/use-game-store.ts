@@ -4,6 +4,7 @@ import { GameState, Batch, DebtPack, BankOffer, EventPayload } from '../types/ga
 import { LEVELS } from '../constants/game-data';
 import { BANKS, SCRIPTED_EVENTS, DIALOGUES, LEVEL_EVENTS, TUTORIAL, UI_CHAT } from '../constants/dialogues';
 import { formatMoney } from '../utils/format';
+import { evaluateConditionSet, applyEffects } from '../utils/dialogue';
 
 const MSG_POPUP_DURATION = 2000;
 
@@ -79,14 +80,6 @@ function fireEvent(
             set(s => notifyPopup(s, payload.contactId, payload.text));
             trackedTimeout(() => set({ showNewMessagePopup: false }), MSG_POPUP_DURATION);
             break;
-        case 'unlock_dialogue_option':
-            set(s => ({
-                unlockedDialogueOptions: [
-                    ...s.unlockedDialogueOptions,
-                    payload.optionId,
-                ],
-            }));
-            break;
         case 'multi':
             payload.payloads.forEach(p => fireEvent(p, get, set));
             break;
@@ -159,13 +152,8 @@ const initialState: GameState = {
     showNewMessagePopup: false,
     popupSender: '',
     popupPreview: '',
-    unlockedDialogueOptions: [],
-    hasRespondedToBlackmail: false,
+    dialoguesSeen: [],
     investigateBitcoinDay: 0,
-    hasCompletedInvestigador: false,
-    hasPaidDeputado: false,
-    hasContactedJuiz: false,
-    hasPaidMadame: false,
     levelUpScreen: null,
     levelUpDialogueIdx: -1,
     isGameOver: false,
@@ -560,27 +548,37 @@ export const useGameStore = create<GameStore>((set, get) => ({
         chooseDialogueOption: (optionId: string) => {
             const state = get();
             const dialogue = DIALOGUES[state.currentChat!];
-
             if (!dialogue) return;
 
-            const option = dialogue.outgoingOptions.find((o: any) => o.id === optionId);
+            const option = dialogue.options.find(o => o.id === optionId);
             if (!option) return;
 
-            if (option.showCondition && !option.showCondition(state)) return;
-            if (option.condition && !option.condition(state)) return;
+            // Check visibility
+            if (option.visible && !evaluateConditionSet(option.visible, state)) return;
 
-            const response = typeof option.response === 'function'
-                ? option.response(state)
-                : option.response;
+            const isEnabled = !option.enabled || evaluateConditionSet(option.enabled, state);
 
+            // Pick response based on enabled state
+            const response = isEnabled
+                ? (typeof option.response === 'function' ? option.response(state) : option.response)
+                : (option.disabledResponse
+                    ? (typeof option.disabledResponse === 'function' ? option.disabledResponse(state) : option.disabledResponse)
+                    : null);
+            if (!response) return;
+
+            const playerText = typeof option.text === 'function' ? option.text(state) : option.text;
             const currentChat = state.currentChat!;
+
+            // Apply effects only when enabled
+            const effectPatch = isEnabled && option.effects
+                ? applyEffects(option.effects, state)
+                : {};
+
             set(s => ({
-                ...(option.action ? option.action(s) : {}),
-                unlockedDialogueOptions: option.unlocks
-                    ? [...s.unlockedDialogueOptions, ...option.unlocks]
-                    : s.unlockedDialogueOptions,
+                ...effectPatch,
+                dialoguesSeen: [...s.dialoguesSeen, optionId],
                 isTyping: true,
-                ...appendMsg(s, currentChat, option.text, true),
+                ...appendMsg(s, currentChat, playerText, true),
             }));
 
             trackedTimeout(() => {
