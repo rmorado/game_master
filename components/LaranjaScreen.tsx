@@ -30,12 +30,14 @@ export function LaranjaScreen() {
         actions: s.actions,
     })));
 
-    const [sliderValue, setSliderValue] = useState(1);
+    const maxCPFs = Math.max(1, cpfs);
+    const [sliderValue, setSliderValue] = useState(maxCPFs);
     const [sliderKey, setSliderKey] = useState(0);
     const [screenState, setScreenState] = useState<ScreenState>('idle');
     const [progressAnim] = useState(new Animated.Value(0));
     const timer1 = useRef<ReturnType<typeof setTimeout> | null>(null);
     const timer2 = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const prevScreenState = useRef<ScreenState>('idle');
 
     useEffect(() => {
         return () => {
@@ -44,7 +46,6 @@ export function LaranjaScreen() {
         };
     }, []);
 
-    const maxCPFs = Math.max(1, cpfs);
     const clampedSlider = Math.max(1, Math.min(sliderValue, maxCPFs));
 
     const pct = cpfs > 0 ? Math.round((clampedSlider / maxCPFs) * 100) : 0;
@@ -53,15 +54,22 @@ export function LaranjaScreen() {
     const canConfirm = cpfs >= 1 && !insufficientDirty;
     const shouldHighlight = tutStep === 7;
 
+    // Clamp slider when cpfs decrease (e.g. after buying more CPFs elsewhere)
     useEffect(() => {
-        if (sliderValue > maxCPFs) setSliderValue(maxCPFs);
+        if (sliderValue > maxCPFs) {
+            setSliderValue(maxCPFs);
+            setSliderKey(k => k + 1);
+        }
     }, [maxCPFs]);
 
-    // Set to max when entering the screen
+    // Reset slider to max when returning from success/processing to idle
     useEffect(() => {
-        setSliderValue(maxCPFs);
-        setSliderKey(k => k + 1);
-    }, []);
+        if (screenState === 'idle' && prevScreenState.current !== 'idle') {
+            setSliderValue(maxCPFs);
+            setSliderKey(k => k + 1);
+        }
+        prevScreenState.current = screenState;
+    }, [screenState, maxCPFs]);
 
     const cpfPreview = useMemo(() =>
         Array.from({ length: Math.min(clampedSlider, 14) }, generateFakeCPF),
@@ -155,7 +163,7 @@ export function LaranjaScreen() {
                             key={sliderKey}
                             style={styles.slider}
                             value={clampedSlider}
-                            onValueChange={setSliderValue}
+                            onValueChange={v => setSliderValue(Math.round(v))}
                             minimumValue={1}
                             maximumValue={maxCPFs}
                             step={1}
@@ -163,7 +171,7 @@ export function LaranjaScreen() {
                             maximumTrackTintColor="#2a2a2a"
                             thumbTintColor={ORANGE}
                         />
-                        <TouchableOpacity style={styles.maxBtn} onPress={() => { setSliderValue(maxCPFs); setSliderKey(k => k + 1); }}>
+                        <TouchableOpacity style={styles.maxBtn} onPress={() => { setSliderValue(maxCPFs); setSliderKey(k => k + 1); }} activeOpacity={0.7}>
                             <Text style={styles.maxBtnText}>{UI_LARANJAS.maxBtn}</Text>
                         </TouchableOpacity>
                     </View>
