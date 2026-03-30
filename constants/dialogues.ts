@@ -1,7 +1,7 @@
 // constants/dialogues.ts
 // Centralized dialogue and text content for O Mestre
 
-import { CharacterDialogue, GameState, LevelEvent, ScriptedEvent, TutorialStep, DialogueOption } from '../types/game';
+import { CharacterDialogue, DialogueOption, GameState, LevelEvent, ScriptedEvent, TutorialStep } from '../types/game';
 import { formatMoney as fmt } from '../utils/format';
 
 // ============================================================================
@@ -279,7 +279,7 @@ export const CHARACTERS = {
         sub: "Organização",
         borderColor: "#D4AF37",
         avatar: require('../assets/images/characters/MJdrugdealer01.png'),
-        intro: "Mandando dinheiro. Não me decepcione.",
+        intro: "mandando 💵 💵 💵 passa o sabao",
         greeting: "Tem trabalho pra fazer.",
     },
 
@@ -289,8 +289,8 @@ export const CHARACTERS = {
         sub: "Venda de Dados",
         borderColor: "#0f0",
         avatar: require('../assets/images/characters/MJhacker01.png'),
-        intro: "Pacotes de CPFs disponíveis.",
-        greeting: "Tenho pacotes novos.",
+        intro: "feira da fruta cheio de laranja",
+        greeting: "identidades fresquinhas",
     },
 
     lawyer: {
@@ -383,7 +383,6 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                 text: `PAGAR (R$${fmt(BLACKMAIL_COST)})`,
                 visible: [
                     { type: 'dialogueNotSeen', optionId: 'blackmail_pay' },
-                    { type: 'dialogueNotSeen', optionId: 'blackmail_ignore' },
                 ],
                 enabled: [{ type: 'resource', resource: 'dirty', op: 'gte', value: BLACKMAIL_COST }],
                 response: 'Sábio. Obrigado pela cooperação.',
@@ -391,12 +390,13 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
             },
             {
                 id: 'blackmail_ignore',
-                text: 'IGNORAR',
+                text: 'cai fora',
                 visible: [
                     { type: 'dialogueNotSeen', optionId: 'blackmail_pay' },
                     { type: 'dialogueNotSeen', optionId: 'blackmail_ignore' },
                 ],
                 response: 'Você vai se arrepender.',
+                effects: [{ type: 'adjust', resource: 'suspicion', delta: 50, min: 0, max: 100 }],
             },
         ],
     },
