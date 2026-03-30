@@ -5,7 +5,6 @@ export interface Level {
     name: string;
     goal: number | null;   // null = O Mestre survival mode
     bagSize: number;
-    bagInterval: number;
     suspRate: number;
 }
 
@@ -42,7 +41,6 @@ export interface GameState {
     transfersByContact: Record<string, number>;
     contacts: Record<string, boolean>;
     eventsTriggered: string[];
-    nextBagDay: number;
     isPaused: boolean;
     tutStep: number;
     activeApp: 'home' | 'zep' | 'chat' | 'laranjas' | 'bacen' | 'carteira' | 'dossie';

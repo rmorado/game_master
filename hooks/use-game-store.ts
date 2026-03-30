@@ -1,7 +1,7 @@
 // hooks/use-game-store.ts
 import { create } from 'zustand';
 import { GameState, Batch, DebtPack, BankOffer, EventPayload } from '../types/game';
-import { LEVELS } from '../constants/game-data';
+import { LEVELS, BAG_DIRTY_THRESHOLD } from '../constants/game-data';
 import { BANKS, SCRIPTED_EVENTS, DIALOGUES, LEVEL_EVENTS, TUTORIAL, UI_CHAT } from '../constants/dialogues';
 import { formatMoney } from '../utils/format';
 import { evaluateConditionSet, applyEffects } from '../utils/dialogue';
@@ -140,7 +140,6 @@ const initialState: GameState = {
     transfersByContact: {},
     contacts: { drugdealer: true, hacker: true },
     eventsTriggered: [],
-    nextBagDay: 2,
     isPaused: true,
     isTyping: false,
     tutStep: 0,
@@ -223,14 +222,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
             const state = get();
             const lvl = LEVELS[state.levelIdx];
 
-            // ── Bag spawn ──
-            if (state.tutStep >= TUTORIAL.length && state.day >= state.nextBagDay && !state.hasPendingBag) {
+            // ── Bag spawn (threshold-based) ──
+            if (state.tutStep >= TUTORIAL.length && state.dirty <= BAG_DIRTY_THRESHOLD && !state.hasPendingBag) {
                 const amount = lvl.bagSize;
                 const bagMsg = `Tenho R$${formatMoney(amount)} pra lavar. Posso mandar agora?`;
                 set(s => ({
                     hasPendingBag: true,
                     pendingBagAmount: amount,
-                    nextBagDay: s.day + lvl.bagInterval + Math.floor(Math.random() * 5),
                     ...notifyPopup(s, 'drugdealer', bagMsg),
                 }));
                 trackedTimeout(() => set({ showNewMessagePopup: false }), MSG_POPUP_DURATION);
