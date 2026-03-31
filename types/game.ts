@@ -57,8 +57,7 @@ export interface GameState {
     hasPendingBag: boolean;
     pendingBagAmount: number;
     hasUsedNotNow: boolean;
-    bagRejectedOnDay: number;
-    bagEscalationStage: number;
+    consecutiveBagDeclines: number;
     // Dialogue system state
     dialoguesSeen: string[];
     investigateBitcoinDay: number;       // day when player asked hacker to trace BTC (0 = not started)
@@ -151,7 +150,10 @@ export type Effect =
     | { type: 'extendBatch'; index: number; days: number }
     | { type: 'trackTransfer'; contactId: string; amount: number | ((s: GameState) => number) }
     | { type: 'setDay'; field: 'investigateBitcoinDay' }
-    | { type: 'requestBag' };
+    | { type: 'requestBag' }
+    | { type: 'acceptBag' }
+    | { type: 'declineBag' }
+    | { type: 'gameOver'; reason: string; detail: string };
 
 export interface DialogueOption {
     id: string;

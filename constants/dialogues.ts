@@ -1,7 +1,7 @@
 // constants/dialogues.ts
 // Centralized dialogue and text content for O Mestre
 
-import { CharacterDialogue, DialogueOption, GameState, LevelEvent, ScriptedEvent, TutorialStep } from '../types/game';
+import { CharacterDialogue, GameState, LevelEvent, ScriptedEvent, TutorialStep } from '../types/game';
 import { formatMoney as fmt } from '../utils/format';
 
 // ============================================================================
@@ -365,40 +365,92 @@ const JUDGE_COST = 5000000;
 const MADAME_COST = 1200000000;
 const BLACKMAIL_COST = 3000000;
 
-const CPF_PACKS = [
-    { qty: 100,    cost: 500000,     minLevel: 0, response: 'Feito. Transferindo agora.' },
-    { qty: 1000,   cost: 4000000,    minLevel: 0, response: 'Negócio fechado. Mandando os pacotes.' },
-    { qty: 5000,   cost: 15000000,   minLevel: 1, response: 'Pacote grande. Vai demorar umas horas.' },
-    { qty: 10000,  cost: 25000000,   minLevel: 1, response: 'Isso é operação pesada. Tá mandado.' },
-    { qty: 50000,  cost: 100000000,  minLevel: 2, response: 'Cinquenta mil identidades. Preciso de 24h.' },
-    { qty: 100000, cost: 150000000,  minLevel: 3, response: 'Cem mil. Vou acionar a rede inteira.' },
-];
-
+// Generated from docs/twee/*.twee via: npm run parse-twee
+// Then manually polished for dynamic text, custom conditions, and complex effects.
 export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
+    // ── PCC (drugdealer) ─────────────────────────────────────────────────
+    // Source: docs/twee/drugdealer.twee — PCC + send + wait passages
     drugdealer: {
         characterId: 'drugdealer',
         options: [
+            // Request a new bag — only when no bag is waiting AND police warning acknowledged (or not yet triggered)
             {
                 id: 'request_bag',
-                text: 'Preciso de mais dinheiro.',
+                text: 'pode mandar mais uma grana',
                 visible: [
-                    { type: 'custom', fn: (s: GameState) => !s.eventsTriggered.includes('pressure_warning_police') || s.dialoguesSeen.includes('ack_federais'), description: 'before police warning or after ack' },
+                    { type: 'custom', fn: (s: GameState) => !s.hasPendingBag && (!s.eventsTriggered.includes('pressure_warning_police') || s.dialoguesSeen.includes('ack_federais')), description: 'no pending bag, no unacknowledged police warning' },
                 ],
-                response: 'Certo. Mandando agora.',
+                response: 'foi',
                 effects: [{ type: 'requestBag' }],
             },
+
+            // Acknowledge police warning — only when warning fired and not yet acknowledged
             {
                 id: 'ack_federais',
-                text: 'Vou falar com meu advogado.',
+                text: 'vou falar com meu advogado',
                 visible: [
-                    { type: 'custom', fn: (s: GameState) => s.eventsTriggered.includes('pressure_warning_police'), description: 'after police warning' },
-                    { type: 'dialogueNotSeen', optionId: 'ack_federais' },
+                    { type: 'custom', fn: (s: GameState) => s.eventsTriggered.includes('pressure_warning_police') && !s.dialoguesSeen.includes('ack_federais'), description: 'police warning active, not yet acknowledged' },
                 ],
-                response: 'Faz isso. E rápido.',
+                response: 'faz isso. e rápido.',
+            },
+
+            // Accept bag
+            {
+                id: 'accept_bag',
+                text: 'pode mandar',
+                visible: [
+                    { type: 'custom', fn: (s: GameState) => s.hasPendingBag, description: 'pending bag' },
+                ],
+                response: 'foi',
+                effects: [{ type: 'acceptBag' }],
+            },
+
+            // Decline bag — 1st time
+            {
+                id: 'decline_bag_1',
+                text: 'perae que tá complicado agora',
+                visible: [
+                    { type: 'custom', fn: (s: GameState) => s.hasPendingBag && s.consecutiveBagDeclines === 0, description: 'pending bag, first decline' },
+                ],
+                response: 'demora não hein',
+                effects: [{ type: 'declineBag' }],
+            },
+            // Decline bag — 2nd time
+            {
+                id: 'decline_bag_2',
+                text: 'ainda tá complicado aqui',
+                visible: [
+                    { type: 'custom', fn: (s: GameState) => s.hasPendingBag && s.consecutiveBagDeclines === 1, description: 'pending bag, second decline' },
+                ],
+                response: 'não é assim que a coisa funciona',
+                effects: [{ type: 'declineBag' }],
+            },
+            // Decline bag — 3rd time (leads to calma_calma before game over)
+            {
+                id: 'decline_bag_3',
+                text: 'tem muita merda rolando, segura a onda',
+                visible: [
+                    { type: 'custom', fn: (s: GameState) => s.hasPendingBag && s.consecutiveBagDeclines >= 2, description: 'pending bag, third decline' },
+                ],
+                response: 'segura o caralho',
+                effects: [{ type: 'declineBag' }],
+            },
+            // Only option after 3rd decline — triggers game over
+            {
+                id: 'calma_calma',
+                text: 'calma calma',
+                visible: [
+                    { type: 'dialogueSeen', optionId: 'decline_bag_3' },
+                    { type: 'dialogueNotSeen', optionId: 'calma_calma' },
+                ],
+                response: 'uma moto aponta na esquina e vem na sua direção. a pessoa na garupa tira um revolver do casaco e dá quatro tiros sem descer da moto. Vacaro morto, na esquina da faria lima com tucumã.',
+                effects: [{ type: 'gameOver', reason: 'pressure', detail: 'uma moto aponta na esquina e vem na sua direção. a pessoa na garupa tira um revolver do casaco e dá quatro tiros sem descer da moto. Vacaro morto, na esquina da faria lima com tucumã.' }],
             },
         ],
     },
 
+    // ── Anônimo ──────────────────────────────────────────────────────────
+    // Source: docs/twee/anonimo.twee
     anonimo: {
         characterId: 'anonimo',
         options: [
@@ -428,35 +480,49 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
         ],
     },
 
+    // ── H4CKR (hacker) ──────────────────────────────────────────────────
+    // Source: docs/twee/hacker.twee
     hacker: {
         characterId: 'hacker',
         options: [
-            ...CPF_PACKS.map((pack): DialogueOption => ({
-                id: `buy_${pack.qty}_cpfs`,
-                text: `Comprar ${pack.qty.toLocaleString('pt-BR')} CPFs (R$${fmt(pack.cost)})`,
-                visible: [{ type: 'level', op: 'gte', value: pack.minLevel }],
-                enabled: [{ type: 'resource', resource: 'dirty', op: 'gte', value: pack.cost }],
-                response: pack.response,
+            {
+                id: 'buy_100_cpfs',
+                text: 'manda mais 100 CPFs',
+                response: 'transferido',
                 effects: [
-                    { type: 'spend', resource: 'dirty', amount: pack.cost },
-                    { type: 'gain', resource: 'cpfs', amount: pack.qty },
-                    { type: 'trackTransfer', contactId: 'hacker', amount: pack.cost },
+                    { type: 'spend', resource: 'dirty', amount: 500000 },
+                    { type: 'gain', resource: 'cpfs', amount: 100 },
+                    { type: 'trackTransfer', contactId: 'hacker', amount: 500000 },
                 ],
-            })),
-
+                enabled: [{ type: 'resource', resource: 'dirty', op: 'gte', value: 500000 }],
+            },
+            {
+                id: 'buy_500_cpfs',
+                text: 'manda mais 500 CPFs',
+                response: 'transferido',
+                effects: [
+                    { type: 'spend', resource: 'dirty', amount: 2500000 },
+                    { type: 'gain', resource: 'cpfs', amount: 500 },
+                    { type: 'trackTransfer', contactId: 'hacker', amount: 2500000 },
+                ],
+                enabled: [{ type: 'resource', resource: 'dirty', op: 'gte', value: 2500000 }],
+            },
             {
                 id: 'investigate_bitcoin',
-                text: 'Investigar endereço Bitcoin',
+                text: 'descobre de quem é este endereço',
                 visible: [
                     { type: 'custom', fn: (s: GameState) => s.dialoguesSeen.includes('blackmail_pay') || s.dialoguesSeen.includes('blackmail_ignore'), description: 'after blackmail response' },
                     { type: 'custom', fn: (s: GameState) => s.investigateBitcoinDay === 0, description: 'not already investigating' },
                 ],
-                response: 'Vou rastrear. Isso leva tempo — te aviso.',
+                response: 'Isso vai te custar uma grana. Vou rastrear — te aviso.',
                 effects: [{ type: 'setDay', field: 'investigateBitcoinDay' }],
             },
         ],
     },
 
+    // ── Advogado (lawyer) ────────────────────────────────────────────────
+    // Source: docs/twee/lawyer.twee
+    // Dynamic per-level costs — not authorable in Twine.
     lawyer: {
         characterId: 'lawyer',
         options: [
@@ -475,6 +541,8 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
         ],
     },
 
+    // ── Deputado (deputy) ────────────────────────────────────────────────
+    // Source: docs/twee/deputy.twee
     deputy: {
         characterId: 'deputy',
         options: [
@@ -509,6 +577,8 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
         ],
     },
 
+    // ── Investigador ─────────────────────────────────────────────────────
+    // Source: docs/twee/investigador.twee
     investigador: {
         characterId: 'investigador',
         options: [
@@ -541,6 +611,8 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
         ],
     },
 
+    // ── Juiz (judge) ─────────────────────────────────────────────────────
+    // Source: docs/twee/judge.twee
     judge: {
         characterId: 'judge',
         options: [
@@ -572,6 +644,8 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
         ],
     },
 
+    // ── Madame ───────────────────────────────────────────────────────────
+    // Source: docs/twee/madame.twee
     madame: {
         characterId: 'madame',
         options: [

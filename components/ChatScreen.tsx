@@ -7,7 +7,7 @@ import { evaluateConditionSet } from '../utils/dialogue';
 
 export function ChatScreen() {
     const state = useGameStore(s => s);
-    const { actions, chatHistory, currentChat, tutStep, hasPendingBag, hasUsedNotNow, isTyping } = state;
+    const { actions, chatHistory, currentChat, tutStep, isTyping } = state;
     const flatListRef = useRef<FlatList>(null);
 
     const character = currentChat ? getCharacter(currentChat) : undefined;
@@ -29,36 +29,6 @@ export function ChatScreen() {
     const shouldHighlightBuy100 = tutStep === 4;
 
     const renderActions = () => {
-        // Drugdealer pending bag — show offer response buttons
-        if (currentChat === 'drugdealer' && hasPendingBag) {
-            if (hasUsedNotNow) {
-                return (
-                    <TouchableOpacity
-                        style={[styles.presetBtn, styles.presetBtnAccept]}
-                        onPress={() => actions.respondToBag(true)}
-                    >
-                        <Text style={styles.presetBtnText}>{UI_CHAT.bagAcceptLater}</Text>
-                    </TouchableOpacity>
-                );
-            }
-            return (
-                <>
-                    <TouchableOpacity
-                        style={[styles.presetBtn, styles.presetBtnAccept]}
-                        onPress={() => actions.respondToBag(true)}
-                    >
-                        <Text style={styles.presetBtnText}>{UI_CHAT.bagAccept}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.presetBtn}
-                        onPress={() => actions.respondToBag(false)}
-                    >
-                        <Text style={[styles.presetBtnText, { color: '#aaa' }]}>{UI_CHAT.bagDecline}</Text>
-                    </TouchableOpacity>
-                </>
-            );
-        }
-
         // Get dialogue options for current character
         const dialogue = DIALOGUES[currentChat!];
         if (!dialogue) return null;

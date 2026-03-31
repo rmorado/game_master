@@ -97,6 +97,31 @@ export function applyEffects(effects: Effect[], state: GameState): Partial<GameS
                 patch.batches = [...batches, { id: Date.now(), due: amount * 0.7, days: 90 }];
                 break;
             }
+            case 'acceptBag': {
+                const bagAmount = state.pendingBagAmount;
+                const batches = patch.batches ?? state.batches;
+                patch.dirty = get('dirty') + bagAmount;
+                patch.totalReceived = get('totalReceived') + bagAmount;
+                patch.batches = [...batches, { id: Date.now(), due: bagAmount * 0.7, days: 90 }];
+                patch.hasPendingBag = false;
+                patch.pendingBagAmount = 0;
+                patch.hasUsedNotNow = false;
+                patch.consecutiveBagDeclines = 0;
+                break;
+            }
+            case 'declineBag': {
+                patch.hasPendingBag = false;
+                patch.pendingBagAmount = 0;
+                patch.consecutiveBagDeclines = get('consecutiveBagDeclines') + 1;
+                break;
+            }
+            case 'gameOver': {
+                patch.isGameOver = true;
+                patch.isPaused = true;
+                patch.gameOverReason = effect.reason;
+                patch.gameOverDetail = effect.detail;
+                break;
+            }
         }
     }
 

@@ -98,7 +98,6 @@ type GameStore = GameState & {
         confirmPay: () => void;
         openSellModal: (packId: number) => void;
         sellDebtPack: (packId: number, offerValue: number) => void;
-        respondToBag: (accept: boolean) => void;
         chat: (contactId: string) => void;
         advanceTutorial: () => void;
         skipTutorial: () => void;
@@ -131,8 +130,7 @@ const initialState: GameState = {
     hasPendingBag: false,
     pendingBagAmount: 0,
     hasUsedNotNow: false,
-    bagRejectedOnDay: 0,
-    bagEscalationStage: 0,
+    consecutiveBagDeclines: 0,
     levelIdx: 0,
     totalWashed: 0,
     totalReceived: 20000000,
@@ -225,35 +223,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
             // ── Bag spawn (threshold-based) ──
             if (state.tutStep >= TUTORIAL.length && state.dirty <= BAG_DIRTY_THRESHOLD && !state.hasPendingBag) {
                 const amount = lvl.bagSize;
-                const bagMsg = `Tenho R$${formatMoney(amount)} pra lavar. Posso mandar agora?`;
+                const bagMsg = state.pressure >= 100
+                    ? 'tou mandando agora'
+                    : state.pressure >= 40
+                        ? 'Tou mandando ssaporra pra vc lavar'
+                        : 'Mandando umas roupas pra lavanderia';
                 set(s => ({
                     hasPendingBag: true,
                     pendingBagAmount: amount,
                     ...notifyPopup(s, 'drugdealer', bagMsg),
                 }));
                 trackedTimeout(() => set({ showNewMessagePopup: false }), MSG_POPUP_DURATION);
-            }
-
-            // ── Bag rejection escalation ──
-            const bagState = get();
-            if (bagState.hasPendingBag && bagState.hasUsedNotNow && bagState.bagRejectedOnDay > 0) {
-                const daysSinceReject = bagState.day - bagState.bagRejectedOnDay;
-                if (daysSinceReject >= 30 && bagState.bagEscalationStage < 3) {
-                    set(s => ({
-                        bagEscalationStage: 3,
-                        pressure: Math.min(100, s.pressure + 5),
-                    }));
-                } else if (daysSinceReject >= 20 && bagState.bagEscalationStage < 2) {
-                    set(s => ({
-                        bagEscalationStage: 2,
-                        ...appendMsg(s, 'drugdealer', UI_CHAT.escalation2, false, true),
-                    }));
-                } else if (daysSinceReject >= 10 && bagState.bagEscalationStage < 1) {
-                    set(s => ({
-                        bagEscalationStage: 1,
-                        ...appendMsg(s, 'drugdealer', UI_CHAT.escalation1, false, true),
-                    }));
-                }
             }
 
             // ── Debt countdown + default ──
@@ -465,43 +445,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
         },
 
-        respondToBag: (accept: boolean) => {
-            const { pendingBagAmount, day } = get();
-
-            if (accept) {
-                const due = pendingBagAmount * 0.7;
-                const newBatch: Batch = { id: Date.now(), due, days: 90 };
-                set(s => ({
-                    dirty: s.dirty + pendingBagAmount,
-                    totalReceived: s.totalReceived + pendingBagAmount,
-                    batches: [...s.batches, newBatch],
-                    hasPendingBag: false,
-                    pendingBagAmount: 0,
-                    hasUsedNotNow: false,
-                    bagRejectedOnDay: 0,
-                    bagEscalationStage: 0,
-                    ...appendMsg(s, 'drugdealer', 'OK, manda.', true),
-                }));
-                trackedTimeout(() => {
-                    set(s => ({
-                        ...appendMsg(s, 'drugdealer', `Feito. R$${formatMoney(pendingBagAmount)} mandados. Movimenta isso logo.`, false),
-                    }));
-                }, 500);
-            } else {
-                set(s => ({
-                    ...appendMsg(s, 'drugdealer', 'Não agora.', true),
-                    hasUsedNotNow: true,
-                    bagRejectedOnDay: day,
-                    bagEscalationStage: 0,
-                }));
-                trackedTimeout(() => {
-                    set(s => ({
-                        ...appendMsg(s, 'drugdealer', 'Tudo bem. Te mando sinal quando for a hora.', false),
-                    }));
-                }, 500);
-            }
-        },
-
         confirmPay: () => {
             const { clean, batches } = get();
             if (batches.length === 0) return;
@@ -567,10 +510,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
             const playerText = typeof option.text === 'function' ? option.text(state) : option.text;
             const currentChat = state.currentChat!;
 
-            // Apply effects only when enabled
-            const effectPatch = isEnabled && option.effects
-                ? applyEffects(option.effects, state)
-                : {};
+            // Apply effects only when enabled — gameOver is deferred to after response
+            const allEffects = (isEnabled && option.effects) ? option.effects : [];
+            const immediateEffects = allEffects.filter(e => e.type !== 'gameOver');
+            const deferredEffects = allEffects.filter(e => e.type === 'gameOver');
+            const effectPatch = immediateEffects.length > 0 ? applyEffects(immediateEffects, state) : {};
 
             set(s => ({
                 ...effectPatch,
@@ -580,9 +524,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
             }));
 
             trackedTimeout(() => {
+                const deferredPatch = deferredEffects.length > 0 ? applyEffects(deferredEffects, get()) : {};
                 set(s => ({
                     isTyping: false,
                     ...appendMsg(s, currentChat, response, false),
+                    ...deferredPatch,
                 }));
 
                 const { tutStep, actions } = get();
