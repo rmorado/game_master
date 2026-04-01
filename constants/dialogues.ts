@@ -435,6 +435,17 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                 response: 'segura o caralho',
                 effects: [{ type: 'declineBag' }],
             },
+            // Tell PCC about CV blackmail — available after hacker identifies the address
+            {
+                id: 'cv_blackmail',
+                text: 'o CV tá me chantageando',
+                visible: [
+                    { type: 'custom', fn: (s: GameState) => s.eventsTriggered.includes('bitcoin_investigation_result'), description: 'hacker identified CV' },
+                    { type: 'dialogueNotSeen', optionId: 'cv_blackmail' },
+                ],
+                response: 'vamos dar um jeito em quem tá fazendo isso.',
+            },
+
             // Only option after 3rd decline — triggers game over
             {
                 id: 'calma_calma',
@@ -507,15 +518,37 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                 ],
                 enabled: [{ type: 'resource', resource: 'dirty', op: 'gte', value: 2500000 }],
             },
+            // Paid before ever asking hacker → investigation starts immediately
             {
                 id: 'investigate_bitcoin',
                 text: 'descobre de quem é este endereço',
                 visible: [
-                    { type: 'custom', fn: (s: GameState) => s.dialoguesSeen.includes('blackmail_pay') || s.dialoguesSeen.includes('blackmail_ignore'), description: 'after blackmail response' },
-                    { type: 'custom', fn: (s: GameState) => s.investigateBitcoinDay === 0, description: 'not already investigating' },
+                    { type: 'custom', fn: (s: GameState) => s.eventsTriggered.includes('blackmail_intro') && s.investigateBitcoinDay === 0 && !s.dialoguesSeen.includes('investigate_bitcoin_ask'), description: 'blackmail received, paid, never asked hacker first' },
+                    { type: 'dialogueSeen', optionId: 'blackmail_pay' },
                 ],
-                response: 'Isso vai te custar uma grana. Vou rastrear — te aviso.',
+                response: 'já saiu dessa carteira. tô rastreando — te aviso.',
                 effects: [{ type: 'setDay', field: 'investigateBitcoinDay' }],
+            },
+            // Paid after hacker already asked for payment → different prompt
+            {
+                id: 'investigate_bitcoin_after_pay',
+                text: 'paguei. confere agora',
+                visible: [
+                    { type: 'dialogueSeen', optionId: 'investigate_bitcoin_ask' },
+                    { type: 'dialogueSeen', optionId: 'blackmail_pay' },
+                    { type: 'custom', fn: (s: GameState) => s.investigateBitcoinDay === 0, description: 'not yet investigating' },
+                ],
+                response: 'já saiu dessa carteira. tô rastreando — te aviso.',
+                effects: [{ type: 'setDay', field: 'investigateBitcoinDay' }],
+            },
+            // Has not paid → hacker asks for payment first
+            {
+                id: 'investigate_bitcoin_ask',
+                text: 'descobre de quem é este endereço',
+                visible: [
+                    { type: 'custom', fn: (s: GameState) => s.eventsTriggered.includes('blackmail_intro') && s.investigateBitcoinDay === 0 && !s.dialoguesSeen.includes('blackmail_pay'), description: 'blackmail received, not paid, not yet investigating' },
+                ],
+                response: 'precisa do pagamento pra eu poder rastrear.',
             },
         ],
     },
@@ -801,7 +834,7 @@ export const SCRIPTED_EVENTS: ScriptedEvent[] = [
         payload: {
             type: 'incoming_message',
             contactId: 'hacker',
-            text: 'Rastreei o endereço. Usaram mixer, mas achei um padrão. Quem te mandou aquilo sabe o que faz. Cuidado.',
+            text: 'esse endereço termina numa conta que é do CV. sujeira.',
         },
     },
 
