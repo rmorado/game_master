@@ -359,17 +359,15 @@ export const CHARACTERS = {
 // DIALOGUE SYSTEM
 // ============================================================================
 
-const LAWYER_COSTS = [500000, 1500000, 4000000, 10000000];
 const DEPUTY_COST = 2000000;
 const JUDGE_COST = 5000000;
 const MADAME_COST = 1200000000;
 const BLACKMAIL_COST = 3000000;
+const PIPOCO_TEXT = 'uma moto aponta na esquina e vem na sua direção. a pessoa na garupa tira um revolver do casaco e dá quatro tiros sem descer da moto. Vacaro morto, na esquina da faria lima com tucumã.';
+const BTC_TRACK_RESPONSE = 'já saiu dessa carteira. tô rastreando — te aviso.';
 
-// Generated from docs/twee/*.twee via: npm run parse-twee
-// Then manually polished for dynamic text, custom conditions, and complex effects.
 export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
     // ── PCC (drugdealer) ─────────────────────────────────────────────────
-    // Source: docs/twee/drugdealer.twee — PCC + send + wait passages
     drugdealer: {
         characterId: 'drugdealer',
         options: [
@@ -454,14 +452,13 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                     { type: 'dialogueSeen', optionId: 'decline_bag_3' },
                     { type: 'dialogueNotSeen', optionId: 'calma_calma' },
                 ],
-                response: 'uma moto aponta na esquina e vem na sua direção. a pessoa na garupa tira um revolver do casaco e dá quatro tiros sem descer da moto. Vacaro morto, na esquina da faria lima com tucumã.',
-                effects: [{ type: 'gameOver', reason: 'pressure', detail: 'uma moto aponta na esquina e vem na sua direção. a pessoa na garupa tira um revolver do casaco e dá quatro tiros sem descer da moto. Vacaro morto, na esquina da faria lima com tucumã.' }],
+                response: PIPOCO_TEXT,
+                effects: [{ type: 'gameOver', reason: 'pressure', detail: PIPOCO_TEXT }],
             },
         ],
     },
 
     // ── Anônimo ──────────────────────────────────────────────────────────
-    // Source: docs/twee/anonimo.twee
     anonimo: {
         characterId: 'anonimo',
         options: [
@@ -492,41 +489,51 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
     },
 
     // ── H4CKR (hacker) ──────────────────────────────────────────────────
-    // Source: docs/twee/hacker.twee
     hacker: {
         characterId: 'hacker',
         options: [
             {
                 id: 'buy_100_cpfs',
-                text: 'manda mais 100 CPFs',
+                text: `manda mais 100 CPFs [R$${fmt(500000)}]`,
                 response: 'transferido',
+                disabledResponse: (s: GameState) => s.day < s.cpfCooldownUntilDay ? `perai que tenho que pegar mais dados. falta ${s.cpfCooldownUntilDay - s.day} dia${s.cpfCooldownUntilDay - s.day === 1 ? '' : 's'}` : 'perai que tenho que pegar mais dados',
                 effects: [
                     { type: 'spend', resource: 'dirty', amount: 500000 },
                     { type: 'gain', resource: 'cpfs', amount: 100 },
                     { type: 'trackTransfer', contactId: 'hacker', amount: 500000 },
+                    { type: 'setDay', field: 'cpfCooldownUntilDay', offset: 10 },
                 ],
-                enabled: [{ type: 'resource', resource: 'dirty', op: 'gte', value: 500000 }],
+                enabled: [
+                    { type: 'resource', resource: 'dirty', op: 'gte', value: 500000 },
+                    { type: 'custom', fn: (s: GameState) => s.debugNoCooldowns || s.day >= s.cpfCooldownUntilDay, description: 'cooldown expired' },
+                ],
             },
             {
                 id: 'buy_500_cpfs',
-                text: 'manda mais 500 CPFs',
+                text: `manda mais 500 CPFs [R$${fmt(2500000)}]`,
                 response: 'transferido',
+                disabledResponse: (s: GameState) => s.day < s.cpfCooldownUntilDay ? `perai que tenho que pegar mais dados. falta ${s.cpfCooldownUntilDay - s.day} dia${s.cpfCooldownUntilDay - s.day === 1 ? '' : 's'}` : 'perai que tenho que pegar mais dados',
                 effects: [
                     { type: 'spend', resource: 'dirty', amount: 2500000 },
                     { type: 'gain', resource: 'cpfs', amount: 500 },
                     { type: 'trackTransfer', contactId: 'hacker', amount: 2500000 },
+                    { type: 'setDay', field: 'cpfCooldownUntilDay', offset: 10 },
                 ],
-                enabled: [{ type: 'resource', resource: 'dirty', op: 'gte', value: 2500000 }],
+                enabled: [
+                    { type: 'resource', resource: 'dirty', op: 'gte', value: 2500000 },
+                    { type: 'custom', fn: (s: GameState) => s.debugNoCooldowns || s.day >= s.cpfCooldownUntilDay, description: 'cooldown expired' },
+                ],
             },
             // Paid before ever asking hacker → investigation starts immediately
             {
                 id: 'investigate_bitcoin',
                 text: 'descobre de quem é este endereço',
                 visible: [
-                    { type: 'custom', fn: (s: GameState) => s.eventsTriggered.includes('blackmail_intro') && s.investigateBitcoinDay === 0 && !s.dialoguesSeen.includes('investigate_bitcoin_ask'), description: 'blackmail received, paid, never asked hacker first' },
+                    { type: 'custom', fn: (s: GameState) => s.eventsTriggered.includes('blackmail_intro') && s.investigateBitcoinDay === 0, description: 'blackmail received, not yet investigating' },
                     { type: 'dialogueSeen', optionId: 'blackmail_pay' },
+                    { type: 'dialogueNotSeen', optionId: 'investigate_bitcoin_ask' },
                 ],
-                response: 'já saiu dessa carteira. tô rastreando — te aviso.',
+                response: BTC_TRACK_RESPONSE,
                 effects: [{ type: 'setDay', field: 'investigateBitcoinDay' }],
             },
             // Paid after hacker already asked for payment → different prompt
@@ -538,7 +545,7 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                     { type: 'dialogueSeen', optionId: 'blackmail_pay' },
                     { type: 'custom', fn: (s: GameState) => s.investigateBitcoinDay === 0, description: 'not yet investigating' },
                 ],
-                response: 'já saiu dessa carteira. tô rastreando — te aviso.',
+                response: BTC_TRACK_RESPONSE,
                 effects: [{ type: 'setDay', field: 'investigateBitcoinDay' }],
             },
             // Has not paid → hacker asks for payment first
@@ -554,34 +561,70 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
     },
 
     // ── Advogado (lawyer) ────────────────────────────────────────────────
-    // Source: docs/twee/lawyer.twee
-    // Dynamic per-level costs — not authorable in Twine.
     lawyer: {
         characterId: 'lawyer',
         options: [
+            // Default small talk — always visible until federais warning
             {
-                id: 'hire_lawyer',
-                text: 'Preciso esfriar as coisas.',
-                enabled: [{ type: 'resource', resource: 'dirty', op: 'gte', value: (s: GameState) => LAWYER_COSTS[s.levelIdx] }],
-                response: (s: GameState) => `R$${fmt(LAWYER_COSTS[s.levelIdx])}. Vou ligar.`,
-                disabledResponse: (s: GameState) => `R$${fmt(LAWYER_COSTS[s.levelIdx])}. Não aceito menos.`,
-                effects: [
-                    { type: 'spend', resource: 'dirty', amount: (s: GameState) => LAWYER_COSTS[s.levelIdx] },
-                    { type: 'adjust', resource: 'suspicion', delta: -15 },
-                    { type: 'trackTransfer', contactId: 'lawyer', amount: (s: GameState) => LAWYER_COSTS[s.levelIdx] },
+                id: 'lawyer_tudo_certo',
+                text: 'tudo certo?',
+                visible: [
+                    { type: 'custom', fn: (s: GameState) => !s.eventsTriggered.includes('pressure_warning_police'), description: 'no police warning yet' },
                 ],
+                response: 'tudo em cima.',
+            },
+
+            // After police warning — player asks for cover
+            {
+                id: 'lawyer_blinda',
+                text: 'blinda geral que a pf tá de olho',
+                visible: [
+                    { type: 'custom', fn: (s: GameState) => s.eventsTriggered.includes('pressure_warning_police'), description: 'police warning active' },
+                    { type: 'dialogueNotSeen', optionId: 'lawyer_blinda' },
+                    { type: 'dialogueNotSeen', optionId: 'lawyer_blinda_bora' },
+                    { type: 'dialogueNotSeen', optionId: 'lawyer_blinda_circulo' },
+                ],
+                response: 'vamos espalhar o patrimônio e garantir o sigilo. vou precisar de um extra pra pagar meu contato na PF, ele vai me dar mais detalhes sobre a investigação.',
+            },
+
+            // Pay → costs 1M dirty; hides both options once done
+            {
+                id: 'lawyer_blinda_bora',
+                text: `bora rápido [R$${fmt(1000000)}]`,
+                visible: [
+                    { type: 'dialogueSeen', optionId: 'lawyer_blinda' },
+                    { type: 'dialogueNotSeen', optionId: 'lawyer_blinda_bora' },
+                ],
+                enabled: [{ type: 'resource', resource: 'dirty', op: 'gte', value: 1000000 }],
+                response: 'feito. ele me liga ainda hoje.',
+                disabledResponse: 'preciso do valor antes de qualquer coisa.',
+                effects: [
+                    { type: 'spend', resource: 'dirty', amount: 1000000 },
+                    { type: 'adjust', resource: 'suspicion', delta: -15 },
+                    { type: 'trackTransfer', contactId: 'lawyer', amount: 1000000 },
+                ],
+            },
+
+            // Defer — repeatable until player pays
+            {
+                id: 'lawyer_blinda_circulo',
+                text: 'circulo depois',
+                visible: [
+                    { type: 'dialogueSeen', optionId: 'lawyer_blinda' },
+                    { type: 'dialogueNotSeen', optionId: 'lawyer_blinda_bora' },
+                ],
+                response: 'não deixa esfriar.',
             },
         ],
     },
 
     // ── Deputado (deputy) ────────────────────────────────────────────────
-    // Source: docs/twee/deputy.twee
     deputy: {
         characterId: 'deputy',
         options: [
             {
                 id: 'deputy_help_bc',
-                text: 'O Banco Central tá em cima de mim.',
+                text: `O Banco Central tá em cima de mim. [R$${fmt(DEPUTY_COST)}]`,
                 visible: [
                     { type: 'custom', fn: (s: GameState) => s.dialoguesSeen.includes('investigador_comply') || s.dialoguesSeen.includes('investigador_stall'), description: 'after investigador interaction' },
                     { type: 'dialogueNotSeen', optionId: 'deputy_help_bc' },
@@ -597,7 +640,7 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
             },
             {
                 id: 'hire_deputy',
-                text: 'Preciso que recuem.',
+                text: `Preciso que recuem. [R$${fmt(DEPUTY_COST)}]`,
                 enabled: [{ type: 'resource', resource: 'dirty', op: 'gte', value: DEPUTY_COST }],
                 response: 'Uma visita. Eles vão entender.',
                 disabledResponse: `R$${fmt(DEPUTY_COST)}. Não trabalho de graça.`,
@@ -611,7 +654,6 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
     },
 
     // ── Investigador ─────────────────────────────────────────────────────
-    // Source: docs/twee/investigador.twee
     investigador: {
         characterId: 'investigador',
         options: [
@@ -645,7 +687,6 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
     },
 
     // ── Juiz (judge) ─────────────────────────────────────────────────────
-    // Source: docs/twee/judge.twee
     judge: {
         characterId: 'judge',
         options: [
@@ -660,7 +701,7 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
             },
             {
                 id: 'judge_first_offer',
-                text: 'Preciso de mais tempo.',
+                text: `Preciso de mais tempo. [R$${fmt(JUDGE_COST)}]`,
                 visible: [{ type: 'dialogueSeen', optionId: 'judge_intro_talk' }],
                 enabled: [
                     { type: 'resource', resource: 'dirty', op: 'gte', value: JUDGE_COST },
@@ -678,7 +719,6 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
     },
 
     // ── Madame ───────────────────────────────────────────────────────────
-    // Source: docs/twee/madame.twee
     madame: {
         characterId: 'madame',
         options: [

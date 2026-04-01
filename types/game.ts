@@ -61,6 +61,8 @@ export interface GameState {
     // Dialogue system state
     dialoguesSeen: string[];
     investigateBitcoinDay: number;       // day when player asked hacker to trace BTC (0 = not started)
+    cpfCooldownUntilDay: number;         // day when CPF cooldown expires (0 = no cooldown)
+    debugNoCooldowns: boolean;
     // Chat typing indicator
     isTyping: boolean;
     // Level transition state
@@ -149,7 +151,7 @@ export type Effect =
     | { type: 'set'; resource: 'suspicion' | 'pressure'; value: number }
     | { type: 'extendBatch'; index: number; days: number }
     | { type: 'trackTransfer'; contactId: string; amount: number | ((s: GameState) => number) }
-    | { type: 'setDay'; field: 'investigateBitcoinDay' }
+    | { type: 'setDay'; field: 'investigateBitcoinDay' | 'cpfCooldownUntilDay'; offset?: number }
     | { type: 'requestBag' }
     | { type: 'acceptBag' }
     | { type: 'declineBag' }

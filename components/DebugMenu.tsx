@@ -6,13 +6,19 @@ import { useGameStore } from '../hooks/use-game-store';
 
 export function DebugMenu() {
     const [visible, setVisible] = useState(false);
-    const actions = useGameStore(s => s.actions);
+    const { actions, debugNoCooldowns } = useGameStore(s => ({ actions: s.actions, debugNoCooldowns: s.debugNoCooldowns }));
 
     if (!__DEV__) return null;
 
     const btn = (label: string, onPress: () => void, color = '#f59e0b') => (
         <TouchableOpacity style={[styles.btn, { borderColor: color }]} onPress={() => { onPress(); setVisible(false); }}>
             <Text style={[styles.btnText, { color }]}>{label}</Text>
+        </TouchableOpacity>
+    );
+
+    const toggle = (label: string, active: boolean, onPress: () => void) => (
+        <TouchableOpacity style={[styles.btn, { borderColor: active ? '#22c55e' : '#444' }]} onPress={onPress}>
+            <Text style={[styles.btnText, { color: active ? '#22c55e' : '#666' }]}>{label} {active ? 'ON' : 'OFF'}</Text>
         </TouchableOpacity>
     );
 
@@ -38,6 +44,9 @@ export function DebugMenu() {
                         {btn('+500M Sujo',  () => actions.debugAddResources(500_000_000, 0, 0),       '#f97316')}
                         {btn('+100M Limpo', () => actions.debugAddResources(0, 100_000_000, 0),       '#22c55e')}
                         {btn('+10k CPFs',   () => actions.debugAddResources(0, 0, 10_000),            '#a78bfa')}
+
+                        <Text style={styles.sectionLabel}>FLAGS</Text>
+                        {toggle('No Cooldowns', debugNoCooldowns, actions.debugToggleNoCooldowns)}
 
                         <Text style={styles.sectionLabel}>TUTORIAL</Text>
                         {btn('Skip Tutorial', () => actions.skipTutorial(), '#64748b')}

@@ -111,6 +111,7 @@ type GameStore = GameState & {
         payPCC: (amount: number) => void;
         debugForceLevel: (idx: number) => void;
         debugAddResources: (dirty: number, clean: number, cpfs: number) => void;
+        debugToggleNoCooldowns: () => void;
     };
 };
 
@@ -136,7 +137,7 @@ const initialState: GameState = {
     totalReceived: 20000000,
     totalPaid: 0,
     transfersByContact: {},
-    contacts: { drugdealer: true, hacker: true },
+    contacts: { drugdealer: true, hacker: true, lawyer: true },
     eventsTriggered: [],
     isPaused: true,
     isTyping: false,
@@ -151,6 +152,8 @@ const initialState: GameState = {
     popupPreview: '',
     dialoguesSeen: [],
     investigateBitcoinDay: 0,
+    cpfCooldownUntilDay: 0,
+    debugNoCooldowns: false,
     levelUpScreen: null,
     levelUpDialogueIdx: -1,
     isGameOver: false,
@@ -475,11 +478,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
             const { tutStep, actions } = get();
             if (tutStep === 3 && contactId === 'hacker') actions.advanceTutorial();
 
-            set(s => ({
-                activeApp: 'chat',
-                currentChat: contactId,
-                unreadCounts: { ...s.unreadCounts, [contactId]: 0 },
-            }));
+            set(s => ({ unreadCounts: { ...s.unreadCounts, [contactId]: 0 }, currentChat: contactId }));
+            actions.setActiveApp('chat');
         },
 
         dismissNewMessagePopup: () => {
@@ -544,6 +544,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
         debugAddResources: (dirty: number, clean: number, cpfs: number) => {
             set(s => ({ dirty: s.dirty + dirty, clean: s.clean + clean, cpfs: s.cpfs + cpfs }));
+        },
+
+        debugToggleNoCooldowns: () => {
+            set(s => ({ debugNoCooldowns: !s.debugNoCooldowns }));
         },
     },
 }));

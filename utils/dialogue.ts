@@ -87,7 +87,7 @@ export function applyEffects(effects: Effect[], state: GameState): Partial<GameS
                 break;
             }
             case 'setDay':
-                patch[effect.field] = state.day;
+                patch[effect.field] = state.day + (effect.offset ?? 0);
                 break;
             case 'requestBag': {
                 const amount = LEVELS[state.levelIdx].bagSize;
