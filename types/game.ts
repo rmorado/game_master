@@ -79,6 +79,7 @@ export interface GameState {
     // Level transition state
     levelUpScreen: number | null;       // levelIdx that was just reached, or null
     levelUpDialogueIdx: number;         // which dialogue in the sequence we're showing
+    langPicker: boolean;
     // Game over state
     isGameOver: boolean;
     gameOverReason: string;

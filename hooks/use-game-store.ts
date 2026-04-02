@@ -186,6 +186,7 @@ const initialState: GameState = {
     visitedApps: ['home'],
     showAppOverview: false,
     language: 'pt' as Lang,
+    langPicker: true,
 };
 
 // ─── Store ───────────────────────────────────────────────────────────────────
@@ -627,7 +628,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         },
 
         setLanguage: (lang: Lang) => {
-            set({ language: lang });
+            set({ language: lang, langPicker: false });
         },
 
         debugForceLevel: (idx: number) => {

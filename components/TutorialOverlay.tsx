@@ -10,13 +10,29 @@ import { resolveBi } from '../utils/dialogue';
 export function TutorialOverlay() {
     useFonts({ JetBrainsMono_400Regular, JetBrainsMono_400Regular_Italic });
 
-    const { tutStep, activeApp, language, actions } = useGameStore(useShallow(s => ({
+    const { tutStep, activeApp, language, langPicker, actions } = useGameStore(useShallow(s => ({
         tutStep: s.tutStep,
         activeApp: s.activeApp,
         language: s.language,
+        langPicker: s.langPicker,
         actions: s.actions,
     })));
     const s = useStrings();
+
+    if (langPicker) {
+        return (
+            <View style={styles.infoContainer}>
+                <View style={styles.langPickerBox}>
+                    <TouchableOpacity style={styles.flagBtn} onPress={() => actions.setLanguage('pt')} activeOpacity={0.7}>
+                        <Text style={styles.flagEmoji}>🇧🇷</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.flagBtn} onPress={() => actions.setLanguage('en')} activeOpacity={0.7}>
+                        <Text style={styles.flagEmoji}>🇬🇧</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        );
+    }
 
     const skipBtn = (
         <TouchableOpacity style={styles.skipBtn} onPress={() => actions.skipTutorial()}>
@@ -101,6 +117,23 @@ const styles = StyleSheet.create({
         marginTop: 5,
         textAlign: 'center',
         fontFamily: 'JetBrainsMono_400Regular_Italic',
+    },
+    langPickerBox: {
+        flexDirection: 'row',
+        gap: 32,
+    },
+    flagBtn: {
+        width: 100,
+        height: 100,
+        borderRadius: 16,
+        backgroundColor: 'rgba(255,255,255,0.06)',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.15)',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    flagEmoji: {
+        fontSize: 52,
     },
     skipBtn: {
         marginTop: 16,
