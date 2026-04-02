@@ -1,11 +1,36 @@
 // constants/game-data.ts
 import { Level } from '../types/game';
 
+export const MS_PER_DAY = 5_000;              // real milliseconds per game day (10s = 1 day)
 export const BAG_DIRTY_THRESHOLD = 4_000_000;  // PCC sends next bag when dirty ≤ this
 
+// Game calendar — day 1 = 1 dec 2025
+const GAME_EPOCH = new Date(2025, 11, 1);      // month is 0-indexed: 11 = December
+const PT_MONTHS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+
+export function gameDate(day: number): string {
+    const d = new Date(GAME_EPOCH);
+    d.setDate(d.getDate() + (day - 1));
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mon = PT_MONTHS[d.getMonth()];
+    return `${dd}-${mon}`;
+}
+
+export const LOAN_OPTIONS = [
+    { cpfCount: 100,  durationMs: 10_000 },
+    { cpfCount: 500,  durationMs: 30_000 },
+    { cpfCount: 1000, durationMs: 45_000 },
+] as const;
+
+export const AUCTION_DURATIONS = [
+    { label: 'curto',  days: 15, minPct: 0.50, maxPct: 0.70 },
+    { label: 'médio',  days: 20, minPct: 0.60, maxPct: 0.80 },
+    { label: 'longo',  days: 30, minPct: 0.70, maxPct: 0.90 },
+] as const;
+
 export const LEVELS: Level[] = [
-    { id: 1, name: "Laranja",   goal: 20000000,    bagSize: 20000000,    suspRate: 0.05 },
-    { id: 2, name: "Gerente",   goal: 50000000,    bagSize: 50000000,    suspRate: 0.04 },
-    { id: 3, name: "Doleiro",   goal: 500000000,   bagSize: 150000000,   suspRate: 0.025 },
-    { id: 4, name: "O Mestre",  goal: null,         bagSize: 1000000000,  suspRate: 0.015 },
+    { id: 1, name: "Laranja",   goal:   20_000_000,  bagSize:    20_000_000,  suspRate: 0.05  },
+    { id: 2, name: "Gerente",   goal:   50_000_000,  bagSize:    50_000_000,  suspRate: 0.04  },
+    { id: 3, name: "Doleiro",   goal:  500_000_000,  bagSize:   150_000_000,  suspRate: 0.025 },
+    { id: 4, name: "O Mestre",  goal: null,          bagSize: 1_000_000_000,  suspRate: 0.015 },
 ];

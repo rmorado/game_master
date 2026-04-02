@@ -63,6 +63,13 @@ export interface GameState {
     investigateBitcoinDay: number;       // day when player asked hacker to trace BTC (0 = not started)
     cpfCooldownUntilDay: number;         // day when CPF cooldown expires (0 = no cooldown)
     debugNoCooldowns: boolean;
+    // Loan processing (background)
+    pendingLoan: { cpfCount: number; endsAt: number; durationMs: number } | null;
+    // Auction system
+    pendingAuctions: Array<{ packId: number; endDay: number; minPct: number; maxPct: number }>;
+    completedAuctions: Array<{ packId: number; offers: BankOffer[] }>;
+    // Toast notifications
+    activeToast: { id: string; message: string; appId: 'laranjas' | 'bacen' } | null;
     // Chat typing indicator
     isTyping: boolean;
     // Level transition state

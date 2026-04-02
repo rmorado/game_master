@@ -501,7 +501,7 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                     { type: 'spend', resource: 'dirty', amount: 500000 },
                     { type: 'gain', resource: 'cpfs', amount: 100 },
                     { type: 'trackTransfer', contactId: 'hacker', amount: 500000 },
-                    { type: 'setDay', field: 'cpfCooldownUntilDay', offset: 10 },
+                    { type: 'setDay', field: 'cpfCooldownUntilDay', offset: 3 },
                 ],
                 enabled: [
                     { type: 'resource', resource: 'dirty', op: 'gte', value: 500000 },
@@ -517,7 +517,7 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                     { type: 'spend', resource: 'dirty', amount: 2500000 },
                     { type: 'gain', resource: 'cpfs', amount: 500 },
                     { type: 'trackTransfer', contactId: 'hacker', amount: 2500000 },
-                    { type: 'setDay', field: 'cpfCooldownUntilDay', offset: 10 },
+                    { type: 'setDay', field: 'cpfCooldownUntilDay', offset: 9 },
                 ],
                 enabled: [
                     { type: 'resource', resource: 'dirty', op: 'gte', value: 2500000 },

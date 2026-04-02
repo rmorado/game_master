@@ -1,9 +1,10 @@
 // app/(tabs)/game.tsx
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar } from 'react-native';
 import { useGameStore } from '../../hooks/use-game-store';
+import { MS_PER_DAY } from '../../constants/game-data';
 import { UI_GAME_OVER } from '../../constants/dialogues';
 import { useShallow } from 'zustand/react/shallow';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { HomeScreen } from '../../components/HomeScreen';
 import { ZepAppScreen } from '../../components/ZepAppScreen';
 import { ChatScreen } from '../../components/ChatScreen';
@@ -21,7 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function GameScreen() {
     const insets = useSafeAreaInsets();
-    const { actions, activeApp, isGameOver, gameOverReason, gameOverDetail, levelIdx, day, omstreDayStart, levelUpScreen } = useGameStore(useShallow(state => ({
+    const { actions, activeApp, isGameOver, gameOverReason, gameOverDetail, levelIdx, day, omstreDayStart, levelUpScreen, activeToast } = useGameStore(useShallow(state => ({
         actions: state.actions,
         activeApp: state.activeApp,
         isGameOver: state.isGameOver,
@@ -31,15 +32,24 @@ export default function GameScreen() {
         day: state.day,
         omstreDayStart: state.omstreDayStart,
         levelUpScreen: state.levelUpScreen,
+        activeToast: state.activeToast,
     })));
+
+    const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         const gameLoop = setInterval(() => {
             actions.tick();
-        }, 10000);
+        }, MS_PER_DAY);
 
         return () => clearInterval(gameLoop);
     }, [actions]);
+
+    useEffect(() => {
+        if (!activeToast) return;
+        if (toastTimer.current) clearTimeout(toastTimer.current);
+        toastTimer.current = setTimeout(() => actions.clearToast(), 3000);
+    }, [activeToast?.id]);
 
     if (isGameOver) {
         const masterDays = levelIdx === 3 && omstreDayStart > 0
@@ -86,6 +96,19 @@ export default function GameScreen() {
                 {renderApp()}
             </View>
             <BottomNavBar />
+            {activeToast && (
+                <View style={[
+                    styles.toast,
+                    activeToast.appId === 'bacen' ? styles.toastBacen : styles.toastLaranjas,
+                ]}>
+                    <Text style={[
+                        styles.toastText,
+                        activeToast.appId === 'bacen' ? styles.toastTextBacen : styles.toastTextLaranjas,
+                    ]}>
+                        {activeToast.message}
+                    </Text>
+                </View>
+            )}
             <AppOverview />
             <PayModal />
             <TutorialOverlay />
@@ -101,6 +124,37 @@ const styles = StyleSheet.create({
     },
     appArea: {
         flex: 1,
+    },
+    toast: {
+        position: 'absolute',
+        bottom: 60,
+        left: 20,
+        right: 20,
+        borderRadius: 6,
+        borderWidth: 1,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        alignItems: 'center',
+    },
+    toastLaranjas: {
+        backgroundColor: '#0a0a0a',
+        borderColor: '#f97316',
+    },
+    toastBacen: {
+        backgroundColor: '#0b0118',
+        borderColor: '#7c3aed',
+    },
+    toastText: {
+        fontFamily: 'Courier',
+        fontSize: 13,
+        fontWeight: '700',
+        letterSpacing: 1,
+    },
+    toastTextLaranjas: {
+        color: '#f97316',
+    },
+    toastTextBacen: {
+        color: '#a78bfa',
     },
     gameOver: {
         flex: 1,

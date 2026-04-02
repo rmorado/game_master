@@ -1,18 +1,20 @@
 // components/HomeScreen.tsx
+import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    ImageBackground,
     Image,
+    ImageBackground,
     ImageSourcePropType,
+    Platform,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useShallow } from 'zustand/react/shallow';
+import { TUTORIAL, UI_HOME } from '../constants/dialogues';
+import { gameDate } from '../constants/game-data';
 import { useGameStore } from '../hooks/use-game-store';
-import { UI_HOME, TUTORIAL } from '../constants/dialogues';
 import { DebugMenu } from './DebugMenu';
 
 // ─── App icon ─────────────────────────────────────────────────────────────────
@@ -77,12 +79,13 @@ function AppIcon({ label, gradient, image, emoji, letter, letterColor, badge, on
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function HomeScreen() {
-    const { unreadCounts, hasPendingBag, cpfs, batches, tutStep, actions } =
+    const { unreadCounts, hasPendingBag, cpfs, batches, day, tutStep, actions } =
         useGameStore(useShallow(s => ({
             unreadCounts: s.unreadCounts,
             hasPendingBag: s.hasPendingBag,
             cpfs: s.cpfs,
             batches: s.batches,
+            day: s.day,
             tutStep: s.tutStep,
             actions: s.actions,
         })));
@@ -113,6 +116,9 @@ const isTutorial = tutStep < TUTORIAL.length;
             >
                 {/* Dynamic Island */}
                 <DebugMenu />
+
+                {/* Date widget */}
+                <Text style={styles.dateText}>{gameDate(day)}</Text>
 
                 {/* Spacer — wallpaper fills the middle */}
                 <View style={styles.spacer} />
@@ -279,6 +285,19 @@ const styles = StyleSheet.create({
         textShadowColor: 'rgba(0,0,0,0.8)',
         textShadowOffset: { width: 0, height: 1 },
         textShadowRadius: 3,
+    },
+    dateText: {
+        textAlign: 'right',
+        paddingRight: 24,
+        color: 'rgba(255,255,255,0.9)',
+        fontSize: 20,
+        fontWeight: '500',
+        letterSpacing: 1,
+        fontFamily: Platform.select({ ios: 'SFProDisplay-Bold', android: 'sans-serif-medium' }),
+        textShadowColor: 'rgba(0,0,0,0.7)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 6,
+        marginTop: -24,
     },
     homeIndicator: {
         alignSelf: 'center',

@@ -94,10 +94,15 @@ type GameStore = GameState & {
         receiveBag: (amount: number) => void;
         setActiveApp: (app: GameState['activeApp']) => void;
         setModal: (modal: GameState['modal']) => void;
-        confirmLoan: (loanSize: number) => void;
+        startLoan: (cpfCount: number, durationMs: number) => void;
+        completeLoan: () => void;
         confirmPay: () => void;
-        openSellModal: (packId: number) => void;
+        startAuction: (packId: number, days: number, minPct: number, maxPct: number) => void;
+        claimAuction: (packId: number) => void;
+        cancelOffers: () => void;
         sellDebtPack: (packId: number, offerValue: number) => void;
+        showToast: (message: string, appId: 'laranjas' | 'bacen') => void;
+        clearToast: () => void;
         chat: (contactId: string) => void;
         advanceTutorial: () => void;
         skipTutorial: () => void;
@@ -119,12 +124,12 @@ type GameStore = GameState & {
 
 const initialState: GameState = {
     day: 1,
-    dirty: 20000000,
+    dirty: 20_000_000,
     clean: 0,
     cpfs: 0,
     suspicion: 0,
     pressure: 0,
-    batches: [{ id: 1, due: 14000000, days: 90 }],
+    batches: [{ id: 1, due: 14_000_000, days: 90 }],
     debtPacks: [],
     currentSellPackId: null,
     bankOffers: [],
@@ -154,6 +159,10 @@ const initialState: GameState = {
     investigateBitcoinDay: 0,
     cpfCooldownUntilDay: 0,
     debugNoCooldowns: false,
+    pendingLoan: null,
+    pendingAuctions: [],
+    completedAuctions: [],
+    activeToast: null,
     levelUpScreen: null,
     levelUpDialogueIdx: -1,
     isGameOver: false,
@@ -297,6 +306,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 set({ omstreDayStart: currentDay });
             }
 
+            // ── Auction completion ──
+            const preAuction = get();
+            const nowCompleted = preAuction.pendingAuctions.filter(a => preAuction.day >= a.endDay);
+            if (nowCompleted.length > 0) {
+                for (const auction of nowCompleted) {
+                    const pack = preAuction.debtPacks.find(p => p.id === auction.packId);
+                    if (!pack) continue;
+                    const offers: BankOffer[] = BANKS.map(bank => {
+                        const pct = auction.minPct + Math.random() * (auction.maxPct - auction.minPct);
+                        return { bankName: bank.name, discountRate: 1 - pct, offerValue: Math.floor(pack.value * pct) };
+                    });
+                    set(s => ({
+                        pendingAuctions: s.pendingAuctions.filter(a => a.packId !== auction.packId),
+                        completedAuctions: [...s.completedAuctions, { packId: auction.packId, offers }],
+                    }));
+                }
+                get().actions.showToast('proposta disponível', 'bacen');
+            }
+
             // ── Scripted event loop ──
             const snapshot = get();
             if (snapshot.tutStep >= TUTORIAL.length && snapshot.eventsTriggered.length < SCRIPTED_EVENTS.length) {
@@ -385,46 +413,95 @@ export const useGameStore = create<GameStore>((set, get) => ({
             set({ modal, isPaused: modal !== 'none' });
         },
 
-        confirmLoan: (loanSize: number) => {
-            const { dirty, cpfs, levelIdx, day, tutStep } = get();
-            const size = loanSize;
-            const cost = size * 5000;
+        startLoan: (cpfCount: number, durationMs: number) => {
+            const { dirty, cpfs, tutStep, pendingLoan } = get();
+            const cost = cpfCount * 5000;
+            if (dirty < cost || cpfs < cpfCount || pendingLoan !== null) return;
 
-            if (dirty < cost || cpfs < size) return;
-
-            const lvl = LEVELS[levelIdx];
-            const newPack: DebtPack = {
-                id: Date.now(),
-                value: cost,
-                cpfsUsed: size,
-                dayCreated: day,
-            };
+            const inTutorial = tutStep > 0 && tutStep < TUTORIAL.length;
 
             set(s => ({
                 dirty: s.dirty - cost,
-                cpfs: s.cpfs - size,
-                suspicion: s.suspicion + size * lvl.suspRate,
-                debtPacks: [...s.debtPacks, newPack],
+                cpfs: s.cpfs - cpfCount,
+                pendingLoan: inTutorial ? null : { cpfCount, endsAt: Date.now() + durationMs, durationMs },
             }));
 
             if (tutStep === 7) get().actions.advanceTutorial();
+
+            if (inTutorial) {
+                const { levelIdx: lvlIdx, day } = get();
+                const lvl = LEVELS[lvlIdx];
+                const newPack: DebtPack = { id: Date.now(), value: cost, cpfsUsed: cpfCount, dayCreated: day };
+                set(s => ({
+                    debtPacks: [...s.debtPacks, newPack],
+                    suspicion: s.suspicion + cpfCount * lvl.suspRate,
+                }));
+            } else {
+                trackedTimeout(() => get().actions.completeLoan(), durationMs);
+            }
         },
 
-        openSellModal: (packId: number) => {
-            const pack = get().debtPacks.find(p => p.id === packId);
-            if (!pack) return;
+        completeLoan: () => {
+            const { pendingLoan, levelIdx, day } = get();
+            if (!pendingLoan) return;
+            const { cpfCount } = pendingLoan;
+            const lvl = LEVELS[levelIdx];
+            const newPack: DebtPack = { id: Date.now(), value: cpfCount * 5000, cpfsUsed: cpfCount, dayCreated: day };
+            set(s => ({
+                pendingLoan: null,
+                debtPacks: [...s.debtPacks, newPack],
+                suspicion: s.suspicion + cpfCount * lvl.suspRate,
+            }));
+            get().actions.showToast('derivativo criado', 'laranjas');
+        },
 
-            const offers: BankOffer[] = BANKS.map(bank => {
-                const discountRate = 0.10 + Math.random() * 0.10;
-                return {
-                    bankName: bank.name,
-                    discountRate,
-                    offerValue: Math.floor(pack.value * (1 - discountRate)),
-                };
-            });
+        startAuction: (packId: number, days: number, minPct: number, maxPct: number) => {
+            const { tutStep, debtPacks } = get();
+            const inTutorial = tutStep > 0 && tutStep < TUTORIAL.length;
 
-            set({ currentSellPackId: packId, bankOffers: offers, activeApp: 'bacen', isPaused: true });
+            if (inTutorial) {
+                const pack = debtPacks.find(p => p.id === packId);
+                if (!pack) return;
+                const offers: BankOffer[] = BANKS.map(bank => {
+                    const pct = minPct + Math.random() * (maxPct - minPct);
+                    return { bankName: bank.name, discountRate: 1 - pct, offerValue: Math.floor(pack.value * pct) };
+                });
+                set(s => ({ completedAuctions: [...s.completedAuctions, { packId, offers }] }));
+            } else {
+                set(s => ({ pendingAuctions: [...s.pendingAuctions, { packId, endDay: s.day + days, minPct, maxPct }] }));
+            }
+        },
+
+        claimAuction: (packId: number) => {
+            const { completedAuctions } = get();
+            const entry = completedAuctions.find(a => a.packId === packId);
+            if (!entry) return;
+            set(s => ({
+                currentSellPackId: packId,
+                bankOffers: entry.offers,
+                isPaused: true,
+                completedAuctions: s.completedAuctions.filter(a => a.packId !== packId),
+            }));
             if (get().tutStep === 11) get().actions.advanceTutorial();
+        },
+
+        cancelOffers: () => {
+            const { currentSellPackId, bankOffers } = get();
+            if (!currentSellPackId) return;
+            set(s => ({
+                completedAuctions: [...s.completedAuctions, { packId: currentSellPackId, offers: bankOffers }],
+                currentSellPackId: null,
+                bankOffers: [],
+                isPaused: false,
+            }));
+        },
+
+        showToast: (message: string, appId: 'laranjas' | 'bacen') => {
+            set({ activeToast: { id: Date.now().toString(), message, appId } });
+        },
+
+        clearToast: () => {
+            set({ activeToast: null });
         },
 
         sellDebtPack: (packId: number, offerValue: number) => {

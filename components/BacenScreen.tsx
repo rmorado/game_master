@@ -11,70 +11,13 @@ import {
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
 import { UI_BACEN } from '../constants/dialogues';
+import { AUCTION_DURATIONS } from '../constants/game-data';
 import { formatMoney } from '../utils/format';
 
-type SellStep = 'list' | 'loading' | 'offers';
+const BLUE = '#1d4ed8';
+const PURPLE = '#7c3aed';
 
-// ─── Bank loading row ─────────────────────────────────────────────────────────
-
-function BankLoadRow({ name, delay, onReady }: { name: string; delay: number; onReady?: () => void }) {
-    const [ready, setReady] = useState(false);
-    const fade = useRef(new Animated.Value(0)).current;
-
-    useEffect(() => {
-        const t = setTimeout(() => {
-            setReady(true);
-            Animated.timing(fade, { toValue: 1, duration: 300, useNativeDriver: true }).start();
-            onReady?.();
-        }, delay);
-        return () => clearTimeout(t);
-    }, []);
-
-    return (
-        <Animated.View style={[loadStyles.row, { opacity: ready ? 1 : 0.2 }]}>
-            <View style={loadStyles.bankDot} />
-            <Text style={loadStyles.bankName}>{name}</Text>
-            {ready ? (
-                <Text style={loadStyles.readyText}>{UI_BACEN.bankReady}</Text>
-            ) : (
-                <Text style={loadStyles.waitText}>{UI_BACEN.bankWaiting}</Text>
-            )}
-        </Animated.View>
-    );
-}
-
-const loadStyles = StyleSheet.create({
-    row: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 14,
-        borderBottomWidth: 1,
-        borderColor: 'rgba(29,78,216,0.15)',
-        gap: 12,
-    },
-    bankDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: '#1d4ed8',
-    },
-    bankName: {
-        flex: 1,
-        fontSize: 14,
-        color: '#fff',
-        fontWeight: '600',
-    },
-    readyText: {
-        fontSize: 11,
-        color: '#60a5fa',
-        fontWeight: '700',
-        letterSpacing: 0.5,
-    },
-    waitText: {
-        fontSize: 11,
-        color: 'rgba(255,255,255,0.25)',
-    },
-});
+type SellStep = 'list' | 'offers';
 
 // ─── Offer card ───────────────────────────────────────────────────────────────
 
@@ -135,7 +78,7 @@ const offerStyles = StyleSheet.create({
         marginBottom: 12,
     },
     cardBest: {
-        borderColor: '#1d4ed8',
+        borderColor: BLUE,
         backgroundColor: 'rgba(29,78,216,0.08)',
     },
     bestBadge: {
@@ -205,7 +148,7 @@ const offerStyles = StyleSheet.create({
         fontFamily: 'Courier',
     },
     acceptBtn: {
-        backgroundColor: '#1d4ed8',
+        backgroundColor: BLUE,
         borderRadius: 8,
         paddingVertical: 13,
         alignItems: 'center',
@@ -221,51 +164,53 @@ const offerStyles = StyleSheet.create({
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export function BacenScreen() {
-    const { debtPacks, currentSellPackId, bankOffers, tutStep, actions } =
+    const { debtPacks, pendingAuctions, completedAuctions, currentSellPackId, bankOffers, day, tutStep, actions } =
         useGameStore(useShallow(s => ({
             debtPacks: s.debtPacks,
+            pendingAuctions: s.pendingAuctions,
+            completedAuctions: s.completedAuctions,
             currentSellPackId: s.currentSellPackId,
             bankOffers: s.bankOffers,
+            day: s.day,
             tutStep: s.tutStep,
             actions: s.actions,
         })));
 
-    const [selectedPackId, setSelectedPackId] = useState<number | null>(currentSellPackId);
+    const [auctionPickerPackId, setAuctionPickerPackId] = useState<number | null>(null);
     const [sellStep, setSellStep] = useState<SellStep>(
-        currentSellPackId && bankOffers.length > 0 ? 'loading' : 'list'
+        currentSellPackId && bankOffers.length > 0 ? 'offers' : 'list'
     );
     const [successPackId, setSuccessPackId] = useState<number | null>(null);
-    const offerTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const successTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+    // When offers are claimed from store, transition to offers view
     useEffect(() => {
-        // Arrived from openSellModal with pre-selected pack — transition to offers after loading
-        if (currentSellPackId && bankOffers.length > 0 && sellStep === 'loading') {
-            offerTimer.current = setTimeout(() => setSellStep('offers'), 2500);
+        if (currentSellPackId && bankOffers.length > 0 && sellStep !== 'offers') {
+            setSellStep('offers');
         }
+    }, [currentSellPackId, bankOffers.length]);
+
+    useEffect(() => {
         return () => {
-            if (offerTimer.current) clearTimeout(offerTimer.current);
             if (successTimer.current) clearTimeout(successTimer.current);
         };
     }, []);
 
-    const handleOfferPack = () => {
-        if (!selectedPackId) return;
-        actions.openSellModal(selectedPackId);
-        setSellStep('loading');
-        if (offerTimer.current) clearTimeout(offerTimer.current);
-        offerTimer.current = setTimeout(() => setSellStep('offers'), 2500);
+    const handleStartAuction = (packId: number, days: number, minPct: number, maxPct: number) => {
+        actions.startAuction(packId, days, minPct, maxPct);
+        setAuctionPickerPackId(null);
+    };
+
+    const handleClaim = (packId: number) => {
+        actions.claimAuction(packId);
     };
 
     const handleAcceptOffer = (offerValue: number) => {
-        if (!currentSellPackId && !selectedPackId) return;
-        const packId = currentSellPackId ?? selectedPackId!;
+        if (!currentSellPackId) return;
+        const packId = currentSellPackId;
         setSuccessPackId(packId);
         setSellStep('list');
-        setSelectedPackId(null);
-
         actions.sellDebtPack(packId, offerValue);
-        // sellDebtPack navigates to 'home'; stay in BACEN to show success state briefly
         if (successTimer.current) clearTimeout(successTimer.current);
         successTimer.current = setTimeout(() => {
             actions.setActiveApp('bacen');
@@ -297,67 +242,54 @@ export function BacenScreen() {
 
             {/* Body */}
             <View style={styles.body}>
-                    {sellStep === 'loading' ? (
-                        // ── Loading state ──────────────────────────────────────
-                        <ScrollView contentContainerStyle={styles.section}>
-                            <Text style={styles.sectionLabel}>{UI_BACEN.sectionLoading}</Text>
-                            <Text style={styles.loadingHint}>{UI_BACEN.loadingHint}</Text>
-                            {bankOffers.map((offer, i) => (
-                                <BankLoadRow
-                                    key={offer.bankName}
-                                    name={offer.bankName}
-                                    delay={700 + i * 700}
-                                />
-                            ))}
-                        </ScrollView>
+                {sellStep === 'offers' ? (
+                    // ── Offers ─────────────────────────────────────────────────
+                    <ScrollView contentContainerStyle={styles.section} showsVerticalScrollIndicator={false}>
+                        <Text style={styles.sectionLabel}>{UI_BACEN.sectionOffers}</Text>
+                        {bankOffers.map((offer, i) => (
+                            <OfferCard
+                                key={offer.bankName}
+                                bankName={offer.bankName}
+                                discountRate={offer.discountRate}
+                                offerValue={offer.offerValue}
+                                isBest={i === bestOfferIdx}
+                                index={i}
+                                onAccept={() => handleAcceptOffer(offer.offerValue)}
+                            />
+                        ))}
+                        <TouchableOpacity
+                            style={styles.cancelLink}
+                            onPress={() => { actions.cancelOffers(); setSellStep('list'); }}
+                        >
+                            <Text style={styles.cancelLinkText}>{UI_BACEN.cancelLink}</Text>
+                        </TouchableOpacity>
+                    </ScrollView>
 
-                    ) : sellStep === 'offers' ? (
-                        // ── Offers state ───────────────────────────────────────
-                        <ScrollView contentContainerStyle={styles.section} showsVerticalScrollIndicator={false}>
-                            <Text style={styles.sectionLabel}>{UI_BACEN.sectionOffers}</Text>
-                            {bankOffers.map((offer, i) => (
-                                <OfferCard
-                                    key={offer.bankName}
-                                    bankName={offer.bankName}
-                                    discountRate={offer.discountRate}
-                                    offerValue={offer.offerValue}
-                                    isBest={i === bestOfferIdx}
-                                    index={i}
-                                    onAccept={() => handleAcceptOffer(offer.offerValue)}
-                                />
-                            ))}
-                            <TouchableOpacity
-                                style={styles.cancelLink}
-                                onPress={() => setSellStep('list')}
-                            >
-                                <Text style={styles.cancelLinkText}>{UI_BACEN.cancelLink}</Text>
-                            </TouchableOpacity>
-                        </ScrollView>
+                ) : successPackId ? (
+                    // ── Success ────────────────────────────────────────────────
+                    <View style={styles.successContainer}>
+                        <Text style={styles.successIcon}>{UI_BACEN.successIcon}</Text>
+                        <Text style={styles.successTitle}>{UI_BACEN.successTitle}</Text>
+                        <Text style={styles.successSub}>{UI_BACEN.successSub}</Text>
+                    </View>
 
-                    ) : successPackId ? (
-                        // ── Success state ──────────────────────────────────────
-                        <View style={styles.successContainer}>
-                            <Text style={styles.successIcon}>{UI_BACEN.successIcon}</Text>
-                            <Text style={styles.successTitle}>{UI_BACEN.successTitle}</Text>
-                            <Text style={styles.successSub}>{UI_BACEN.successSub}</Text>
-                        </View>
+                ) : (
+                    // ── Pack list ──────────────────────────────────────────────
+                    <ScrollView style={styles.packList} showsVerticalScrollIndicator={false}>
+                        <Text style={styles.sectionLabel}>{UI_BACEN.sectionPackList}</Text>
+                        {debtPacks.length === 0 ? (
+                            <Text style={styles.emptyText}>{UI_BACEN.emptyPacks}</Text>
+                        ) : (
+                            debtPacks.map(pack => {
+                                const pending = pendingAuctions.find(a => a.packId === pack.id);
+                                const completed = completedAuctions.find(a => a.packId === pack.id);
+                                const showPicker = auctionPickerPackId === pack.id;
+                                const showHighlight = tutStep === 11 && !pending && !completed && !showPicker;
 
-                    ) : (
-                        // ── Pack list ──────────────────────────────────────────
-                        <>
-                            <ScrollView style={styles.packList} showsVerticalScrollIndicator={false}>
-                                <Text style={styles.sectionLabel}>{UI_BACEN.sectionPackList}</Text>
-                                {debtPacks.length === 0 ? (
-                                    <Text style={styles.emptyText}>{UI_BACEN.emptyPacks}</Text>
-                                ) : (
-                                    debtPacks.map(pack => (
-                                        <TouchableOpacity
-                                            key={pack.id}
-                                            style={[styles.packRow, selectedPackId === pack.id && styles.packRowSelected]}
-                                            onPress={() => setSelectedPackId(pack.id === selectedPackId ? null : pack.id)}
-                                            activeOpacity={0.7}
-                                        >
-                                            {selectedPackId === pack.id && <View style={styles.packSelectedBar} />}
+                                return (
+                                    <View key={pack.id} style={styles.packCard}>
+                                        {/* Pack info row */}
+                                        <View style={styles.packRow}>
                                             <View style={styles.packIdBadge}>
                                                 <Text style={styles.packIdText}>#{pack.id % 10000}</Text>
                                             </View>
@@ -367,29 +299,62 @@ export function BacenScreen() {
                                             </View>
                                             <View style={styles.packRight}>
                                                 <Text style={styles.packValue}>R$ {formatMoney(pack.value)}</Text>
-                                                <Text style={styles.packDays}>{UI_BACEN.packDays(90 - pack.dayCreated)}</Text>
                                             </View>
-                                        </TouchableOpacity>
-                                    ))
-                                )}
-                            </ScrollView>
+                                        </View>
 
-                            <View style={styles.offerBar}>
-                                <TouchableOpacity
-                                    style={[
-                                        styles.offerBtn,
-                                        (!selectedPackId || (tutStep < 11 && tutStep !== 0)) && styles.offerBtnDisabled,
-                                        tutStep === 11 && styles.offerBtnHighlight,
-                                    ]}
-                                    onPress={handleOfferPack}
-                                    disabled={!selectedPackId}
-                                >
-                                    <Text style={styles.offerBtnText}>{UI_BACEN.offerBtn}</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </>
-                    )}
-                </View>
+                                        {/* Auction state */}
+                                        {showPicker ? (
+                                            <View style={styles.picker}>
+                                                <Text style={styles.pickerHint}>quanto tempo de leilão?</Text>
+                                                {AUCTION_DURATIONS.map(dur => (
+                                                    <TouchableOpacity
+                                                        key={dur.label}
+                                                        style={styles.durationBtn}
+                                                        onPress={() => handleStartAuction(pack.id, dur.days, dur.minPct, dur.maxPct)}
+                                                        activeOpacity={0.75}
+                                                    >
+                                                        <Text style={styles.durationLabel}>{dur.label}</Text>
+                                                        <Text style={styles.durationDays}>{dur.days} dias</Text>
+                                                        <Text style={styles.durationRange}>{Math.round(dur.minPct * 100)}–{Math.round(dur.maxPct * 100)}%</Text>
+                                                    </TouchableOpacity>
+                                                ))}
+                                                <TouchableOpacity
+                                                    style={styles.cancelPicker}
+                                                    onPress={() => setAuctionPickerPackId(null)}
+                                                >
+                                                    <Text style={styles.cancelPickerText}>cancelar</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        ) : pending ? (
+                                            <View style={styles.pendingBadge}>
+                                                <Text style={styles.pendingText}>
+                                                    leilão em andamento — {Math.max(0, pending.endDay - day)} {Math.max(0, pending.endDay - day) === 1 ? 'dia' : 'dias'}
+                                                </Text>
+                                            </View>
+                                        ) : completed ? (
+                                            <TouchableOpacity
+                                                style={styles.claimBtn}
+                                                onPress={() => handleClaim(pack.id)}
+                                                activeOpacity={0.8}
+                                            >
+                                                <Text style={styles.claimBtnText}>proposta disponível</Text>
+                                            </TouchableOpacity>
+                                        ) : (
+                                            <TouchableOpacity
+                                                style={[styles.startBtn, showHighlight && styles.startBtnHighlight]}
+                                                onPress={() => setAuctionPickerPackId(pack.id)}
+                                                activeOpacity={0.8}
+                                            >
+                                                <Text style={styles.startBtnText}>iniciar leilão</Text>
+                                            </TouchableOpacity>
+                                        )}
+                                    </View>
+                                );
+                            })
+                        )}
+                    </ScrollView>
+                )}
+            </View>
         </View>
     );
 }
@@ -427,7 +392,7 @@ const styles = StyleSheet.create({
     logoLetter: {
         fontSize: 18,
         fontWeight: '900',
-        color: '#1d4ed8',
+        color: BLUE,
     },
     wordmark: {
         fontSize: 15,
@@ -469,12 +434,6 @@ const styles = StyleSheet.create({
         textTransform: 'uppercase',
         marginBottom: 12,
     },
-    loadingHint: {
-        color: 'rgba(255,255,255,0.3)',
-        fontSize: 13,
-        marginBottom: 20,
-        textAlign: 'center',
-    },
     packList: {
         flex: 1,
         padding: 16,
@@ -485,30 +444,20 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         paddingVertical: 30,
     },
+
+    // Pack card
+    packCard: {
+        marginBottom: 12,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.06)',
+        overflow: 'hidden',
+    },
     packRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 14,
-        paddingHorizontal: 14,
-        borderBottomWidth: 1,
-        borderColor: 'rgba(255,255,255,0.04)',
+        padding: 14,
         gap: 12,
-        position: 'relative',
-        borderRadius: 4,
-    },
-    packRowSelected: {
-        backgroundColor: 'rgba(29,78,216,0.08)',
-        borderColor: 'rgba(29,78,216,0.2)',
-        borderWidth: 1,
-    },
-    packSelectedBar: {
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        bottom: 0,
-        width: 3,
-        backgroundColor: '#1d4ed8',
-        borderRadius: 2,
     },
     packIdBadge: {
         width: 42,
@@ -541,7 +490,6 @@ const styles = StyleSheet.create({
     },
     packRight: {
         alignItems: 'flex-end',
-        gap: 3,
     },
     packValue: {
         fontSize: 14,
@@ -549,39 +497,114 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontFamily: 'Courier',
     },
-    packDays: {
-        fontSize: 11,
-        color: 'rgba(255,255,255,0.35)',
-    },
-    offerBar: {
-        padding: 16,
-        paddingTop: 12,
+
+    // Auction picker
+    picker: {
         borderTopWidth: 1,
-        borderColor: '#1e3a7a',
+        borderColor: 'rgba(255,255,255,0.06)',
+        padding: 12,
         gap: 8,
     },
-    offerBtn: {
-        backgroundColor: '#1d4ed8',
-        borderRadius: 8,
-        paddingVertical: 16,
+    pickerHint: {
+        color: 'rgba(255,255,255,0.3)',
+        fontSize: 11,
+        fontFamily: 'Courier',
+        letterSpacing: 0.5,
+        marginBottom: 4,
+    },
+    durationBtn: {
+        flexDirection: 'row',
         alignItems: 'center',
+        gap: 10,
+        backgroundColor: 'rgba(29,78,216,0.1)',
+        borderWidth: 1,
+        borderColor: 'rgba(29,78,216,0.3)',
+        borderRadius: 6,
+        paddingVertical: 10,
+        paddingHorizontal: 14,
     },
-    offerBtnHighlight: {
-        shadowColor: '#1d4ed8',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.7,
-        shadowRadius: 12,
-        elevation: 8,
-    },
-    offerBtnDisabled: {
-        opacity: 0.3,
-    },
-    offerBtnText: {
+    durationLabel: {
+        flex: 1,
         color: '#fff',
         fontSize: 13,
+        fontFamily: 'Courier',
+        fontWeight: '600',
+    },
+    durationDays: {
+        color: 'rgba(255,255,255,0.45)',
+        fontSize: 12,
+        fontFamily: 'Courier',
+    },
+    durationRange: {
+        color: '#60a5fa',
+        fontSize: 12,
+        fontFamily: 'Courier',
         fontWeight: '700',
+    },
+    cancelPicker: {
+        paddingVertical: 6,
+        alignItems: 'center',
+    },
+    cancelPickerText: {
+        color: 'rgba(255,255,255,0.25)',
+        fontSize: 12,
+        fontFamily: 'Courier',
+    },
+
+    // Pending badge
+    pendingBadge: {
+        borderTopWidth: 1,
+        borderColor: 'rgba(255,255,255,0.06)',
+        paddingVertical: 10,
+        paddingHorizontal: 14,
+    },
+    pendingText: {
+        color: 'rgba(255,255,255,0.35)',
+        fontSize: 12,
+        fontFamily: 'Courier',
+        letterSpacing: 0.3,
+    },
+
+    // Claim button
+    claimBtn: {
+        borderTopWidth: 1,
+        borderColor: 'rgba(124,58,237,0.4)',
+        backgroundColor: 'rgba(124,58,237,0.12)',
+        paddingVertical: 12,
+        paddingHorizontal: 14,
+        alignItems: 'center',
+    },
+    claimBtnText: {
+        color: '#a78bfa',
+        fontSize: 12,
+        fontFamily: 'Courier',
+        fontWeight: '700',
+        letterSpacing: 1,
+    },
+
+    // Start auction button
+    startBtn: {
+        borderTopWidth: 1,
+        borderColor: 'rgba(29,78,216,0.3)',
+        paddingVertical: 11,
+        paddingHorizontal: 14,
+        alignItems: 'center',
+    },
+    startBtnHighlight: {
+        shadowColor: BLUE,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.6,
+        shadowRadius: 10,
+        elevation: 6,
+    },
+    startBtnText: {
+        color: '#60a5fa',
+        fontSize: 12,
+        fontFamily: 'Courier',
+        fontWeight: '600',
         letterSpacing: 0.5,
     },
+
     cancelLink: {
         paddingVertical: 12,
         alignItems: 'center',
@@ -600,7 +623,7 @@ const styles = StyleSheet.create({
     },
     successIcon: {
         fontSize: 52,
-        color: '#1d4ed8',
+        color: BLUE,
     },
     successTitle: {
         color: '#fff',

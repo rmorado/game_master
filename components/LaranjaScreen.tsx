@@ -1,16 +1,10 @@
 // components/LaranjaScreen.tsx
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    Animated,
-} from 'react-native';
-import Slider from '@react-native-community/slider';
+import React, { useState, useEffect, useMemo } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
 import { UI_LARANJAS } from '../constants/dialogues';
+import { LOAN_OPTIONS } from '../constants/game-data';
 import { formatBRL } from '../utils/format';
 
 const ORANGE = '#f97316';
@@ -20,87 +14,37 @@ const generateFakeCPF = () => {
     return `${r(1000)}.${r(1000)}.${r(1000)}-${Math.floor(Math.random() * 100).toString().padStart(2, '0')}`;
 };
 
-type ScreenState = 'idle' | 'processing' | 'success';
-
 export function LaranjaScreen() {
-    const { cpfs, dirty, tutStep, actions } = useGameStore(useShallow(s => ({
+    const { cpfs, dirty, tutStep, pendingLoan, actions } = useGameStore(useShallow(s => ({
         cpfs: s.cpfs,
         dirty: s.dirty,
         tutStep: s.tutStep,
+        pendingLoan: s.pendingLoan,
         actions: s.actions,
     })));
 
-    const maxCPFs = Math.max(1, cpfs);
-    const [sliderValue, setSliderValue] = useState(maxCPFs);
-    const [sliderKey, setSliderKey] = useState(0);
-    const [screenState, setScreenState] = useState<ScreenState>('idle');
-    const [progressAnim] = useState(new Animated.Value(0));
-    const timer1 = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const timer2 = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const prevScreenState = useRef<ScreenState>('idle');
-
-    useEffect(() => {
-        return () => {
-            if (timer1.current) clearTimeout(timer1.current);
-            if (timer2.current) clearTimeout(timer2.current);
-        };
-    }, []);
-
-    const clampedSlider = Math.max(1, Math.min(sliderValue, maxCPFs));
-
-    const pct = cpfs > 0 ? Math.round((clampedSlider / maxCPFs) * 100) : 0;
-    const loanValue = clampedSlider * 5000;
-    const insufficientDirty = dirty < loanValue;
-    const canConfirm = cpfs >= 1 && !insufficientDirty;
+    const [progress, setProgress] = useState(0);
     const shouldHighlight = tutStep === 7;
 
-    // Clamp slider when cpfs decrease (e.g. after buying more CPFs elsewhere)
+    // Animate progress bar when pendingLoan is active
     useEffect(() => {
-        if (sliderValue > maxCPFs) {
-            setSliderValue(maxCPFs);
-            setSliderKey(k => k + 1);
+        if (!pendingLoan) {
+            setProgress(0);
+            return;
         }
-    }, [maxCPFs]);
-
-    // Reset slider to max when returning from success/processing to idle
-    useEffect(() => {
-        if (screenState === 'idle' && prevScreenState.current !== 'idle') {
-            setSliderValue(maxCPFs);
-            setSliderKey(k => k + 1);
-        }
-        prevScreenState.current = screenState;
-    }, [screenState, maxCPFs]);
+        const tick = () => {
+            const elapsed = Date.now() - (pendingLoan.endsAt - pendingLoan.durationMs);
+            setProgress(Math.min(1, elapsed / pendingLoan.durationMs));
+        };
+        tick();
+        const interval = setInterval(tick, 250);
+        return () => clearInterval(interval);
+    }, [pendingLoan]);
 
     const cpfPreview = useMemo(() =>
-        Array.from({ length: Math.min(clampedSlider, 14) }, generateFakeCPF),
-        [clampedSlider]
+        pendingLoan ? Array.from({ length: Math.min(pendingLoan.cpfCount, 14) }, generateFakeCPF) : [],
+        [pendingLoan?.cpfCount]
     );
-
-    const handleConfirm = () => {
-        if (!canConfirm || screenState !== 'idle') return;
-        setScreenState('processing');
-
-        Animated.timing(progressAnim, {
-            toValue: 1,
-            duration: 2400,
-            useNativeDriver: false,
-        }).start();
-
-        timer1.current = setTimeout(() => {
-            actions.confirmLoan(clampedSlider);
-            setScreenState('success');
-        }, 2500);
-
-        timer2.current = setTimeout(() => {
-            setScreenState('idle');
-            progressAnim.setValue(0);
-        }, 4200);
-    };
-
-    const progressWidth = progressAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: ['0%', '100%'],
-    });
 
     return (
         <View style={styles.screen}>
@@ -110,18 +54,11 @@ export function LaranjaScreen() {
                 <Text style={styles.appName}>{UI_LARANJAS.appName}</Text>
             </View>
 
-            {screenState === 'success' ? (
-                <View style={styles.successContainer}>
-                    <Text style={styles.successIcon}>{UI_LARANJAS.successIcon}</Text>
-                    <Text style={styles.successTitle}>{UI_LARANJAS.successTitle}</Text>
-                    <Text style={styles.successSub}>{UI_LARANJAS.successSub}</Text>
-                </View>
-
-            ) : screenState === 'processing' ? (
+            {pendingLoan ? (
                 <View style={styles.processingContainer}>
-                    <Text style={styles.processingTitle}>{UI_LARANJAS.processingTitle}</Text>
+                    <Text style={styles.processingTitle}>PROCESSANDO</Text>
                     <View style={styles.progressBar}>
-                        <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
+                        <View style={[styles.progressFill, { width: `${progress * 100}%` as any }]} />
                     </View>
                     <Text style={styles.processingLabel}>{UI_LARANJAS.processingLabel}</Text>
                     <View style={styles.cpfFlash}>
@@ -130,76 +67,43 @@ export function LaranjaScreen() {
                         ))}
                     </View>
                 </View>
-
             ) : (
                 <View style={styles.body}>
-                    {/* Top spacer */}
                     <View style={styles.spacer} />
 
-                    {/* CPF rows */}
                     <View style={styles.row}>
                         <Text style={styles.rowLabel}>{UI_LARANJAS.labelCpfAvail}</Text>
                         <Text style={styles.rowValue}>{cpfs}</Text>
                     </View>
                     <View style={styles.divider} />
-                    <View style={styles.row}>
-                        <Text style={styles.rowLabel}>{UI_LARANJAS.labelCpfSelected}</Text>
-                        <Text style={styles.rowValue}>{clampedSlider}</Text>
+
+                    <View style={styles.optionsSection}>
+                        {LOAN_OPTIONS.map(opt => {
+                            const cost = opt.cpfCount * 5000;
+                            const days = Math.round(opt.durationMs / 10_000);
+                            const canAfford = dirty >= cost && cpfs >= opt.cpfCount;
+                            const disabled = !canAfford || (tutStep > 0 && tutStep < 7);
+                            return (
+                                <TouchableOpacity
+                                    key={opt.cpfCount}
+                                    style={[
+                                        styles.optionBtn,
+                                        disabled && styles.optionBtnDisabled,
+                                        shouldHighlight && !disabled && styles.optionBtnHighlight,
+                                    ]}
+                                    onPress={() => actions.startLoan(opt.cpfCount, opt.durationMs)}
+                                    disabled={disabled}
+                                    activeOpacity={0.75}
+                                >
+                                    <View style={styles.optionLeft}>
+                                        <Text style={styles.optionCpf}>{opt.cpfCount} CPFs</Text>
+                                        <Text style={styles.optionDays}>~{days} {days === 1 ? 'dia' : 'dias'}</Text>
+                                    </View>
+                                    <Text style={styles.optionCost}>R$ {formatBRL(cost)}</Text>
+                                </TouchableOpacity>
+                            );
+                        })}
                     </View>
-                    <View style={styles.divider} />
-
-                    {/* Usar / percentage */}
-                    <View style={styles.usarRow}>
-                        <Text style={styles.usarLabel}>{UI_LARANJAS.labelUsar}</Text>
-                        <View style={styles.usarRight}>
-                            <Text style={styles.pct}>{pct}%</Text>
-                            <Text style={styles.pctSub}> — {clampedSlider} CPF</Text>
-                        </View>
-                    </View>
-
-                    {/* Slider + MAX */}
-                    <View style={styles.sliderRow}>
-                        <Slider
-                            key={sliderKey}
-                            style={styles.slider}
-                            value={clampedSlider}
-                            onValueChange={v => setSliderValue(Math.round(v))}
-                            minimumValue={1}
-                            maximumValue={maxCPFs}
-                            step={1}
-                            minimumTrackTintColor={ORANGE}
-                            maximumTrackTintColor="#2a2a2a"
-                            thumbTintColor={ORANGE}
-                        />
-                        <TouchableOpacity style={styles.maxBtn} onPress={() => { setSliderValue(maxCPFs); setSliderKey(k => k + 1); }} activeOpacity={0.7}>
-                            <Text style={styles.maxBtnText}>{UI_LARANJAS.maxBtn}</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    <View style={styles.divider} />
-
-                    {/* Loan amount */}
-                    <View style={styles.loanBlock}>
-                        <Text style={styles.loanLabel}>{UI_LARANJAS.labelLoan}</Text>
-                        <Text style={styles.loanAmount}>R$ {formatBRL(loanValue)}</Text>
-                        {insufficientDirty && (
-                            <Text style={styles.insufficientWarning}>⚠ sujo insuficiente</Text>
-                        )}
-                    </View>
-
-                    {/* CTA */}
-                    <TouchableOpacity
-                        style={[
-                            styles.cta,
-                            (!canConfirm || (tutStep < 7 && tutStep !== 0)) && styles.ctaDisabled,
-                            shouldHighlight && styles.ctaHighlight,
-                        ]}
-                        onPress={handleConfirm}
-                        disabled={!canConfirm || (tutStep < 7 && tutStep !== 0)}
-                        activeOpacity={0.8}
-                    >
-                        <Text style={styles.ctaText}>{UI_LARANJAS.ctaBtn}</Text>
-                    </TouchableOpacity>
 
                     <Text style={styles.warning}>{UI_LARANJAS.warning}</Text>
                 </View>
@@ -244,7 +148,6 @@ const styles = StyleSheet.create({
         flex: 1,
     },
 
-    // Data rows
     row: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -267,117 +170,60 @@ const styles = StyleSheet.create({
         backgroundColor: '#222',
     },
 
-    // Usar / percentage
-    usarRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingTop: 20,
-        paddingBottom: 4,
-    },
-    usarLabel: {
-        color: 'rgba(255,255,255,0.4)',
-        fontSize: 14,
-        fontFamily: 'Courier',
-    },
-    usarRight: {
-        flexDirection: 'row',
-        alignItems: 'baseline',
-    },
-    pct: {
-        color: ORANGE,
-        fontSize: 28,
-        fontWeight: '700',
-        fontFamily: 'Courier',
-    },
-    pctSub: {
-        color: 'rgba(255,255,255,0.4)',
-        fontSize: 14,
-        fontFamily: 'Courier',
-    },
-
-    // Slider
-    sliderRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 20,
+    optionsSection: {
         gap: 10,
+        paddingVertical: 24,
     },
-    slider: {
-        flex: 1,
-        height: 40,
-    },
-    maxBtn: {
-        borderWidth: 1.5,
+    optionBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderWidth: 1,
         borderColor: ORANGE,
         borderRadius: 6,
-        paddingVertical: 6,
-        paddingHorizontal: 12,
+        paddingVertical: 16,
+        paddingHorizontal: 18,
     },
-    maxBtnText: {
-        color: ORANGE,
-        fontSize: 12,
-        fontWeight: '700',
-        fontFamily: 'Courier',
-        letterSpacing: 1,
+    optionBtnDisabled: {
+        borderColor: '#333',
+        opacity: 0.4,
     },
-
-    // Loan amount
-    loanBlock: {
-        paddingVertical: 20,
-    },
-    loanLabel: {
-        color: 'rgba(255,255,255,0.35)',
-        fontSize: 13,
-        fontFamily: 'Courier',
-        marginBottom: 4,
-    },
-    loanAmount: {
-        color: '#fff',
-        fontSize: 44,
-        fontWeight: '800',
-        fontFamily: 'Courier',
-        letterSpacing: -1,
-    },
-
-    // CTA
-    cta: {
-        backgroundColor: ORANGE,
-        paddingVertical: 20,
-        borderRadius: 4,
-        alignItems: 'center',
-        marginBottom: 14,
-    },
-    ctaDisabled: {
-        opacity: 0.35,
-    },
-    ctaHighlight: {
+    optionBtnHighlight: {
         shadowColor: ORANGE,
         shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.8,
-        shadowRadius: 12,
-        elevation: 8,
+        shadowOpacity: 0.7,
+        shadowRadius: 10,
+        elevation: 6,
     },
-    ctaText: {
+    optionLeft: {
+        gap: 3,
+    },
+    optionCpf: {
         color: '#fff',
-        fontSize: 14,
-        fontWeight: '800',
-        letterSpacing: 2,
+        fontSize: 15,
+        fontWeight: '700',
         fontFamily: 'Courier',
     },
+    optionDays: {
+        color: 'rgba(255,255,255,0.35)',
+        fontSize: 11,
+        fontFamily: 'Courier',
+        letterSpacing: 0.5,
+    },
+    optionCost: {
+        color: ORANGE,
+        fontSize: 16,
+        fontWeight: '700',
+        fontFamily: 'Courier',
+    },
+
     warning: {
         color: ORANGE,
         fontSize: 12,
         fontFamily: 'Courier',
         textAlign: 'center',
         opacity: 0.7,
-    },
-    insufficientWarning: {
-        color: '#ef4444',
-        fontSize: 12,
-        fontFamily: 'Courier',
         marginTop: 4,
-        opacity: 0.8,
     },
 
     // Processing
@@ -423,29 +269,5 @@ const styles = StyleSheet.create({
         fontSize: 10,
         fontFamily: 'Courier',
         opacity: 0.5,
-    },
-
-    // Success
-    successContainer: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 12,
-    },
-    successIcon: {
-        fontSize: 52,
-        color: ORANGE,
-    },
-    successTitle: {
-        color: '#fff',
-        fontSize: 20,
-        fontWeight: '800',
-        fontFamily: 'Courier',
-        letterSpacing: 2,
-    },
-    successSub: {
-        color: 'rgba(255,255,255,0.4)',
-        fontSize: 13,
-        fontFamily: 'Courier',
     },
 });
