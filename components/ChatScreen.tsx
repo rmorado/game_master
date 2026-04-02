@@ -2,12 +2,12 @@
 import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from 'react-native';
 import { useGameStore } from '../hooks/use-game-store';
-import { getCharacter, DIALOGUES, UI_CHAT } from '../constants/dialogues';
-import { evaluateConditionSet } from '../utils/dialogue';
+import { getCharacter, DIALOGUES } from '../constants/dialogues';
+import { evaluateConditionSet, resolveBi } from '../utils/dialogue';
 
 export function ChatScreen() {
     const state = useGameStore(s => s);
-    const { actions, chatHistory, currentChat, tutStep, isTyping } = state;
+    const { actions, chatHistory, currentChat, tutStep, isTyping, language } = state;
     const flatListRef = useRef<FlatList>(null);
 
     const character = currentChat ? getCharacter(currentChat) : undefined;
@@ -43,7 +43,8 @@ export function ChatScreen() {
                     const isEnabled = !option.enabled || evaluateConditionSet(option.enabled, state);
                     const isHighlighted = shouldHighlightBuy100 && option.id === 'buy_100_cpfs';
                     const isTutDisabled = isTutorial && !isHighlighted;
-                    const text = typeof option.text === 'function' ? option.text(state) : option.text;
+                    const rawText = typeof option.text === 'function' ? option.text(state) : option.text;
+                    const text = resolveBi(rawText, language);
                     return (
                         <TouchableOpacity
                             key={option.id}
@@ -70,7 +71,7 @@ export function ChatScreen() {
                     <Text style={styles.backArrow}>‹</Text>
                 </TouchableOpacity>
                 <Image source={character?.avatar} style={styles.avatar} />
-                <Text style={styles.headerName}>{character?.name}</Text>
+                <Text style={styles.headerName}>{character ? resolveBi(character.name, language) : ''}</Text>
             </View>
             <FlatList
                 ref={flatListRef}

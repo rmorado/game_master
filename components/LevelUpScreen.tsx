@@ -3,14 +3,18 @@ import { useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
-import { LEVEL_EVENTS, CHARACTERS, UI_LEVEL_UP } from '../constants/dialogues';
+import { LEVEL_EVENTS, CHARACTERS } from '../constants/dialogues';
+import { useStrings } from '../constants/strings';
+import { resolveBi } from '../utils/dialogue';
 
 export function LevelUpScreen() {
-    const { levelUpScreen, levelUpDialogueIdx: dialogueIdx, actions } = useGameStore(useShallow(s => ({
+    const { levelUpScreen, levelUpDialogueIdx: dialogueIdx, language, actions } = useGameStore(useShallow(s => ({
         levelUpScreen: s.levelUpScreen,
         levelUpDialogueIdx: s.levelUpDialogueIdx,
+        language: s.language,
         actions: s.actions,
     })));
+    const str = useStrings();
     const { advanceLevelDialogue } = actions;
 
     const event = levelUpScreen !== null ? LEVEL_EVENTS[levelUpScreen] : null;
@@ -38,10 +42,10 @@ export function LevelUpScreen() {
     return (
         <TouchableOpacity style={styles.container} activeOpacity={1} onPress={advanceLevelDialogue}>
             <View style={styles.titleBox}>
-                <Text style={styles.titleLabel}>{UI_LEVEL_UP.label}</Text>
-                <Text style={styles.title}>{event.title}</Text>
+                <Text style={styles.titleLabel}>{str.levelUp.label}</Text>
+                <Text style={styles.title}>{resolveBi(event.title, language)}</Text>
                 {event.subtitle && (
-                    <Text style={styles.subtitle}>{event.subtitle}</Text>
+                    <Text style={styles.subtitle}>{resolveBi(event.subtitle, language)}</Text>
                 )}
             </View>
 
@@ -52,18 +56,18 @@ export function LevelUpScreen() {
                             {character.avatar && (
                                 <Image source={character.avatar} style={styles.avatar} />
                             )}
-                            <Text style={styles.characterName}>{character.name}</Text>
+                            <Text style={styles.characterName}>{resolveBi(character.name, language)}</Text>
                         </View>
                     )}
-                    <Text style={styles.dialogueText}>{currentDialogue.text}</Text>
+                    <Text style={styles.dialogueText}>{resolveBi(currentDialogue.text, language)}</Text>
                 </View>
             )}
 
             <View style={styles.tapArea}>
                 <Text style={styles.tapHint}>
                     {isLastStep || event.dialogues.length === 0
-                        ? UI_LEVEL_UP.tapToPlay
-                        : UI_LEVEL_UP.tapToContinue}
+                        ? str.levelUp.tapToPlay
+                        : str.levelUp.tapToContinue}
                 </Text>
             </View>
         </TouchableOpacity>

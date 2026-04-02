@@ -4,52 +4,51 @@ import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'rea
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
 import { getCharacter } from '../constants/dialogues';
-import { formatMoney, formatBRL } from '../utils/format';
+import { formatMoney } from '../utils/format';
+import { useStrings } from '../constants/strings';
+import { resolveBi } from '../utils/dialogue';
 
 const AMBER = '#f59e0b';
 const GREEN = '#22c55e';
 const ORANGE = '#f97316';
 const MUTED = 'rgba(255,255,255,0.3)';
 
-type StatusConfig = { label: string; color: string };
+type StatusKey = 'statusPending' | 'statusWaiting' | 'statusActive' | 'statusUrgent' | 'statusDone' | 'statusResolved';
+type StatusConfig = { key: StatusKey; color: string };
 
 function getContactStatus(
     id: string,
-    state: {
-        hasPendingBag: boolean;
-        hasUsedNotNow: boolean;
-        dialoguesSeen: string[];
-    }
+    state: { hasPendingBag: boolean; hasUsedNotNow: boolean; dialoguesSeen: string[] }
 ): StatusConfig {
     const seen = state.dialoguesSeen;
     switch (id) {
         case 'drugdealer':
-            if (state.hasPendingBag) return { label: 'Pendente', color: AMBER };
-            if (state.hasUsedNotNow) return { label: 'Aguardando', color: AMBER };
-            return { label: 'Ativo', color: GREEN };
+            if (state.hasPendingBag) return { key: 'statusPending', color: AMBER };
+            if (state.hasUsedNotNow) return { key: 'statusWaiting', color: AMBER };
+            return { key: 'statusActive', color: GREEN };
         case 'hacker':
-            return { label: 'Ativo', color: GREEN };
+            return { key: 'statusActive', color: GREEN };
         case 'investigador':
             if (!seen.includes('investigador_comply') && !seen.includes('investigador_stall'))
-                return { label: 'Urgente', color: '#ef4444' };
-            return { label: 'Concluído', color: MUTED };
+                return { key: 'statusUrgent', color: '#ef4444' };
+            return { key: 'statusDone', color: MUTED };
         case 'anonimo':
             if (!seen.includes('blackmail_pay') && !seen.includes('blackmail_ignore'))
-                return { label: 'Pendente', color: AMBER };
-            return { label: 'Resolvido', color: MUTED };
+                return { key: 'statusPending', color: AMBER };
+            return { key: 'statusResolved', color: MUTED };
         case 'lawyer':
-            return { label: 'Ativo', color: GREEN };
+            return { key: 'statusActive', color: GREEN };
         case 'deputy':
-            if (seen.includes('deputy_help_bc')) return { label: 'Concluído', color: MUTED };
-            return { label: 'Ativo', color: GREEN };
+            if (seen.includes('deputy_help_bc')) return { key: 'statusDone', color: MUTED };
+            return { key: 'statusActive', color: GREEN };
         case 'judge':
-            if (seen.includes('judge_intro_talk')) return { label: 'Concluído', color: MUTED };
-            return { label: 'Ativo', color: GREEN };
+            if (seen.includes('judge_intro_talk')) return { key: 'statusDone', color: MUTED };
+            return { key: 'statusActive', color: GREEN };
         case 'madame':
-            if (seen.includes('madame_pay')) return { label: 'Concluído', color: MUTED };
-            return { label: 'Ativo', color: GREEN };
+            if (seen.includes('madame_pay')) return { key: 'statusDone', color: MUTED };
+            return { key: 'statusActive', color: GREEN };
         default:
-            return { label: 'Ativo', color: GREEN };
+            return { key: 'statusActive', color: GREEN };
     }
 }
 
@@ -59,7 +58,7 @@ export function DossieScreen() {
     const {
         dirty, clean, cpfs, totalReceived, totalPaid, transfersByContact,
         contacts, hasPendingBag, hasUsedNotNow, dialoguesSeen,
-        actions,
+        language, actions,
     } = useGameStore(useShallow(s => ({
         dirty: s.dirty,
         clean: s.clean,
@@ -71,8 +70,10 @@ export function DossieScreen() {
         hasPendingBag: s.hasPendingBag,
         hasUsedNotNow: s.hasUsedNotNow,
         dialoguesSeen: s.dialoguesSeen,
+        language: s.language,
         actions: s.actions,
     })));
+    const str = useStrings();
 
     const statusState = { hasPendingBag, hasUsedNotNow, dialoguesSeen };
     const unlockedContacts = CONTACT_ORDER.filter(id => contacts[id]);
@@ -84,46 +85,46 @@ export function DossieScreen() {
                 <TouchableOpacity onPress={() => actions.setActiveApp('home')} hitSlop={12}>
                     <Text style={styles.backArrow}>‹</Text>
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>DOSSIÊ CONFIDENCIAL</Text>
+                <Text style={styles.headerTitle}>{str.dossie.header}</Text>
                 <View style={styles.classifiedBadge}>
-                    <Text style={styles.classifiedText}>RESTRITO</Text>
+                    <Text style={styles.classifiedText}>{str.dossie.badge}</Text>
                 </View>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
                 {/* Financial section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionLabel}>FINANCEIRO</Text>
+                    <Text style={styles.sectionLabel}>{str.dossie.sectionFinancial}</Text>
 
                     <View style={styles.row}>
-                        <Text style={styles.rowLabel}>Total recebido</Text>
+                        <Text style={styles.rowLabel}>{str.dossie.rowReceived}</Text>
                         <Text style={[styles.rowValue, { color: AMBER }]}>R$ {formatMoney(totalReceived)}</Text>
                     </View>
                     <View style={styles.divider} />
                     <View style={styles.row}>
-                        <Text style={styles.rowLabel}>Total pago PCC</Text>
+                        <Text style={styles.rowLabel}>{str.dossie.rowPaid}</Text>
                         <Text style={[styles.rowValue, { color: AMBER }]}>R$ {formatMoney(totalPaid)}</Text>
                     </View>
                     <View style={styles.divider} />
                     <View style={styles.row}>
-                        <Text style={styles.rowLabel}>Sujo em caixa</Text>
+                        <Text style={styles.rowLabel}>{str.dossie.rowDirty}</Text>
                         <Text style={[styles.rowValue, { color: ORANGE }]}>R$ {formatMoney(dirty)}</Text>
                     </View>
                     <View style={styles.divider} />
                     <View style={styles.row}>
-                        <Text style={styles.rowLabel}>Limpo em caixa</Text>
+                        <Text style={styles.rowLabel}>{str.dossie.rowClean}</Text>
                         <Text style={[styles.rowValue, { color: GREEN }]}>R$ {formatMoney(clean)}</Text>
                     </View>
                     <View style={styles.divider} />
                     <View style={styles.row}>
-                        <Text style={styles.rowLabel}>CPFs disponíveis</Text>
+                        <Text style={styles.rowLabel}>{str.dossie.rowCpfs}</Text>
                         <Text style={[styles.rowValue, { color: '#fff' }]}>{cpfs.toLocaleString('pt-BR')}</Text>
                     </View>
                 </View>
 
                 {/* Contacts section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionLabel}>CONTATOS</Text>
+                    <Text style={styles.sectionLabel}>{str.dossie.sectionContacts}</Text>
 
                     {unlockedContacts.map(id => {
                         const char = getCharacter(id);
@@ -136,10 +137,10 @@ export function DossieScreen() {
                                 <View style={styles.contactRow}>
                                     <Image source={char.avatar} style={styles.avatar} />
                                     <View style={styles.contactInfo}>
-                                        <Text style={styles.contactName}>{char.name}</Text>
+                                        <Text style={styles.contactName}>{resolveBi(char.name, language)}</Text>
                                         <View style={styles.statusRow}>
                                             <View style={[styles.statusDot, { backgroundColor: status.color }]} />
-                                            <Text style={[styles.statusLabel, { color: status.color }]}>{status.label}</Text>
+                                            <Text style={[styles.statusLabel, { color: status.color }]}>{str.dossie[status.key]}</Text>
                                         </View>
                                     </View>
                                     <Text style={styles.transferAmount}>R$ {formatMoney(transferred)}</Text>

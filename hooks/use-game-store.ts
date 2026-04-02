@@ -1,10 +1,10 @@
 // hooks/use-game-store.ts
 import { create } from 'zustand';
-import { GameState, Batch, DebtPack, BankOffer, EventPayload } from '../types/game';
+import { GameState, Batch, DebtPack, BankOffer, EventPayload, Lang } from '../types/game';
 import { LEVELS, BAG_DIRTY_THRESHOLD, CPF_COST } from '../constants/game-data';
-import { BANKS, SCRIPTED_EVENTS, DIALOGUES, LEVEL_EVENTS, TUTORIAL, UI_CHAT } from '../constants/dialogues';
+import { BANKS, SCRIPTED_EVENTS, DIALOGUES, LEVEL_EVENTS, TUTORIAL } from '../constants/dialogues';
 import { formatMoney } from '../utils/format';
-import { evaluateConditionSet, applyEffects } from '../utils/dialogue';
+import { evaluateConditionSet, applyEffects, resolveBi } from '../utils/dialogue';
 
 const MSG_POPUP_DURATION = 2000;
 
@@ -85,10 +85,13 @@ function fireEvent(
                 contacts: { ...s.contacts, [payload.contactId]: true },
             }));
             break;
-        case 'incoming_message':
-            set(s => notifyPopup(s, payload.contactId, payload.text));
+        case 'incoming_message': {
+            const lang = get().language;
+            const text = resolveBi(payload.text, lang);
+            set(s => notifyPopup(s, payload.contactId, text));
             trackedTimeout(() => set({ showNewMessagePopup: false }), MSG_POPUP_DURATION);
             break;
+        }
         case 'multi':
             payload.payloads.forEach(p => fireEvent(p, get, set));
             break;
@@ -123,6 +126,7 @@ type GameStore = GameState & {
         goBack: () => void;
         toggleAppOverview: () => void;
         payPCC: (amount: number) => void;
+        setLanguage: (lang: Lang) => void;
         debugForceLevel: (idx: number) => void;
         debugAddResources: (dirty: number, clean: number, cpfs: number) => void;
         debugToggleNoCooldowns: () => void;
@@ -181,6 +185,7 @@ const initialState: GameState = {
     navHistory: [],
     visitedApps: ['home'],
     showAppOverview: false,
+    language: 'pt' as Lang,
 };
 
 // ─── Store ───────────────────────────────────────────────────────────────────
@@ -410,7 +415,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 totalPaid: s.totalPaid + amount,
                 transfersByContact: { ...s.transfersByContact, drugdealer: (s.transfersByContact.drugdealer ?? 0) + amount },
                 ...(tutStep === 15 ? { tutStep: 16 } : {}),
-                ...notifyPopup(s, 'drugdealer', UI_CHAT.pccConfirmation),
+                ...notifyPopup(s, 'drugdealer', '🔥'),
             }));
             trackedTimeout(() => set({ showNewMessagePopup: false }), MSG_POPUP_DURATION);
         },
@@ -579,15 +584,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
             const isEnabled = !option.enabled || evaluateConditionSet(option.enabled, state);
 
-            // Pick response based on enabled state
-            const response = isEnabled
+            // Pick response based on enabled state, resolve Bi to current language
+            const lang = state.language;
+            const rawResponse = isEnabled
                 ? (typeof option.response === 'function' ? option.response(state) : option.response)
                 : (option.disabledResponse
                     ? (typeof option.disabledResponse === 'function' ? option.disabledResponse(state) : option.disabledResponse)
                     : null);
-            if (!response) return;
+            if (!rawResponse) return;
+            const response = resolveBi(rawResponse, lang);
 
-            const playerText = typeof option.text === 'function' ? option.text(state) : option.text;
+            const rawText = typeof option.text === 'function' ? option.text(state) : option.text;
+            const playerText = resolveBi(rawText, lang);
             const currentChat = state.currentChat!;
 
             // Apply effects only when enabled — gameOver is deferred to after response
@@ -616,6 +624,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
                     actions.advanceTutorial();
                 }
             }, 1000);
+        },
+
+        setLanguage: (lang: Lang) => {
+            set({ language: lang });
         },
 
         debugForceLevel: (idx: number) => {

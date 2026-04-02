@@ -12,9 +12,10 @@ import {
     View,
 } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
-import { TUTORIAL, UI_HOME } from '../constants/dialogues';
+import { TUTORIAL } from '../constants/dialogues';
 import { gameDate } from '../constants/game-data';
 import { useGameStore } from '../hooks/use-game-store';
+import { useStrings } from '../constants/strings';
 import { DebugMenu } from './DebugMenu';
 
 // ─── App icon ─────────────────────────────────────────────────────────────────
@@ -79,7 +80,7 @@ function AppIcon({ label, gradient, image, emoji, letter, letterColor, badge, on
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function HomeScreen() {
-    const { unreadCounts, hasPendingBag, cpfs, batches, day, tutStep, actions } =
+    const { unreadCounts, hasPendingBag, cpfs, batches, day, tutStep, language, actions } =
         useGameStore(useShallow(s => ({
             unreadCounts: s.unreadCounts,
             hasPendingBag: s.hasPendingBag,
@@ -87,19 +88,21 @@ export function HomeScreen() {
             batches: s.batches,
             day: s.day,
             tutStep: s.tutStep,
+            language: s.language,
             actions: s.actions,
         })));
+    const str = useStrings();
 
     const zepBadge = (hasPendingBag || Object.values(unreadCounts).some(n => n > 0)) ? 1 : 0;
     const bacenBadge = batches.some(b => b.days < 30) ? batches.filter(b => b.days < 30).length : 0;
     const laranjasBadge = cpfs > 0 ? 1 : 0;
-const isTutorial = tutStep < TUTORIAL.length;
+    const isTutorial = tutStep < TUTORIAL.length;
     const highlightZep = tutStep === 2;
     const highlightLaranjas = tutStep === 6;
     const highlightBacen = tutStep === 9;
     const highlightCarteira = tutStep === 13;
 
-    const go = (app: 'zep' | 'laranjas' | 'bacen' | 'carteira' | 'dossie') => {
+    const go = (app: 'zep' | 'laranjas' | 'bacen' | 'carteira' | 'dossie' | 'settings') => {
         actions.setActiveApp(app);
     };
 
@@ -118,7 +121,7 @@ const isTutorial = tutStep < TUTORIAL.length;
                 <DebugMenu />
 
                 {/* Date widget */}
-                <Text style={styles.dateText}>{gameDate(day)}</Text>
+                <Text style={styles.dateText}>{gameDate(day, language)}</Text>
 
                 {/* Spacer — wallpaper fills the middle */}
                 <View style={styles.spacer} />
@@ -126,7 +129,7 @@ const isTutorial = tutStep < TUTORIAL.length;
                 {/* App grid */}
                 <View style={styles.grid}>
                     <AppIcon
-                        label={UI_HOME.apps.zep}
+                        label={str.home.apps.zep}
                         image={ZEP_ICON}
                         badge={zepBadge}
                         onPress={() => go('zep')}
@@ -134,7 +137,7 @@ const isTutorial = tutStep < TUTORIAL.length;
                         dim={isTutorial && !highlightZep && tutStep !== 0 && tutStep !== 1}
                     />
                     <AppIcon
-                        label={UI_HOME.apps.bacen}
+                        label={str.home.apps.bacen}
                         gradient={['#fef08a', '#facc15']}
                         letter="B"
                         letterColor="#1d4ed8"
@@ -144,7 +147,7 @@ const isTutorial = tutStep < TUTORIAL.length;
                         dim={isTutorial && !highlightBacen && tutStep < 9}
                     />
                     <AppIcon
-                        label={UI_HOME.apps.laranjas}
+                        label={str.home.apps.laranjas}
                         gradient={['#ff6a00', '#c94300']}
                         emoji="🍊"
                         badge={laranjasBadge}
@@ -153,14 +156,14 @@ const isTutorial = tutStep < TUTORIAL.length;
                         dim={isTutorial && !highlightLaranjas && tutStep < 6}
                     />
                     <AppIcon
-                        label={UI_HOME.apps.calendario}
+                        label={str.home.apps.calendario}
                         gradient={['#2563eb', '#1340a0']}
                         emoji="📅"
                         onPress={() => {}}
                         dim={true}
                     />
                     <AppIcon
-                        label={UI_HOME.apps.carteira}
+                        label={str.home.apps.carteira}
                         gradient={['#111111', '#0a0a0a']}
                         emoji="💰"
                         onPress={() => go('carteira')}
@@ -168,17 +171,23 @@ const isTutorial = tutStep < TUTORIAL.length;
                         dim={isTutorial && !highlightCarteira && tutStep < 13}
                     />
                     <AppIcon
-                        label={UI_HOME.apps.dossie}
+                        label={str.home.apps.dossie}
                         gradient={['#b91c1c', '#6b0f0f']}
                         emoji="📁"
                         onPress={() => go('dossie')}
                     />
                     <AppIcon
-                        label={UI_HOME.apps.news}
+                        label={str.home.apps.news}
                         gradient={['#1d4ed8', '#0f2a80']}
                         emoji="📰"
                         onPress={() => {}}
                         dim={true}
+                    />
+                    <AppIcon
+                        label={str.home.apps.settings}
+                        gradient={['#2a2a2a', '#1a1a1a']}
+                        emoji="⚙️"
+                        onPress={() => go('settings')}
                     />
                 </View>
 

@@ -3,7 +3,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
-import { UI_PAY_MODAL } from '../constants/dialogues';
+import { useStrings } from '../constants/strings';
 import { formatMoney } from '../utils/format';
 
 export function PayModal() {
@@ -14,6 +14,7 @@ export function PayModal() {
         modal: s.modal,
     })));
 
+    const str = useStrings();
     const debt = batches[0];
     const canPay = debt ? Math.min(clean, debt.due) : 0;
 
@@ -26,14 +27,14 @@ export function PayModal() {
         >
             <View style={styles.modalOverlay}>
                 <View style={styles.modalCard}>
-                    <Text style={styles.title}>{UI_PAY_MODAL.title}</Text>
+                    <Text style={styles.title}>{str.payModal.title}</Text>
                     <Text style={styles.payAmount}>{formatMoney(canPay)}</Text>
-                    <Text style={styles.payBalance}>{UI_PAY_MODAL.labelBalance(formatMoney(clean))}</Text>
+                    <Text style={styles.payBalance}>{str.payModal.labelBalance(formatMoney(clean))}</Text>
                     <TouchableOpacity style={styles.confirmBtn} onPress={() => actions.confirmPay()}>
-                        <Text style={styles.confirmBtnText}>{UI_PAY_MODAL.btnConfirm}</Text>
+                        <Text style={styles.confirmBtnText}>{str.payModal.btnConfirm}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => actions.setModal('none')}>
-                        <Text style={styles.cancelLnk}>{UI_PAY_MODAL.btnCancel}</Text>
+                        <Text style={styles.cancelLnk}>{str.payModal.btnCancel}</Text>
                     </TouchableOpacity>
                 </View>
             </View>

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
-import { UI_LARANJAS } from '../constants/dialogues';
+import { useStrings } from '../constants/strings';
 import { LOAN_OPTIONS, MS_PER_DAY, CPF_COST } from '../constants/game-data';
 import { formatBRL } from '../utils/format';
 
@@ -23,6 +23,7 @@ export function LaranjaScreen() {
         actions: s.actions,
     })));
 
+    const str = useStrings();
     const [progress, setProgress] = useState(0);
     const shouldHighlight = tutStep === 7;
 
@@ -51,7 +52,7 @@ export function LaranjaScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <Text style={styles.backArrow}>‹</Text>
-                <Text style={styles.appName}>{UI_LARANJAS.appName}</Text>
+                <Text style={styles.appName}>{str.laranjas.appName}</Text>
             </View>
 
             {pendingLoan ? (
@@ -60,7 +61,7 @@ export function LaranjaScreen() {
                     <View style={styles.progressBar}>
                         <View style={[styles.progressFill, { width: `${Math.round(progress * 100)}%` as `${number}%` }]} />
                     </View>
-                    <Text style={styles.processingLabel}>{UI_LARANJAS.processingLabel}</Text>
+                    <Text style={styles.processingLabel}>{str.laranjas.processingLabel}</Text>
                     <View style={styles.cpfFlash}>
                         {cpfPreview.map((cpf, i) => (
                             <Text key={i} style={styles.cpfFlashItem}>{cpf}</Text>
@@ -72,7 +73,7 @@ export function LaranjaScreen() {
                     <View style={styles.spacer} />
 
                     <View style={styles.row}>
-                        <Text style={styles.rowLabel}>{UI_LARANJAS.labelCpfAvail}</Text>
+                        <Text style={styles.rowLabel}>{str.laranjas.labelCpfAvail}</Text>
                         <Text style={styles.rowValue}>{cpfs}</Text>
                     </View>
                     <View style={styles.divider} />
@@ -97,7 +98,7 @@ export function LaranjaScreen() {
                                 >
                                     <View style={styles.optionLeft}>
                                         <Text style={styles.optionCpf}>{opt.cpfCount} CPFs</Text>
-                                        <Text style={styles.optionDays}>~{days} {days === 1 ? 'dia' : 'dias'}</Text>
+                                        <Text style={styles.optionDays}>{str.laranjas.btnDias(days)}</Text>
                                     </View>
                                     <Text style={styles.optionCost}>R$ {formatBRL(cost)}</Text>
                                 </TouchableOpacity>
@@ -105,7 +106,7 @@ export function LaranjaScreen() {
                         })}
                     </View>
 
-                    <Text style={styles.warning}>{UI_LARANJAS.warning}</Text>
+                    <Text style={styles.warning}>{str.laranjas.warning}</Text>
                 </View>
             )}
         </View>

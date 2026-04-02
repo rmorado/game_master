@@ -1,5 +1,8 @@
 // types/game.ts
 
+export type Lang = 'pt' | 'en';
+export type Bi = { pt: string; en: string };
+
 export interface Level {
     id: number;
     name: string;
@@ -12,7 +15,7 @@ export interface Level {
 
 export type EventPayload =
     | { type: 'unlock_contact'; contactId: string }
-    | { type: 'incoming_message'; contactId: string; text: string }
+    | { type: 'incoming_message'; contactId: string; text: string | Bi }
     | { type: 'multi'; payloads: EventPayload[] };
 
 export interface ScriptedEvent {
@@ -43,7 +46,8 @@ export interface GameState {
     eventsTriggered: string[];
     isPaused: boolean;
     tutStep: number;
-    activeApp: 'home' | 'zep' | 'chat' | 'laranjas' | 'bacen' | 'carteira' | 'dossie';
+    activeApp: 'home' | 'zep' | 'chat' | 'laranjas' | 'bacen' | 'carteira' | 'dossie' | 'settings';
+    language: Lang;
     modal: ModalType;
     currentChat: string | null;
     // Per-contact chat history (replaces messages[] and drugdealerMessages[])
@@ -117,21 +121,21 @@ export type ModalType = 'none' | 'pay';
 
 export interface LevelDialogue {
     from: string;       // character id (e.g. 'drugdealer', 'system')
-    text: string;
+    text: Bi;
 }
 
 export interface LevelEvent {
-    title: string;                      // e.g. "GERENTE"
-    subtitle?: string;                  // optional flavor text
-    dialogues: LevelDialogue[];         // sequence of messages player taps through
-    unlocks?: string[];                 // contact ids to unlock
-    payloads?: EventPayload[];          // additional scripted event payloads to fire
+    title: Bi;
+    subtitle?: Bi;
+    dialogues: LevelDialogue[];
+    unlocks?: string[];
+    payloads?: EventPayload[];
 }
 
 // Tutorial step type
 export interface TutorialStep {
     id: number;
-    text: string;
+    text: Bi;
     target: string | null;
     screen: GameState['activeApp'];
     boxPosition?: { top?: number; bottom?: number };
@@ -166,11 +170,11 @@ export type Effect =
 
 export interface DialogueOption {
     id: string;
-    text: string | ((s: GameState) => string);
+    text: string | Bi | ((s: GameState) => string | Bi);
     visible?: ConditionSet;
     enabled?: ConditionSet;
-    response: string | ((s: GameState) => string);
-    disabledResponse?: string | ((s: GameState) => string);
+    response: string | Bi | ((s: GameState) => string | Bi);
+    disabledResponse?: string | Bi | ((s: GameState) => string | Bi);
     effects?: Effect[];
 }
 

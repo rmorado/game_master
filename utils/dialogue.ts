@@ -1,8 +1,12 @@
 // utils/dialogue.ts
 // Pure functions for the declarative dialogue system
 
-import { Condition, ConditionSet, ComparisonOp, Effect, GameState } from '../types/game';
+import { Bi, Condition, ConditionSet, ComparisonOp, Effect, GameState, Lang } from '../types/game';
 import { LEVELS } from '../constants/game-data';
+
+export function resolveBi(s: string | Bi, lang: Lang): string {
+    return typeof s === 'string' ? s : s[lang];
+}
 
 function compare(a: number, op: ComparisonOp, b: number): boolean {
     switch (op) {

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Platform } from 'r
 import { LinearGradient } from 'expo-linear-gradient';
 import { useGameStore } from '../../hooks/use-game-store';
 import { MS_PER_DAY } from '../../constants/game-data';
-import { UI_GAME_OVER } from '../../constants/dialogues';
+import { useStrings } from '../../constants/strings';
 import { useShallow } from 'zustand/react/shallow';
 import { useEffect, useRef } from 'react';
 import { HomeScreen } from '../../components/HomeScreen';
@@ -13,6 +13,7 @@ import { LaranjaScreen } from '../../components/LaranjaScreen';
 import { BacenScreen } from '../../components/BacenScreen';
 import { CarteiraScreen } from '../../components/CarteiraScreen';
 import { DossieScreen } from '../../components/DossieScreen';
+import { SettingsScreen } from '../../components/SettingsScreen';
 import { PayModal } from '../../components/PayModal';
 import { TutorialOverlay } from '../../components/TutorialOverlay';
 import { NewMessagePopup } from '../../components/NewMessagePopup';
@@ -36,6 +37,7 @@ export default function GameScreen() {
         activeToast: state.activeToast,
     })));
 
+    const str = useStrings();
     const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
@@ -62,13 +64,13 @@ export default function GameScreen() {
                 <Text style={styles.gameOverReason}>{gameOverReason}</Text>
                 <Text style={styles.gameOverDetail}>{gameOverDetail}</Text>
                 {masterDays !== null && (
-                    <Text style={styles.gameOverScore}>{UI_GAME_OVER.masterDays(masterDays)}</Text>
+                    <Text style={styles.gameOverScore}>{str.gameOver.masterDays(masterDays)}</Text>
                 )}
                 <TouchableOpacity
                     style={styles.restartBtn}
                     onPress={() => actions.restartGame()}
                 >
-                    <Text style={styles.restartBtnText}>{UI_GAME_OVER.restartBtn}</Text>
+                    <Text style={styles.restartBtnText}>{str.gameOver.restartBtn}</Text>
                 </TouchableOpacity>
             </View>
         );
@@ -86,6 +88,7 @@ export default function GameScreen() {
             case 'bacen':   return <BacenScreen />;
             case 'carteira': return <CarteiraScreen />;
             case 'dossie':  return <DossieScreen />;
+            case 'settings': return <SettingsScreen />;
             default:        return <HomeScreen />;
         }
     };

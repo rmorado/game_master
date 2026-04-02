@@ -3,13 +3,15 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
 import { useGameStore } from '../hooks/use-game-store';
 import { getCharacter } from '../constants/dialogues';
+import { resolveBi } from '../utils/dialogue';
 
 export function ZepScreen() {
-    const { contacts, tutStep, hasPendingBag, unreadCounts, actions } = useGameStore(state => ({
+    const { contacts, tutStep, hasPendingBag, unreadCounts, language, actions } = useGameStore(state => ({
         contacts: state.contacts,
         tutStep: state.tutStep,
         hasPendingBag: state.hasPendingBag,
         unreadCounts: state.unreadCounts,
+        language: state.language,
         actions: state.actions
     }));
 
@@ -28,8 +30,8 @@ export function ZepScreen() {
             if (!character) return null;
             return {
                 id: character.id,
-                name: character.name,
-                sub: (character as any).sub || 'Contato',
+                name: resolveBi(character.name, language),
+                sub: resolveBi((character as any).sub || 'Contato', language),
                 avatar: character.avatar,
                 border: (character as any).borderColor || '#666',
             };

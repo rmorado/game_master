@@ -8,12 +8,13 @@ export const BAG_DIRTY_THRESHOLD = 4_000_000;  // PCC sends next bag when dirty 
 // Game calendar — day 1 = 1 dec 2025
 const GAME_EPOCH = new Date(2025, 11, 1);      // month is 0-indexed: 11 = December
 const PT_MONTHS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const EN_MONTHS = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
 
-export function gameDate(day: number): string {
+export function gameDate(day: number, lang: 'pt' | 'en' = 'pt'): string {
     const d = new Date(GAME_EPOCH);
     d.setDate(d.getDate() + (day - 1));
     const dd = String(d.getDate()).padStart(2, '0');
-    const mon = PT_MONTHS[d.getMonth()];
+    const mon = (lang === 'en' ? EN_MONTHS : PT_MONTHS)[d.getMonth()];
     return `${dd}-${mon}`;
 }
 

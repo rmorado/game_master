@@ -10,7 +10,9 @@ import {
 } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
-import { getCharacter, UI_ZEP } from '../constants/dialogues';
+import { getCharacter } from '../constants/dialogues';
+import { useStrings } from '../constants/strings';
+import { resolveBi } from '../utils/dialogue';
 
 // Contact order mirrors the mockup
 const CONTACT_ORDER = [
@@ -29,6 +31,8 @@ interface ContactRowProps {
 }
 
 function ContactRow({ contactId, lastMessage, isMe, unread, hasPending, onPress, isHighlighted, isDisabled }: ContactRowProps) {
+    const language = useGameStore(s => s.language);
+    const str = useStrings();
     const char = getCharacter(contactId);
     if (!char) return null;
 
@@ -56,12 +60,12 @@ function ContactRow({ contactId, lastMessage, isMe, unread, hasPending, onPress,
             {/* Info */}
             <View style={styles.info}>
                 <View style={styles.topRow}>
-                    <Text style={styles.name}>{char.name}</Text>
-                    <Text style={styles.time}>{UI_ZEP.timeLabel}</Text>
+                    <Text style={styles.name}>{resolveBi(char.name, language)}</Text>
+                    <Text style={styles.time}>{str.zep.timeLabel}</Text>
                 </View>
                 <View style={styles.bottomRow}>
                     <Text style={styles.preview} numberOfLines={1}>
-                        {isMe && <Text style={styles.checkmarks}>{UI_ZEP.checkmarks}</Text>}
+                        {isMe && <Text style={styles.checkmarks}>{str.zep.checkmarks}</Text>}
                         {lastMessage}
                     </Text>
                     {showBadge && (
@@ -79,15 +83,17 @@ function ContactRow({ contactId, lastMessage, isMe, unread, hasPending, onPress,
 }
 
 export function ZepAppScreen() {
-    const { contacts, tutStep, hasPendingBag, unreadCounts, chatHistory, actions } =
+    const { contacts, tutStep, hasPendingBag, unreadCounts, chatHistory, language, actions } =
         useGameStore(useShallow(s => ({
             contacts: s.contacts,
             tutStep: s.tutStep,
             hasPendingBag: s.hasPendingBag,
             unreadCounts: s.unreadCounts,
             chatHistory: s.chatHistory,
+            language: s.language,
             actions: s.actions,
         })));
+    const str = useStrings();
 
     const isTutorial = tutStep < 8;
     const shouldHighlightHacker = tutStep === 3;
@@ -99,7 +105,7 @@ export function ZepAppScreen() {
             const last = history[history.length - 1];
             return {
                 id,
-                lastMessage: last ? last.text : (getCharacter(id) as any)?.sub || '',
+                lastMessage: last ? last.text : resolveBi((getCharacter(id) as any)?.sub || '', language),
                 isMe: last?.me ?? false,
                 unread: unreadCounts[id] || 0,
             };
@@ -110,23 +116,23 @@ export function ZepAppScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <View style={styles.headerCenter}>
-                    <Text style={styles.wordmark}>{UI_ZEP.wordmark}</Text>
+                    <Text style={styles.wordmark}>{str.zep.wordmark}</Text>
                 </View>
 
                 <View style={styles.headerActions}>
                     <TouchableOpacity style={styles.iconBtn}>
-                        <Text style={styles.iconBtnText}>{UI_ZEP.searchIcon}</Text>
+                        <Text style={styles.iconBtnText}>⌕</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.iconBtn}>
-                        <Text style={styles.iconBtnText}>{UI_ZEP.menuIcon}</Text>
+                        <Text style={styles.iconBtnText}>⋮</Text>
                     </TouchableOpacity>
                 </View>
             </View>
 
             {/* Search bar */}
             <View style={styles.searchBar}>
-                <Text style={styles.searchIcon}>{UI_ZEP.searchIcon}</Text>
-                <Text style={styles.searchPlaceholder}>{UI_ZEP.searchPlaceholder}</Text>
+                <Text style={styles.searchIcon}>⌕</Text>
+                <Text style={styles.searchPlaceholder}>{str.zep.searchPlaceholder}</Text>
             </View>
 
             {/* Contact list */}
@@ -154,7 +160,7 @@ export function ZepAppScreen() {
 
             {/* FAB */}
             <TouchableOpacity style={styles.fab}>
-                <Text style={styles.fabIcon}>{UI_ZEP.fabIcon}</Text>
+                <Text style={styles.fabIcon}>✉</Text>
             </TouchableOpacity>
         </View>
     );

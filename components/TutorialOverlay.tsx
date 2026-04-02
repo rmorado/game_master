@@ -2,17 +2,21 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useFonts, JetBrainsMono_400Regular, JetBrainsMono_400Regular_Italic } from '@expo-google-fonts/jetbrains-mono';
 import { useShallow } from 'zustand/react/shallow';
-import { TUTORIAL, UI_TUTORIAL_OVERLAY } from '../constants/dialogues';
+import { TUTORIAL } from '../constants/dialogues';
 import { useGameStore } from '../hooks/use-game-store';
+import { useStrings } from '../constants/strings';
+import { resolveBi } from '../utils/dialogue';
 
 export function TutorialOverlay() {
     useFonts({ JetBrainsMono_400Regular, JetBrainsMono_400Regular_Italic });
 
-    const { tutStep, activeApp, actions } = useGameStore(useShallow(s => ({
+    const { tutStep, activeApp, language, actions } = useGameStore(useShallow(s => ({
         tutStep: s.tutStep,
         activeApp: s.activeApp,
+        language: s.language,
         actions: s.actions,
     })));
+    const s = useStrings();
 
     const skipBtn = (
         <TouchableOpacity style={styles.skipBtn} onPress={() => actions.skipTutorial()}>
@@ -40,8 +44,8 @@ export function TutorialOverlay() {
                 onPress={() => actions.advanceTutorial()}
             >
                 <View style={[styles.tutorialBox, styles.infoBox]}>
-                    <Text style={styles.text}>{step.text}</Text>
-                    <Text style={styles.subText}>{UI_TUTORIAL_OVERLAY.tapToContinue}</Text>
+                    <Text style={styles.text}>{resolveBi(step.text, language)}</Text>
+                    <Text style={styles.subText}>{s.tutorial.tapToContinue}</Text>
                 </View>
                 {skipBtn}
             </TouchableOpacity>
@@ -53,7 +57,7 @@ export function TutorialOverlay() {
     return (
         <View style={[styles.floatingContainer, pos]} pointerEvents="box-none">
             <View style={styles.tutorialBox}>
-                <Text style={styles.text}>{step.text}</Text>
+                <Text style={styles.text}>{resolveBi(step.text, language)}</Text>
             </View>
             {skipBtn}
         </View>

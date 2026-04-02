@@ -1,33 +1,41 @@
 // constants/dialogues.ts
 // Centralized dialogue and text content for O Mestre
 
-import { CharacterDialogue, GameState, LevelEvent, ScriptedEvent, TutorialStep } from '../types/game';
+import { Bi, CharacterDialogue, GameState, LevelEvent, ScriptedEvent, TutorialStep } from '../types/game';
 import { formatMoney as fmt } from '../utils/format';
+
+// Bilingual string helper
+export const bi = (pt: string, en: string): Bi => ({ pt, en });
 
 // ============================================================================
 // SYSTEM MESSAGES
 // ============================================================================
 
-// Tutorial messages (step-by-step guide for new players)
 export const TUTORIAL: TutorialStep[] = [
     // 0 — Welcome
     {
         id: 0,
-        text: "Bem-vindo, Vacaro. Você lava dinheiro pro PCC: eles mandam uma quantia, você devolve pelo menos 60%.",
+        text: bi(
+            "Bem-vindo, Vacaro. Você lava dinheiro pro PCC: eles mandam uma quantia, você devolve pelo menos 60%.",
+            "Welcome, Vacaro. You launder money for the PCC: they send a sum, you return at least 60%.",
+        ),
         target: null,
         screen: 'home',
     },
     // 1 — Scheme explanation
     {
         id: 1,
-        text: "O esquema: empréstimos falsos em nome de CPFs reais, vendidos como dívida pra outros bancos.",
+        text: bi(
+            "O esquema: empréstimos falsos em nome de CPFs reais, vendidos como dívida pra outros bancos.",
+            "The scheme: fake loans under real CPFs, sold as debt to other banks.",
+        ),
         target: null,
         screen: 'home',
     },
     // 2 — Open ZEP
     {
         id: 2,
-        text: "Primeiro a gente compra um pacote de CPFs. Entre no ZEP.",
+        text: bi("Primeiro a gente compra um pacote de CPFs. Entre no ZEP.", "First we buy a CPF package. Open ZEP."),
         target: 'nav_zep',
         screen: 'home',
         boxPosition: { bottom: 450 },
@@ -35,7 +43,10 @@ export const TUTORIAL: TutorialStep[] = [
     // 3 — Tap hacker
     {
         id: 3,
-        text: "Este é o Hacker. Ele vende identidades. Laranjas que nem sabem que estão na feira.",
+        text: bi(
+            "Este é o Hacker. Ele vende identidades. Laranjas que nem sabem que estão na feira.",
+            "This is the Hacker. He sells identities. Laranjas who don't even know they're on the market.",
+        ),
         target: 'contact_hacker',
         screen: 'zep',
         boxPosition: { top: 380 },
@@ -43,7 +54,7 @@ export const TUTORIAL: TutorialStep[] = [
     // 4 — Buy CPFs
     {
         id: 4,
-        text: "Compre 100 CPFs.",
+        text: bi("Compre 100 CPFs.", "Buy 100 CPFs."),
         target: 'btn_buy_100',
         screen: 'chat',
         boxPosition: { top: 380 },
@@ -51,91 +62,106 @@ export const TUTORIAL: TutorialStep[] = [
     // 5 — Leave ZEP (info)
     {
         id: 5,
-        text: "Bom. Agora vamos criar uns empréstimos falsos em nome dessas pessoas. Volte ao início.",
+        text: bi(
+            "Bom. Agora vamos criar uns empréstimos falsos em nome dessas pessoas. Volte ao início.",
+            "Good. Now let's create fake loans under these people's names. Go back home.",
+        ),
         target: 'btn_back',
         screen: 'chat',
         boxPosition: { bottom: 90 },
     },
-    // 6 — Open LARANJAS (NEW)
+    // 6 — Open LARANJAS
     {
         id: 6,
-        text: "Abra o LARANJAS.",
+        text: bi("Abra o LARANJAS.", "Open LARANJAS."),
         target: 'nav_laranjas',
         screen: 'home',
         boxPosition: { bottom: 450 },
     },
-    // 7 — Create derivativo (was step 6)
+    // 7 — Create derivativo
     {
         id: 7,
-        text: "Use CRIAR DERIVATIVO para gerar o derivativo de dívida.",
+        text: bi(
+            "Use CRIAR DERIVATIVO para gerar o derivativo de dívida.",
+            "Use CREATE DERIVATIVE to generate the debt derivative.",
+        ),
         target: 'btn_loan',
         screen: 'laranjas',
         boxPosition: { top: 120 },
     },
-    // 8 — Derivativo created (info, NEW)
+    // 8 — Derivativo created (info)
     {
         id: 8,
-        text: "Derivativo criado. Agora precisamos vender pra receber o dinheiro limpo. Volte ao início.",
+        text: bi(
+            "Derivativo criado. Agora precisamos vender pra receber o dinheiro limpo. Volte ao início.",
+            "Derivative created. Now we need to sell it to receive clean money. Go back home.",
+        ),
         target: null,
         screen: 'laranjas',
     },
-    // 9 — Open BACEN (NEW)
+    // 9 — Open BACEN
     {
         id: 9,
-        text: "Abra o BACEN.",
+        text: bi("Abra o BACEN.", "Open BACEN."),
         target: 'nav_bacen',
         screen: 'home',
         boxPosition: { bottom: 450 },
     },
-    // 10 — BACEN explanation (info, NEW)
+    // 10 — BACEN explanation (info)
     {
         id: 10,
-        text: "No BACEN você vende derivativos para outros bancos. Escolha a melhor oferta.",
+        text: bi(
+            "No BACEN você vende derivativos para outros bancos. Escolha a melhor oferta.",
+            "In BACEN you sell derivatives to other banks. Choose the best offer.",
+        ),
         target: null,
         screen: 'bacen',
     },
-    // 11 — Sell derivativo (was step 7)
+    // 11 — Sell derivativo
     {
         id: 11,
-        text: "Ofereça o derivativo.",
+        text: bi("Ofereça o derivativo.", "Offer the derivative."),
         target: 'btn_sell',
         screen: 'bacen',
         boxPosition: { top: 250 },
     },
-    // 12 — Money received, go pay PCC (info, NEW)
+    // 12 — Money received, go pay PCC (info)
     {
         id: 12,
-        text: "Dinheiro limpo. Última etapa: devolver ao PCC.",
+        text: bi("Dinheiro limpo. Última etapa: devolver ao PCC.", "Clean money. Last step: return to the PCC."),
         target: null,
         screen: 'home',
     },
-    // 13 — Open CARTEIRA (NEW)
+    // 13 — Open CARTEIRA
     {
         id: 13,
-        text: "Abra a CARTEIRA.",
+        text: bi("Abra a CARTEIRA.", "Open the WALLET."),
         target: 'nav_carteira',
         screen: 'home',
         boxPosition: { bottom: 450 },
     },
-    // 14 — Carteira explanation (info, NEW)
+    // 14 — Carteira explanation (info)
     {
         id: 14,
-        text: "Aqui você controla quanto devolve ao PCC. Use o slider e confirme.",
+        text: bi(
+            "Aqui você controla quanto devolve ao PCC. Use o slider e confirme.",
+            "Here you control how much you return to the PCC. Use the slider and confirm.",
+        ),
         target: null,
         screen: 'carteira',
     },
-    // 15 — Send payment (NEW)
+    // 15 — Send payment
     {
         id: 15,
-        text: "Envie o pagamento.",
+        text: bi("Envie o pagamento.", "Send the payment."),
         target: 'btn_pay',
         screen: 'carteira',
         boxPosition: { bottom: 200 },
     },
-    // 16 — Congratulation (info, NEW)
+    // 16 — Congratulation (info)
     {
         id: 16,
-        text: "Loop completo. A lavanderia está aberta.",
+        text: bi("Loop completo. A lavanderia está aberta.", "Loop complete. The laundry is open."),
         target: null,
         screen: 'carteira',
     },
@@ -148,210 +174,104 @@ export const BANKS = [
     { id: 'sapo',     name: 'Banco SAPO' },
 ];
 
-// UI Labels - Pay Modal
-export const UI_PAY_MODAL = {
-    title: "PAGAR PCC",
-    labelBalance: (amount: string) => `Saldo Limpo: ${amount}`,
-    btnConfirm: "CONFIRMAR PAGAMENTO",
-    btnCancel: "Cancelar",
-};
-
-// UI Labels - Laranjas screen
-export const UI_LARANJAS = {
-    appName:          "laranjas",
-    ctaBtn:           "CRIAR CARTEIRA DE CRÉDITO",
-    warning:          "⚠ aumenta suspeita",
-    maxBtn:           "MAX",
-    labelCpfAvail:    "CPF disponíveis",
-    labelCpfSelected: "CPF selecionados",
-    labelUsar:        "usar",
-    labelLoan:        "empréstimo gerado",
-    processingTitle:  "Criando empréstimos nos nomes da lista. Amalgando pedidos. Gerando ",
-    processingLabel:  "PROCESSANDO DÍVIDA E INTEGRANDO AO PRODUTO",
-    successIcon:      "✓",
-    successTitle:     "CARTEIRA CRIADA",
-    successSub:       "Pronto para venda no BACEN",
-};
-
-// UI Labels - BACEN screen
-export const UI_BACEN = {
-    wordmark:        "BACEN",
-    subtitle:        "Plataforma Interbancária",
-    corpBadge:       "CORP",
-    offerBtn:        "OFERECER CARTEIRA",
-    sectionLoading:  "BUSCANDO OFERTAS",
-    loadingHint:     "Procurando ofertas de outros bancos...",
-    sectionOffers:   "OFERTAS RECEBIDAS",
-    cancelLink:      "Cancelar",
-    sectionPackList: "CRÉDITO EM CARTEIRA",
-    emptyPacks:      "Nenhuma carteira disponível.",
-    confirmBtn:      "CESSAR CARTEIRA DE CRÉDITO",
-    bestOffer:       "MELHOR OFERTA",
-    offerLabel:      "Oferta",
-    bankReady:       "RESPONDEU",
-    bankWaiting:     "aguardando...",
-    bankIcon:        "🏦",
-    successIcon:     "✓",
-    successTitle:    "CARTEIRA VENDIDA",
-    successSub:      "Dinheiro limpo adicionado à carteira",
-    packName:        (cpfsUsed: number) => `Derivativo — ${cpfsUsed} CPF`,
-    packMeta:        (dayCreated: number) => `Emitido dia ${dayCreated} · vence dia ${dayCreated + 90}`,
-    packDays:        (days: number) => `${days} dias`,
-};
-
-// UI Labels - Carteira screen
-export const UI_CARTEIRA = {
-    appName:         "COFRE",
-    labelDirty:      "sujo",
-    labelClean:      "limpo",
-    currency:        "R$",
-    sectionTransfer: "TRANSFERIR PARA PCC",
-    labelEnviar:     "enviar",
-    labelDoLimpo:    " do limpo",
-    maxBtn:          "MAX",
-    labelAEnviar:    "a enviar",
-    labelResta:      (remaining: string) => `resta R$ ${remaining} limpo`,
-    sendBtn:         "ENVIAR",
-    sectionHistory:  "HISTÓRICO",
-};
-
-// UI Labels - Home screen app icons
-export const UI_HOME = {
-    apps: {
-        zep:       "ZepZep",
-        bacen:     "BaCen",
-        laranjas:  "Laranjas",
-        calendario:"Calendário",
-        carteira:  "Cofre",
-        dossie:    "Dossiê",
-        news:      "News",
-    },
-};
-
-// UI Labels - ZEP app screen
-export const UI_ZEP = {
-    wordmark:          "ZEP",
-    searchIcon:        "⌕",
-    menuIcon:          "⋮",
-    searchPlaceholder: "Buscar conversa...",
-    timeLabel:         "agora",
-    checkmarks:        "✓✓ ",
-    fabIcon:           "✉",
-};
-
-// UI Labels - Chat screen
-export const UI_CHAT = {
-    bagAccept:        "OK, manda.",
-    bagDecline:       "Não agora.",
-    bagAcceptLater:   "Pronto, pode mandar",
-    escalation1:      'E aí? Vai movimentar ou não?',
-    escalation2:      'Tô perdendo a paciência. Manda logo.',
-    pccConfirmation:  '🔥',
-};
-
-// UI Labels - Tutorial overlay
-export const UI_TUTORIAL_OVERLAY = {
-    tapToContinue: "(Toque para continuar)",
-};
-
-// UI Labels - Level up screen
-export const UI_LEVEL_UP = {
-    label: "NÍVEL",
-    tapToPlay: "TOQUE PARA JOGAR",
-    tapToContinue: "TOQUE PARA CONTINUAR",
-};
-
-// UI Labels - Game over screen
-export const UI_GAME_OVER = {
-    masterDays: (days: number) => `Dias como O Mestre: ${days}`,
-    restartBtn: "NOVA PARTIDA",
-};
-
 // ============================================================================
 // CHARACTER DIALOGUES
 // ============================================================================
 
 export const CHARACTERS = {
-    // Drug Dealer - Sends dirty money
     drugdealer: {
         id: "drugdealer",
         name: "PCC",
-        sub: "Organização",
+        sub: bi("Organização", "Organization"),
         borderColor: "#D4AF37",
         avatar: require('../assets/images/characters/MJdrugdealer01.png'),
-        intro: "mandando 💵 💵 💵 passa o sabao",
-        greeting: "Tem trabalho pra fazer.",
+        intro: bi("mandando 💵 💵 💵 passa o sabao", "sending 💵 💵 💵 run the soap"),
+        greeting: bi("Tem trabalho pra fazer.", "There's work to do."),
     },
 
     hacker: {
         id: "hacker",
         name: "H4CK3R",
-        sub: "Venda de Dados",
+        sub: bi("Venda de Dados", "Data Sales"),
         borderColor: "#0f0",
         avatar: require('../assets/images/characters/MJhacker01.png'),
-        intro: "feira da fruta cheio de laranja",
-        greeting: "identidades fresquinhas",
+        intro: bi("feira da fruta cheio de laranja", "fruit market full of laranjas"),
+        greeting: bi("identidades fresquinhas", "fresh identities"),
     },
 
     lawyer: {
         id: "lawyer",
         name: "Dr. Saul",
-        sub: "Advogado",
+        sub: bi("Advogado", "Attorney"),
         borderColor: "#ff4500",
         avatar: require('../assets/images/characters/MJadevogado01.png'),
-        intro: "Problemas com a justiça? Eu resolvo. Tenho os contatos certos.",
-        greeting: "Como posso ajudar?",
+        intro: bi(
+            "Problemas com a justiça? Eu resolvo. Tenho os contatos certos.",
+            "Legal trouble? I fix it. I have the right contacts.",
+        ),
+        greeting: bi("Como posso ajudar?", "How can I help?"),
     },
 
     judge: {
         id: "judge",
         name: "Dr. Gilmar",
-        sub: "Jurídico",
+        sub: bi("Jurídico", "Legal"),
         borderColor: "gold",
         avatar: require('../assets/images/characters/MJjuiz01.png'),
-        intro: "Doutor, percebi uma movimentação atípica. Vamos conversar antes que o MP perceba?",
-        greeting: "Como posso ajudar?",
+        intro: bi(
+            "Doutor, percebi uma movimentação atípica. Vamos conversar antes que o MP perceba?",
+            "Doctor, I noticed an atypical movement. Shall we talk before the DA notices?",
+        ),
+        greeting: bi("Como posso ajudar?", "How can I help?"),
     },
 
     anonimo: {
         id: "anonimo",
-        name: "Número Desconhecido",
-        sub: "Desconhecido",
+        name: bi("Número Desconhecido", "Unknown Number"),
+        sub: bi("Desconhecido", "Unknown"),
         borderColor: "#666",
         avatar: require('../assets/images/characters/MJhacker02.png'),
-        intro: "eu sei o que você está fazendo.",
-        greeting: "...",
+        intro: bi("eu sei o que você está fazendo.", "i know what you're doing."),
+        greeting: bi("...", "..."),
     },
 
     investigador: {
         id: "investigador",
-        name: "Investigador BC",
-        sub: "Banco Central",
+        name: bi("Investigador BC", "BC Investigator"),
+        sub: bi("Banco Central", "Central Bank"),
         borderColor: "#1e90ff",
         avatar: require('../assets/images/characters/MJBanCen01.png'),
-        intro: "Boa tarde. Sou do Banco Central. Precisamos dos seus registros.",
-        greeting: "Estou aguardando os documentos.",
+        intro: bi(
+            "Boa tarde. Sou do Banco Central. Precisamos dos seus registros.",
+            "Good afternoon. I'm from the Central Bank. We need your records.",
+        ),
+        greeting: bi("Estou aguardando os documentos.", "I am waiting for the documents."),
     },
 
     madame: {
         id: "madame",
         name: "Dra. Helena",
-        sub: "Advocacia & Consultoria",
+        sub: bi("Advocacia & Consultoria", "Law & Consulting"),
         borderColor: "#e6b8d4",
         avatar: require('../assets/images/characters/MJmadame01.png'),
-        intro: "Meu marido me disse que você precisa de orientação. Posso ajudar.",
-        greeting: "Vamos resolver isso.",
+        intro: bi(
+            "Meu marido me disse que você precisa de orientação. Posso ajudar.",
+            "My husband told me you need guidance. I can help.",
+        ),
+        greeting: bi("Vamos resolver isso.", "Let's sort this out."),
     },
 
-    // Deputy - Political corruption
     deputy: {
         id: "deputy",
-        name: "Dep. Motta",
-        sub: "Campanha",
+        name: bi("Dep. Motta", "Rep. Motta"),
+        sub: bi("Campanha", "Campaign"),
         borderColor: "cyan",
         avatar: require('../assets/images/characters/MJdeputado01.png'),
-        intro: "Opa, companheiro. Eleição chegando. Preciso de 'apoio logístico'.",
-        greeting: "Preciso de doações para a campanha.",
+        intro: bi(
+            "Opa, companheiro. Eleição chegando. Preciso de 'apoio logístico'.",
+            "Hey there, comrade. Election coming up. I need some 'logistical support'.",
+        ),
+        greeting: bi("Preciso de doações para a campanha.", "I need campaign donations."),
     },
 };
 
@@ -363,97 +283,91 @@ const DEPUTY_COST = 2000000;
 const JUDGE_COST = 5000000;
 const MADAME_COST = 1200000000;
 const BLACKMAIL_COST = 3000000;
-const PIPOCO_TEXT = 'uma moto aponta na esquina e vem na sua direção. a pessoa na garupa tira um revolver do casaco e dá quatro tiros sem descer da moto. Vacaro morto, na esquina da faria lima com tucumã.';
-const BTC_TRACK_RESPONSE = 'já saiu dessa carteira. tô rastreando — te aviso.';
+const PIPOCO_TEXT = bi(
+    'uma moto aponta na esquina e vem na sua direção. a pessoa na garupa tira um revolver do casaco e dá quatro tiros sem descer da moto. Vacaro morto, na esquina da faria lima com tucumã.',
+    'a motorcycle rounds the corner heading your way. the pillion rider pulls a revolver from their jacket and fires four shots without dismounting. Vacaro dead, on the corner of faria lima and tucumã.',
+);
+const BTC_TRACK_RESPONSE = bi(
+    'já saiu dessa carteira. tô rastreando — te aviso.',
+    'already left that wallet. tracking it — I\'ll let you know.',
+);
 
 export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
     // ── PCC (drugdealer) ─────────────────────────────────────────────────
     drugdealer: {
         characterId: 'drugdealer',
         options: [
-            // Request a new bag — only when no bag is waiting AND police warning acknowledged (or not yet triggered)
             {
                 id: 'request_bag',
-                text: 'pode mandar mais uma grana',
+                text: bi('pode mandar mais uma grana', 'send another load'),
                 visible: [
                     { type: 'custom', fn: (s: GameState) => !s.hasPendingBag && (!s.eventsTriggered.includes('pressure_warning_police') || s.dialoguesSeen.includes('ack_federais')), description: 'no pending bag, no unacknowledged police warning' },
                 ],
-                response: 'foi',
+                response: bi('foi', 'done'),
                 effects: [{ type: 'requestBag' }],
             },
-
-            // Acknowledge police warning — only when warning fired and not yet acknowledged
             {
                 id: 'ack_federais',
-                text: 'vou falar com meu advogado',
+                text: bi('vou falar com meu advogado', 'I\'ll talk to my lawyer'),
                 visible: [
                     { type: 'custom', fn: (s: GameState) => s.eventsTriggered.includes('pressure_warning_police') && !s.dialoguesSeen.includes('ack_federais'), description: 'police warning active, not yet acknowledged' },
                 ],
-                response: 'faz isso. e rápido.',
+                response: bi('faz isso. e rápido.', 'do it. fast.'),
             },
-
-            // Accept bag
             {
                 id: 'accept_bag',
-                text: 'pode mandar',
+                text: bi('pode mandar', 'send it over'),
                 visible: [
                     { type: 'custom', fn: (s: GameState) => s.hasPendingBag, description: 'pending bag' },
                 ],
-                response: 'foi',
+                response: bi('foi', 'done'),
                 effects: [{ type: 'acceptBag' }],
             },
-
-            // Decline bag — 1st time
             {
                 id: 'decline_bag_1',
-                text: 'perae que tá complicado agora',
+                text: bi('perae que tá complicado agora', 'hang on, things are complicated right now'),
                 visible: [
                     { type: 'custom', fn: (s: GameState) => s.hasPendingBag && s.consecutiveBagDeclines === 0, description: 'pending bag, first decline' },
                 ],
-                response: 'demora não hein',
+                response: bi('demora não hein', 'don\'t take too long'),
                 effects: [{ type: 'declineBag' }],
             },
-            // Decline bag — 2nd time
             {
                 id: 'decline_bag_2',
-                text: 'ainda tá complicado aqui',
+                text: bi('ainda tá complicado aqui', 'still complicated here'),
                 visible: [
                     { type: 'custom', fn: (s: GameState) => s.hasPendingBag && s.consecutiveBagDeclines === 1, description: 'pending bag, second decline' },
                 ],
-                response: 'não é assim que a coisa funciona',
+                response: bi('não é assim que a coisa funciona', 'that\'s not how this works'),
                 effects: [{ type: 'declineBag' }],
             },
-            // Decline bag — 3rd time (leads to calma_calma before game over)
             {
                 id: 'decline_bag_3',
-                text: 'tem muita merda rolando, segura a onda',
+                text: bi('tem muita merda rolando, segura a onda', 'lot of shit going on, hold tight'),
                 visible: [
                     { type: 'custom', fn: (s: GameState) => s.hasPendingBag && s.consecutiveBagDeclines >= 2, description: 'pending bag, third decline' },
                 ],
-                response: 'segura o caralho',
+                response: bi('segura o caralho', 'hold nothing'),
                 effects: [{ type: 'declineBag' }],
             },
-            // Tell PCC about CV blackmail — available after hacker identifies the address
             {
                 id: 'cv_blackmail',
-                text: 'o CV tá me chantageando',
+                text: bi('o CV tá me chantageando', 'the CV is blackmailing me'),
                 visible: [
                     { type: 'custom', fn: (s: GameState) => s.eventsTriggered.includes('bitcoin_investigation_result'), description: 'hacker identified CV' },
                     { type: 'dialogueNotSeen', optionId: 'cv_blackmail' },
                 ],
-                response: 'vamos dar um jeito em quem tá fazendo isso.',
+                response: bi('vamos dar um jeito em quem tá fazendo isso.', 'we\'ll deal with whoever\'s doing this.'),
             },
-
-            // Only option after 3rd decline — triggers game over
             {
                 id: 'calma_calma',
-                text: 'calma calma',
+                text: bi('calma calma', 'easy easy'),
                 visible: [
                     { type: 'dialogueSeen', optionId: 'decline_bag_3' },
                     { type: 'dialogueNotSeen', optionId: 'calma_calma' },
                 ],
                 response: PIPOCO_TEXT,
-                effects: [{ type: 'gameOver', reason: 'pressure', detail: PIPOCO_TEXT }],
+                effects: [{ type: 'gameOver', reason: 'pressure', detail: PIPOCO_TEXT.pt }],
             },
         ],
     },
@@ -469,7 +383,7 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                     { type: 'dialogueNotSeen', optionId: 'blackmail_pay' },
                 ],
                 enabled: [{ type: 'resource', resource: 'dirty', op: 'gte', value: BLACKMAIL_COST }],
-                response: 'Sábio. Obrigado pela cooperação.',
+                response: bi('Sábio. Obrigado pela cooperação.', 'Wise. Thank you for your cooperation.'),
                 effects: [
                     { type: 'spend', resource: 'dirty', amount: BLACKMAIL_COST },
                     { type: 'trackTransfer', contactId: 'anonimo', amount: BLACKMAIL_COST },
@@ -477,12 +391,12 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
             },
             {
                 id: 'blackmail_ignore',
-                text: 'cai fora',
+                text: bi('cai fora', 'get lost'),
                 visible: [
                     { type: 'dialogueNotSeen', optionId: 'blackmail_pay' },
                     { type: 'dialogueNotSeen', optionId: 'blackmail_ignore' },
                 ],
-                response: 'Você vai se arrepender.',
+                response: bi('Você vai se arrepender.', 'You\'ll regret this.'),
                 effects: [{ type: 'adjust', resource: 'suspicion', delta: 50, min: 0, max: 100 }],
             },
         ],
@@ -495,8 +409,17 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
             {
                 id: 'buy_100_cpfs',
                 text: `manda mais 100 CPFs [R$${fmt(500000)}]`,
-                response: 'transferido',
-                disabledResponse: (s: GameState) => s.day < s.cpfCooldownUntilDay ? `perai que tenho que pegar mais dados. falta ${s.cpfCooldownUntilDay - s.day} dia${s.cpfCooldownUntilDay - s.day === 1 ? '' : 's'}` : 'perai que tenho que pegar mais dados',
+                response: bi('transferido', 'transferred'),
+                disabledResponse: (s: GameState) => {
+                    const days = s.cpfCooldownUntilDay - s.day;
+                    if (s.day < s.cpfCooldownUntilDay) {
+                        return bi(
+                            `perai que tenho que pegar mais dados. falta ${days} dia${days === 1 ? '' : 's'}`,
+                            `hang on, need to grab more data. ${days} day${days === 1 ? '' : 's'} left`,
+                        );
+                    }
+                    return bi('perai que tenho que pegar mais dados', 'hang on, need to grab more data');
+                },
                 effects: [
                     { type: 'spend', resource: 'dirty', amount: 500000 },
                     { type: 'gain', resource: 'cpfs', amount: 100 },
@@ -511,8 +434,17 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
             {
                 id: 'buy_500_cpfs',
                 text: `manda mais 500 CPFs [R$${fmt(2500000)}]`,
-                response: 'transferido',
-                disabledResponse: (s: GameState) => s.day < s.cpfCooldownUntilDay ? `perai que tenho que pegar mais dados. falta ${s.cpfCooldownUntilDay - s.day} dia${s.cpfCooldownUntilDay - s.day === 1 ? '' : 's'}` : 'perai que tenho que pegar mais dados',
+                response: bi('transferido', 'transferred'),
+                disabledResponse: (s: GameState) => {
+                    const days = s.cpfCooldownUntilDay - s.day;
+                    if (s.day < s.cpfCooldownUntilDay) {
+                        return bi(
+                            `perai que tenho que pegar mais dados. falta ${days} dia${days === 1 ? '' : 's'}`,
+                            `hang on, need to grab more data. ${days} day${days === 1 ? '' : 's'} left`,
+                        );
+                    }
+                    return bi('perai que tenho que pegar mais dados', 'hang on, need to grab more data');
+                },
                 effects: [
                     { type: 'spend', resource: 'dirty', amount: 2500000 },
                     { type: 'gain', resource: 'cpfs', amount: 500 },
@@ -524,10 +456,9 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                     { type: 'custom', fn: (s: GameState) => s.debugNoCooldowns || s.day >= s.cpfCooldownUntilDay, description: 'cooldown expired' },
                 ],
             },
-            // Paid before ever asking hacker → investigation starts immediately
             {
                 id: 'investigate_bitcoin',
-                text: 'descobre de quem é este endereço',
+                text: bi('descobre de quem é este endereço', 'find out who owns this address'),
                 visible: [
                     { type: 'custom', fn: (s: GameState) => s.eventsTriggered.includes('blackmail_intro') && s.investigateBitcoinDay === 0, description: 'blackmail received, not yet investigating' },
                     { type: 'dialogueSeen', optionId: 'blackmail_pay' },
@@ -536,10 +467,9 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                 response: BTC_TRACK_RESPONSE,
                 effects: [{ type: 'setDay', field: 'investigateBitcoinDay' }],
             },
-            // Paid after hacker already asked for payment → different prompt
             {
                 id: 'investigate_bitcoin_after_pay',
-                text: 'paguei. confere agora',
+                text: bi('paguei. confere agora', 'I paid. check it now'),
                 visible: [
                     { type: 'dialogueSeen', optionId: 'investigate_bitcoin_ask' },
                     { type: 'dialogueSeen', optionId: 'blackmail_pay' },
@@ -548,14 +478,13 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                 response: BTC_TRACK_RESPONSE,
                 effects: [{ type: 'setDay', field: 'investigateBitcoinDay' }],
             },
-            // Has not paid → hacker asks for payment first
             {
                 id: 'investigate_bitcoin_ask',
-                text: 'descobre de quem é este endereço',
+                text: bi('descobre de quem é este endereço', 'find out who owns this address'),
                 visible: [
                     { type: 'custom', fn: (s: GameState) => s.eventsTriggered.includes('blackmail_intro') && s.investigateBitcoinDay === 0 && !s.dialoguesSeen.includes('blackmail_pay'), description: 'blackmail received, not paid, not yet investigating' },
                 ],
-                response: 'precisa do pagamento pra eu poder rastrear.',
+                response: bi('precisa do pagamento pra eu poder rastrear.', 'I need the payment before I can trace it.'),
             },
         ],
     },
@@ -564,30 +493,28 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
     lawyer: {
         characterId: 'lawyer',
         options: [
-            // Default small talk — always visible until federais warning
             {
                 id: 'lawyer_tudo_certo',
-                text: 'tudo certo?',
+                text: bi('tudo certo?', 'all good?'),
                 visible: [
                     { type: 'custom', fn: (s: GameState) => !s.eventsTriggered.includes('pressure_warning_police'), description: 'no police warning yet' },
                 ],
-                response: 'tudo em cima.',
+                response: bi('tudo em cima.', 'all good.'),
             },
-
-            // After police warning — player asks for cover
             {
                 id: 'lawyer_blinda',
-                text: 'blinda geral que a pf tá de olho',
+                text: bi('blinda geral que a pf tá de olho', 'cover everything, the feds are watching'),
                 visible: [
                     { type: 'custom', fn: (s: GameState) => s.eventsTriggered.includes('pressure_warning_police'), description: 'police warning active' },
                     { type: 'dialogueNotSeen', optionId: 'lawyer_blinda' },
                     { type: 'dialogueNotSeen', optionId: 'lawyer_blinda_bora' },
                     { type: 'dialogueNotSeen', optionId: 'lawyer_blinda_circulo' },
                 ],
-                response: 'vamos espalhar o patrimônio e garantir o sigilo. vou precisar de um extra pra pagar meu contato na PF, ele vai me dar mais detalhes sobre a investigação.',
+                response: bi(
+                    'vamos espalhar o patrimônio e garantir o sigilo. vou precisar de um extra pra pagar meu contato na PF, ele vai me dar mais detalhes sobre a investigação.',
+                    'we\'ll spread the assets and secure confidentiality. I\'ll need an extra to pay my contact at the feds — he\'ll give me more details on the investigation.',
+                ),
             },
-
-            // Pay → costs 1M dirty; hides both options once done
             {
                 id: 'lawyer_blinda_bora',
                 text: `bora rápido [R$${fmt(1000000)}]`,
@@ -596,24 +523,22 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                     { type: 'dialogueNotSeen', optionId: 'lawyer_blinda_bora' },
                 ],
                 enabled: [{ type: 'resource', resource: 'dirty', op: 'gte', value: 1000000 }],
-                response: 'feito. ele me liga ainda hoje.',
-                disabledResponse: 'preciso do valor antes de qualquer coisa.',
+                response: bi('feito. ele me liga ainda hoje.', 'done. he\'ll call me today.'),
+                disabledResponse: bi('preciso do valor antes de qualquer coisa.', 'I need the amount before anything else.'),
                 effects: [
                     { type: 'spend', resource: 'dirty', amount: 1000000 },
                     { type: 'adjust', resource: 'suspicion', delta: -15 },
                     { type: 'trackTransfer', contactId: 'lawyer', amount: 1000000 },
                 ],
             },
-
-            // Defer — repeatable until player pays
             {
                 id: 'lawyer_blinda_circulo',
-                text: 'circulo depois',
+                text: bi('circulo depois', 'I\'ll circle back'),
                 visible: [
                     { type: 'dialogueSeen', optionId: 'lawyer_blinda' },
                     { type: 'dialogueNotSeen', optionId: 'lawyer_blinda_bora' },
                 ],
-                response: 'não deixa esfriar.',
+                response: bi('não deixa esfriar.', 'don\'t let it cool off.'),
             },
         ],
     },
@@ -624,14 +549,20 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
         options: [
             {
                 id: 'deputy_help_bc',
-                text: `O Banco Central tá em cima de mim. [R$${fmt(DEPUTY_COST)}]`,
+                text: bi(`O Banco Central tá em cima de mim. [R$${fmt(DEPUTY_COST)}]`, `The Central Bank is on my case. [R$${fmt(DEPUTY_COST)}]`),
                 visible: [
                     { type: 'custom', fn: (s: GameState) => s.dialoguesSeen.includes('investigador_comply') || s.dialoguesSeen.includes('investigador_stall'), description: 'after investigador interaction' },
                     { type: 'dialogueNotSeen', optionId: 'deputy_help_bc' },
                 ],
                 enabled: [{ type: 'resource', resource: 'dirty', op: 'gte', value: DEPUTY_COST }],
-                response: `Posso fazer uns telefonemas. R$${fmt(DEPUTY_COST)}. Tenho uns amigos no judiciário que podem te apresentar alguém.`,
-                disabledResponse: `Posso ajudar, mas custa R$${fmt(DEPUTY_COST)}. Volta quando tiver.`,
+                response: bi(
+                    `Posso fazer uns telefonemas. R$${fmt(DEPUTY_COST)}. Tenho uns amigos no judiciário que podem te apresentar alguém.`,
+                    `I can make some calls. R$${fmt(DEPUTY_COST)}. I have friends in the judiciary who can introduce you to someone.`,
+                ),
+                disabledResponse: bi(
+                    `Posso ajudar, mas custa R$${fmt(DEPUTY_COST)}. Volta quando tiver.`,
+                    `I can help, but it costs R$${fmt(DEPUTY_COST)}. Come back when you have it.`,
+                ),
                 effects: [
                     { type: 'spend', resource: 'dirty', amount: DEPUTY_COST },
                     { type: 'adjust', resource: 'suspicion', delta: -10 },
@@ -640,10 +571,10 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
             },
             {
                 id: 'hire_deputy',
-                text: `Preciso que recuem. [R$${fmt(DEPUTY_COST)}]`,
+                text: bi(`Preciso que recuem. [R$${fmt(DEPUTY_COST)}]`, `I need them to back off. [R$${fmt(DEPUTY_COST)}]`),
                 enabled: [{ type: 'resource', resource: 'dirty', op: 'gte', value: DEPUTY_COST }],
-                response: 'Uma visita. Eles vão entender.',
-                disabledResponse: `R$${fmt(DEPUTY_COST)}. Não trabalho de graça.`,
+                response: bi('Uma visita. Eles vão entender.', 'A visit. They\'ll understand.'),
+                disabledResponse: bi(`R$${fmt(DEPUTY_COST)}. Não trabalho de graça.`, `R$${fmt(DEPUTY_COST)}. I don't work for free.`),
                 effects: [
                     { type: 'spend', resource: 'dirty', amount: DEPUTY_COST },
                     { type: 'adjust', resource: 'pressure', delta: -20 },
@@ -659,29 +590,35 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
         options: [
             {
                 id: 'investigador_comply',
-                text: 'Vou providenciar os documentos.',
+                text: bi('Vou providenciar os documentos.', 'I will provide the documents.'),
                 visible: [
                     { type: 'dialogueNotSeen', optionId: 'investigador_comply' },
                     { type: 'dialogueNotSeen', optionId: 'investigador_stall' },
                 ],
-                response: 'Ótimo. Aguardo em até 48 horas. Qualquer irregularidade será encaminhada ao Ministério Público.',
+                response: bi(
+                    'Ótimo. Aguardo em até 48 horas. Qualquer irregularidade será encaminhada ao Ministério Público.',
+                    'Very well. I\'ll expect them within 48 hours. Any irregularity will be forwarded to the DA\'s office.',
+                ),
             },
             {
                 id: 'investigador_stall',
-                text: 'Posso ter mais tempo?',
+                text: bi('Posso ter mais tempo?', 'Can I have more time?'),
                 visible: [
                     { type: 'dialogueNotSeen', optionId: 'investigador_comply' },
                     { type: 'dialogueNotSeen', optionId: 'investigador_stall' },
                 ],
-                response: 'Não. O prazo é regulamentar. Envie os documentos ou vamos abrir um processo formal.',
+                response: bi(
+                    'Não. O prazo é regulamentar. Envie os documentos ou vamos abrir um processo formal.',
+                    'No. The deadline is regulatory. Submit the documents or we will open a formal proceeding.',
+                ),
             },
             {
                 id: 'investigador_done',
-                text: 'Alguma novidade?',
+                text: bi('Alguma novidade?', 'Any updates?'),
                 visible: [
                     { type: 'custom', fn: (s: GameState) => s.dialoguesSeen.includes('investigador_comply') || s.dialoguesSeen.includes('investigador_stall'), description: 'after investigador interaction' },
                 ],
-                response: 'A análise está em andamento. Não saia do país.',
+                response: bi('A análise está em andamento. Não saia do país.', 'The analysis is ongoing. Do not leave the country.'),
             },
         ],
     },
@@ -692,23 +629,26 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
         options: [
             {
                 id: 'judge_intro_talk',
-                text: 'O deputado me mandou falar com o senhor.',
+                text: bi('O deputado me mandou falar com o senhor.', 'The representative sent me to speak with you.'),
                 visible: [
                     { type: 'dialogueSeen', optionId: 'deputy_help_bc' },
                     { type: 'dialogueNotSeen', optionId: 'judge_intro_talk' },
                 ],
-                response: 'Nós não deveríamos estar tendo essa conversa. Mas... minha esposa tem um escritório de advocacia. Dra. Helena. Ela faz consultoria para orientação junto ao Supremo. Qualquer solicitação, fale diretamente com ela.',
+                response: bi(
+                    'Nós não deveríamos estar tendo essa conversa. Mas... minha esposa tem um escritório de advocacia. Dra. Helena. Ela faz consultoria para orientação junto ao Supremo. Qualquer solicitação, fale diretamente com ela.',
+                    'We shouldn\'t be having this conversation. But... my wife runs a law firm. Dr. Helena. She consults on matters before the Supreme Court. Any request, speak with her directly.',
+                ),
             },
             {
                 id: 'judge_first_offer',
-                text: `Preciso de mais tempo. [R$${fmt(JUDGE_COST)}]`,
+                text: bi(`Preciso de mais tempo. [R$${fmt(JUDGE_COST)}]`, `I need more time. [R$${fmt(JUDGE_COST)}]`),
                 visible: [{ type: 'dialogueSeen', optionId: 'judge_intro_talk' }],
                 enabled: [
                     { type: 'resource', resource: 'dirty', op: 'gte', value: JUDGE_COST },
                     { type: 'hasBatches' },
                 ],
-                response: 'Fica quieto. 30 dias — e não me ligue de novo tão cedo.',
-                disabledResponse: 'Não posso fazer nada sem ter o que estender.',
+                response: bi('Fica quieto. 30 dias — e não me ligue de novo tão cedo.', 'Stay quiet. 30 days — and don\'t call me again so soon.'),
+                disabledResponse: bi('Não posso fazer nada sem ter o que estender.', 'I can\'t do anything without something to extend.'),
                 effects: [
                     { type: 'spend', resource: 'dirty', amount: JUDGE_COST },
                     { type: 'extendBatch', index: 0, days: 30 },
@@ -724,29 +664,41 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
         options: [
             {
                 id: 'madame_proposal',
-                text: 'Me disseram que a senhora pode ajudar.',
+                text: bi('Me disseram que a senhora pode ajudar.', 'I was told you could help.'),
                 visible: [{ type: 'dialogueNotSeen', optionId: 'madame_proposal' }],
-                response: `Posso. Ofereço um contrato de consultoria geral e assessoria para orientação junto ao Supremo Tribunal. O valor é R$${fmt(MADAME_COST)}. Quando estiver pronto, me avise.`,
+                response: bi(
+                    `Posso. Ofereço um contrato de consultoria geral e assessoria para orientação junto ao Supremo Tribunal. O valor é R$${fmt(MADAME_COST)}. Quando estiver pronto, me avise.`,
+                    `I can. I offer a general consulting contract and advisory services for guidance before the Supreme Court. The fee is R$${fmt(MADAME_COST)}. Let me know when you're ready.`,
+                ),
             },
             {
                 id: 'madame_negotiate',
-                text: `R$${fmt(MADAME_COST)} é muito. Tem como negociar?`,
+                text: bi(`R$${fmt(MADAME_COST)} é muito. Tem como negociar?`, `R$${fmt(MADAME_COST)} is a lot. Can we negotiate?`),
                 visible: [
                     { type: 'dialogueSeen', optionId: 'madame_proposal' },
                     { type: 'dialogueNotSeen', optionId: 'madame_pay' },
                 ],
-                response: 'Não. O valor reflete a complexidade e os riscos envolvidos. Quando tiver o valor, me procure. Seus problemas vão desaparecer.',
+                response: bi(
+                    'Não. O valor reflete a complexidade e os riscos envolvidos. Quando tiver o valor, me procure. Seus problemas vão desaparecer.',
+                    'No. The fee reflects the complexity and risks involved. When you have the amount, come find me. Your problems will disappear.',
+                ),
             },
             {
                 id: 'madame_pay',
-                text: `Quero fechar o contrato (R$${fmt(MADAME_COST)})`,
+                text: bi(`Quero fechar o contrato (R$${fmt(MADAME_COST)})`, `I want to close the contract (R$${fmt(MADAME_COST)})`),
                 visible: [
                     { type: 'dialogueSeen', optionId: 'madame_proposal' },
                     { type: 'dialogueNotSeen', optionId: 'madame_pay' },
                 ],
                 enabled: [{ type: 'resource', resource: 'dirty', op: 'gte', value: MADAME_COST }],
-                response: 'Excelente decisão. O contrato está assinado. A partir de agora, considere seus problemas resolvidos.',
-                disabledResponse: 'Sem pressa. Mas não demore — cada dia que passa, a situação fica mais delicada.',
+                response: bi(
+                    'Excelente decisão. O contrato está assinado. A partir de agora, considere seus problemas resolvidos.',
+                    'Excellent decision. The contract is signed. From now on, consider your problems resolved.',
+                ),
+                disabledResponse: bi(
+                    'Sem pressa. Mas não demore — cada dia que passa, a situação fica mais delicada.',
+                    'No rush. But don\'t wait too long — every day that passes, the situation gets more delicate.',
+                ),
                 effects: [
                     { type: 'spend', resource: 'dirty', amount: MADAME_COST },
                     { type: 'set', resource: 'suspicion', value: 0 },
@@ -761,34 +713,35 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
 // LEVEL TRANSITION EVENTS
 // ============================================================================
 
-// Keyed by the levelIdx the player just reached (1 = became Gerente, etc.)
-// Fill in dialogues/unlocks per level. Empty placeholder = no cutscene.
 export const LEVEL_EVENTS: { [levelIdx: number]: LevelEvent } = {
     1: {
-        title: "GERENTE",
-        subtitle: "O esquema cresceu. Agora vem a atenção.",
+        title: bi("GERENTE", "MANAGER"),
+        subtitle: bi("O esquema cresceu. Agora vem a atenção.", "The scheme grew. Now comes the attention."),
         dialogues: [
-            { from: 'drugdealer', text: 'Bom trabalho. Você tá subindo. Mas cuidado — o Banco Central tá de olho.' },
-            { from: 'system', text: 'Novo contato apareceu no Zep.' },
+            { from: 'drugdealer', text: bi('Bom trabalho. Você tá subindo. Mas cuidado — o Banco Central tá de olho.', 'Good work. You\'re moving up. But careful — the Central Bank is watching.') },
+            { from: 'system', text: bi('Novo contato apareceu no Zep.', 'New contact appeared on Zep.') },
         ],
         unlocks: ['investigador'],
         payloads: [
             {
                 type: 'incoming_message',
                 contactId: 'investigador',
-                text: 'Boa tarde. Sou do departamento de compliance do Banco Central. Identificamos movimentações atípicas nas suas contas. Precisamos dos seus registros bancários para uma análise preliminar.',
+                text: bi(
+                    'Boa tarde. Sou do departamento de compliance do Banco Central. Identificamos movimentações atípicas nas suas contas. Precisamos dos seus registros bancários para uma análise preliminar.',
+                    'Good afternoon. I\'m from the Central Bank compliance department. We have identified atypical movements in your accounts. We need your banking records for a preliminary analysis.',
+                ),
             },
         ],
     },
     2: {
-        title: "DOLEIRO",
-        subtitle: "O jogo ficou mais pesado.",
+        title: bi("DOLEIRO", "MONEY CHANGER"),
+        subtitle: bi("O jogo ficou mais pesado.", "The game got heavier."),
         dialogues: [],
         unlocks: [],
     },
     3: {
-        title: "O MESTRE",
-        subtitle: "Agora é sobrevivência.",
+        title: bi("O MESTRE", "THE MASTER"),
+        subtitle: bi("Agora é sobrevivência.", "Now it's survival."),
         dialogues: [],
         unlocks: [],
     },
@@ -799,7 +752,6 @@ export const LEVEL_EVENTS: { [levelIdx: number]: LevelEvent } = {
 // ============================================================================
 
 export const SCRIPTED_EVENTS: ScriptedEvent[] = [
-    // ── Blackmail event ──
     {
         id: 'blackmail_intro',
         trigger: (s) => s.suspicion >= 50,
@@ -810,13 +762,14 @@ export const SCRIPTED_EVENTS: ScriptedEvent[] = [
                 {
                     type: 'incoming_message',
                     contactId: 'anonimo',
-                    text: 'eu sei o que você está fazendo. meu silencio custa 1 Bitcoin. mandar para: bc1q9x8yflhp5t4k0d3e2w7n6m1c8v0a4s3g7j2r5',
+                    text: bi(
+                        'eu sei o que você está fazendo. meu silencio custa 1 Bitcoin. mandar para: bc1q9x8yflhp5t4k0d3e2w7n6m1c8v0a4s3g7j2r5',
+                        'i know what you\'re doing. my silence costs 1 Bitcoin. send to: bc1q9x8yflhp5t4k0d3e2w7n6m1c8v0a4s3g7j2r5',
+                    ),
                 },
             ],
         },
     },
-
-    // ── Gerente chain: Investigador → Deputado → Juiz → Madame ──
     {
         id: 'gerente_deputado_unlock',
         trigger: (s) =>
@@ -829,7 +782,10 @@ export const SCRIPTED_EVENTS: ScriptedEvent[] = [
                 {
                     type: 'incoming_message',
                     contactId: 'deputy',
-                    text: 'Soube que o BC tá te incomodando. Posso fazer uns telefonemas. Me procura.',
+                    text: bi(
+                        'Soube que o BC tá te incomodando. Posso fazer uns telefonemas. Me procura.',
+                        'Heard the CB is giving you trouble. I can make some calls. Come find me.',
+                    ),
                 },
             ],
         },
@@ -845,7 +801,10 @@ export const SCRIPTED_EVENTS: ScriptedEvent[] = [
                 {
                     type: 'incoming_message',
                     contactId: 'deputy',
-                    text: 'Falei com um amigo meu. Dr. Gilmar. Ele pode te ajudar. Tá no seu Zep.',
+                    text: bi(
+                        'Falei com um amigo meu. Dr. Gilmar. Ele pode te ajudar. Tá no seu Zep.',
+                        'Spoke to a friend of mine. Dr. Gilmar. He can help you. He\'s on your Zep.',
+                    ),
                 },
             ],
         },
@@ -861,31 +820,36 @@ export const SCRIPTED_EVENTS: ScriptedEvent[] = [
                 {
                     type: 'incoming_message',
                     contactId: 'madame',
-                    text: 'Meu marido me disse que você precisa de orientação. Me procure quando quiser conversar.',
+                    text: bi(
+                        'Meu marido me disse que você precisa de orientação. Me procure quando quiser conversar.',
+                        'My husband told me you need guidance. Come find me when you want to talk.',
+                    ),
                 },
             ],
         },
     },
-
-    // ── Hacker follow-up: Bitcoin investigation result ──
     {
         id: 'bitcoin_investigation_result',
         trigger: (s) => s.investigateBitcoinDay > 0 && s.day >= s.investigateBitcoinDay + 10,
         payload: {
             type: 'incoming_message',
             contactId: 'hacker',
-            text: 'esse endereço termina numa conta que é do CV. sujeira.',
+            text: bi(
+                'esse endereço termina numa conta que é do CV. sujeira.',
+                'that address leads to a CV account. dirty.',
+            ),
         },
     },
-
-    // ── Pressure warning messages ──
     {
         id: 'pressure_warning_police',
         trigger: (s) => s.suspicion >= 75,
         payload: {
             type: 'incoming_message',
             contactId: 'drugdealer',
-            text: 'Cuidado — os federais tão de olho. Esfria isso.',
+            text: bi(
+                'Cuidado — os federais tão de olho. Esfria isso.',
+                'Careful — the feds are watching. Cool it down.',
+            ),
         },
     },
     {
@@ -894,7 +858,7 @@ export const SCRIPTED_EVENTS: ScriptedEvent[] = [
         payload: {
             type: 'incoming_message',
             contactId: 'drugdealer',
-            text: 'Isso tá demorando demais.',
+            text: bi('Isso tá demorando demais.', 'This is taking too long.'),
         },
     },
 ];
@@ -903,8 +867,6 @@ export const SCRIPTED_EVENTS: ScriptedEvent[] = [
 // HELPER FUNCTIONS
 // ============================================================================
 
-// Get character by ID
 export const getCharacter = (characterId: string) => {
     return CHARACTERS[characterId as keyof typeof CHARACTERS];
 };
-

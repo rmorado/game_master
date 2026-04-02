@@ -10,8 +10,8 @@ import {
 } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
-import { UI_BACEN } from '../constants/dialogues';
 import { AUCTION_DURATIONS } from '../constants/game-data';
+import { useStrings } from '../constants/strings';
 import { formatMoney } from '../utils/format';
 
 const BLUE = '#1d4ed8';
@@ -31,6 +31,7 @@ interface OfferCardProps {
 }
 
 function OfferCard({ bankName, discountRate, offerValue, isBest, index, onAccept }: OfferCardProps) {
+    const str = useStrings();
     const slide = useRef(new Animated.Value(30)).current;
     const fade = useRef(new Animated.Value(0)).current;
 
@@ -45,12 +46,12 @@ function OfferCard({ bankName, discountRate, offerValue, isBest, index, onAccept
         <Animated.View style={[offerStyles.card, isBest && offerStyles.cardBest, { opacity: fade, transform: [{ translateY: slide }] }]}>
             {isBest && (
                 <View style={offerStyles.bestBadge}>
-                    <Text style={offerStyles.bestBadgeText}>{UI_BACEN.bestOffer}</Text>
+                    <Text style={offerStyles.bestBadgeText}>{str.bacen.bestOffer}</Text>
                 </View>
             )}
             <View style={offerStyles.cardHeader}>
                 <View style={offerStyles.bankIcon}>
-                    <Text style={offerStyles.bankIconText}>{UI_BACEN.bankIcon}</Text>
+                    <Text style={offerStyles.bankIconText}>{str.bacen.bankIcon}</Text>
                 </View>
                 <Text style={offerStyles.bankName}>{bankName}</Text>
                 <View style={offerStyles.discountBadge}>
@@ -58,11 +59,11 @@ function OfferCard({ bankName, discountRate, offerValue, isBest, index, onAccept
                 </View>
             </View>
             <View style={offerStyles.cardBody}>
-                <Text style={offerStyles.offerLabel}>{UI_BACEN.offerLabel}</Text>
+                <Text style={offerStyles.offerLabel}>{str.bacen.offerLabel}</Text>
                 <Text style={offerStyles.offerValue}>R$ {formatMoney(offerValue)}</Text>
             </View>
             <TouchableOpacity style={offerStyles.acceptBtn} onPress={onAccept} activeOpacity={0.8}>
-                <Text style={offerStyles.acceptBtnText}>{UI_BACEN.confirmBtn}</Text>
+                <Text style={offerStyles.acceptBtnText}>{str.bacen.confirmBtn}</Text>
             </TouchableOpacity>
         </Animated.View>
     );
@@ -176,6 +177,7 @@ export function BacenScreen() {
             actions: s.actions,
         })));
 
+    const str = useStrings();
     const [auctionPickerPackId, setAuctionPickerPackId] = useState<number | null>(null);
     const [sellStep, setSellStep] = useState<SellStep>(
         currentSellPackId && bankOffers.length > 0 ? 'offers' : 'list'
@@ -231,12 +233,12 @@ export function BacenScreen() {
                         <Text style={styles.logoLetter}>B</Text>
                     </View>
                     <View>
-                        <Text style={styles.wordmark}>{UI_BACEN.wordmark}</Text>
-                        <Text style={styles.subtitle}>{UI_BACEN.subtitle}</Text>
+                        <Text style={styles.wordmark}>{str.bacen.wordmark}</Text>
+                        <Text style={styles.subtitle}>{str.bacen.subtitle}</Text>
                     </View>
                 </View>
                 <View style={styles.corpBadge}>
-                    <Text style={styles.corpText}>{UI_BACEN.corpBadge}</Text>
+                    <Text style={styles.corpText}>{str.bacen.corpBadge}</Text>
                 </View>
             </View>
 
@@ -245,7 +247,7 @@ export function BacenScreen() {
                 {sellStep === 'offers' ? (
                     // ── Offers ─────────────────────────────────────────────────
                     <ScrollView contentContainerStyle={styles.section} showsVerticalScrollIndicator={false}>
-                        <Text style={styles.sectionLabel}>{UI_BACEN.sectionOffers}</Text>
+                        <Text style={styles.sectionLabel}>{str.bacen.sectionOffers}</Text>
                         {bankOffers.map((offer, i) => (
                             <OfferCard
                                 key={offer.bankName}
@@ -261,24 +263,24 @@ export function BacenScreen() {
                             style={styles.cancelLink}
                             onPress={() => { actions.cancelOffers(); setSellStep('list'); }}
                         >
-                            <Text style={styles.cancelLinkText}>{UI_BACEN.cancelLink}</Text>
+                            <Text style={styles.cancelLinkText}>{str.bacen.cancelLink}</Text>
                         </TouchableOpacity>
                     </ScrollView>
 
                 ) : successPackId ? (
                     // ── Success ────────────────────────────────────────────────
                     <View style={styles.successContainer}>
-                        <Text style={styles.successIcon}>{UI_BACEN.successIcon}</Text>
-                        <Text style={styles.successTitle}>{UI_BACEN.successTitle}</Text>
-                        <Text style={styles.successSub}>{UI_BACEN.successSub}</Text>
+                        <Text style={styles.successIcon}>{str.bacen.successIcon}</Text>
+                        <Text style={styles.successTitle}>{str.bacen.successTitle}</Text>
+                        <Text style={styles.successSub}>{str.bacen.successSub}</Text>
                     </View>
 
                 ) : (
                     // ── Pack list ──────────────────────────────────────────────
                     <ScrollView style={styles.packList} showsVerticalScrollIndicator={false}>
-                        <Text style={styles.sectionLabel}>{UI_BACEN.sectionPackList}</Text>
+                        <Text style={styles.sectionLabel}>{str.bacen.sectionPackList}</Text>
                         {debtPacks.length === 0 ? (
-                            <Text style={styles.emptyText}>{UI_BACEN.emptyPacks}</Text>
+                            <Text style={styles.emptyText}>{str.bacen.emptyPacks}</Text>
                         ) : (
                             debtPacks.map(pack => {
                                 const pending = pendingAuctions.find(a => a.packId === pack.id);
@@ -294,8 +296,8 @@ export function BacenScreen() {
                                                 <Text style={styles.packIdText}>#{pack.id % 10000}</Text>
                                             </View>
                                             <View style={styles.packInfo}>
-                                                <Text style={styles.packName}>{UI_BACEN.packName(pack.cpfsUsed)}</Text>
-                                                <Text style={styles.packMeta}>{UI_BACEN.packMeta(pack.dayCreated)}</Text>
+                                                <Text style={styles.packName}>{str.bacen.packName(pack.cpfsUsed)}</Text>
+                                                <Text style={styles.packMeta}>{str.bacen.packMeta(pack.dayCreated)}</Text>
                                             </View>
                                             <View style={styles.packRight}>
                                                 <Text style={styles.packValue}>R$ {formatMoney(pack.value)}</Text>
@@ -305,7 +307,7 @@ export function BacenScreen() {
                                         {/* Auction state */}
                                         {showPicker ? (
                                             <View style={styles.picker}>
-                                                <Text style={styles.pickerHint}>quanto tempo de leilão?</Text>
+                                                <Text style={styles.pickerHint}>{str.bacen.auctionPick}</Text>
                                                 {AUCTION_DURATIONS.map(dur => (
                                                     <TouchableOpacity
                                                         key={dur.label}
@@ -314,7 +316,7 @@ export function BacenScreen() {
                                                         activeOpacity={0.75}
                                                     >
                                                         <Text style={styles.durationLabel}>{dur.label}</Text>
-                                                        <Text style={styles.durationDays}>{dur.days} dias</Text>
+                                                        <Text style={styles.durationDays}>{str.bacen.packDays(dur.days)}</Text>
                                                         <Text style={styles.durationRange}>{Math.round(dur.minPct * 100)}–{Math.round(dur.maxPct * 100)}%</Text>
                                                     </TouchableOpacity>
                                                 ))}
@@ -322,13 +324,13 @@ export function BacenScreen() {
                                                     style={styles.cancelPicker}
                                                     onPress={() => setAuctionPickerPackId(null)}
                                                 >
-                                                    <Text style={styles.cancelPickerText}>cancelar</Text>
+                                                    <Text style={styles.cancelPickerText}>{str.bacen.cancelLink}</Text>
                                                 </TouchableOpacity>
                                             </View>
                                         ) : pending ? (
                                             <View style={styles.pendingBadge}>
                                                 <Text style={styles.pendingText}>
-                                                    leilão em andamento — {Math.max(0, pending.endDay - day)} {Math.max(0, pending.endDay - day) === 1 ? 'dia' : 'dias'}
+                                                    {str.bacen.auctionPending(Math.max(0, pending.endDay - day))}
                                                 </Text>
                                             </View>
                                         ) : completed ? (
@@ -337,7 +339,7 @@ export function BacenScreen() {
                                                 onPress={() => handleClaim(pack.id)}
                                                 activeOpacity={0.8}
                                             >
-                                                <Text style={styles.claimBtnText}>proposta disponível</Text>
+                                                <Text style={styles.claimBtnText}>{str.bacen.auctionReady}</Text>
                                             </TouchableOpacity>
                                         ) : (
                                             <TouchableOpacity
@@ -345,7 +347,7 @@ export function BacenScreen() {
                                                 onPress={() => setAuctionPickerPackId(pack.id)}
                                                 activeOpacity={0.8}
                                             >
-                                                <Text style={styles.startBtnText}>iniciar leilão</Text>
+                                                <Text style={styles.startBtnText}>{str.bacen.auctionStart}</Text>
                                             </TouchableOpacity>
                                         )}
                                     </View>

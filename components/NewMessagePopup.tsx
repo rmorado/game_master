@@ -4,19 +4,21 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
 import { getCharacter } from '../constants/dialogues';
+import { resolveBi } from '../utils/dialogue';
 
 export function NewMessagePopup() {
-    const { showNewMessagePopup, popupSender, popupPreview, actions } = useGameStore(useShallow(state => ({
+    const { showNewMessagePopup, popupSender, popupPreview, language, actions } = useGameStore(useShallow(state => ({
         showNewMessagePopup: state.showNewMessagePopup,
         popupSender: state.popupSender,
         popupPreview: state.popupPreview,
+        language: state.language,
         actions: state.actions,
     })));
 
     if (!showNewMessagePopup) return null;
 
     const character = popupSender ? getCharacter(popupSender) : undefined;
-    const name = character?.name ?? 'ZEP';
+    const name = character?.name ? resolveBi(character.name, language) : 'ZEP';
 
     return (
         <TouchableOpacity
