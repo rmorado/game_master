@@ -49,7 +49,7 @@ export const TUTORIAL: TutorialStep[] = [
         ),
         target: 'contact_hacker',
         screen: 'zep',
-        boxPosition: { top: 380 },
+        boxPosition: { top: 450 },
     },
     // 4 — Buy CPFs
     {
@@ -64,11 +64,11 @@ export const TUTORIAL: TutorialStep[] = [
         id: 5,
         text: bi(
             "Bom. Agora vamos criar uns empréstimos falsos em nome dessas pessoas. Volte ao início.",
-            "Good. Now let's create fake loans under these people's names. Go back home.",
+            "Good. Now let's create fake loans under these people's names. Go back to the home screen.",
         ),
         target: 'btn_back',
         screen: 'chat',
-        boxPosition: { bottom: 90 },
+        boxPosition: { bottom: 250 },
     },
     // 6 — Open LARANJAS
     {
@@ -83,11 +83,11 @@ export const TUTORIAL: TutorialStep[] = [
         id: 7,
         text: bi(
             "Use CRIAR DERIVATIVO para gerar o derivativo de dívida.",
-            "Use CREATE DERIVATIVE to generate the debt derivative.",
+            "Use CREATE DERIVATIVE to generate the debt.",
         ),
         target: 'btn_loan',
         screen: 'laranjas',
-        boxPosition: { top: 120 },
+        boxPosition: { top: 250 },
     },
     // 8 — Derivativo created (info)
     {
@@ -120,10 +120,10 @@ export const TUTORIAL: TutorialStep[] = [
     // 11 — Sell derivativo
     {
         id: 11,
-        text: bi("Ofereça o derivativo.", "Offer the derivative."),
+        text: bi("Comece o leilão.", "Start the auction."),
         target: 'btn_sell',
         screen: 'bacen',
-        boxPosition: { top: 250 },
+        boxPosition: { top: 450 },
     },
     // 12 — Money received, go pay PCC (info)
     {
@@ -135,7 +135,7 @@ export const TUTORIAL: TutorialStep[] = [
     // 13 — Open CARTEIRA
     {
         id: 13,
-        text: bi("Abra a CARTEIRA.", "Open the WALLET."),
+        text: bi("Abra a CARTEIRA.", "Open the SAFE."),
         target: 'nav_carteira',
         screen: 'home',
         boxPosition: { bottom: 450 },
@@ -156,7 +156,7 @@ export const TUTORIAL: TutorialStep[] = [
         text: bi("Envie o pagamento.", "Send the payment."),
         target: 'btn_pay',
         screen: 'carteira',
-        boxPosition: { bottom: 200 },
+        boxPosition: { bottom: 180 },
     },
     // 16 — Congratulation (info)
     {
