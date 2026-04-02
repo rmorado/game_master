@@ -1,7 +1,8 @@
 // constants/game-data.ts
 import { Level } from '../types/game';
 
-export const MS_PER_DAY = 5_000;              // real milliseconds per game day (10s = 1 day)
+export const MS_PER_DAY = 5_000;              // real milliseconds per game day
+export const CPF_COST = 5_000;                 // dirty money per CPF purchased or used in a loan
 export const BAG_DIRTY_THRESHOLD = 4_000_000;  // PCC sends next bag when dirty ≤ this
 
 // Game calendar — day 1 = 1 dec 2025

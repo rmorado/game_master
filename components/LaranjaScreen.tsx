@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
 import { UI_LARANJAS } from '../constants/dialogues';
-import { LOAN_OPTIONS } from '../constants/game-data';
+import { LOAN_OPTIONS, MS_PER_DAY, CPF_COST } from '../constants/game-data';
 import { formatBRL } from '../utils/format';
 
 const ORANGE = '#f97316';
@@ -58,7 +58,7 @@ export function LaranjaScreen() {
                 <View style={styles.processingContainer}>
                     <Text style={styles.processingTitle}>PROCESSANDO</Text>
                     <View style={styles.progressBar}>
-                        <View style={[styles.progressFill, { width: `${progress * 100}%` as any }]} />
+                        <View style={[styles.progressFill, { width: `${Math.round(progress * 100)}%` as `${number}%` }]} />
                     </View>
                     <Text style={styles.processingLabel}>{UI_LARANJAS.processingLabel}</Text>
                     <View style={styles.cpfFlash}>
@@ -79,8 +79,8 @@ export function LaranjaScreen() {
 
                     <View style={styles.optionsSection}>
                         {LOAN_OPTIONS.map(opt => {
-                            const cost = opt.cpfCount * 5000;
-                            const days = Math.round(opt.durationMs / 10_000);
+                            const cost = opt.cpfCount * CPF_COST;
+                            const days = Math.round(opt.durationMs / MS_PER_DAY);
                             const canAfford = dirty >= cost && cpfs >= opt.cpfCount;
                             const disabled = !canAfford || (tutStep > 0 && tutStep < 7);
                             return (

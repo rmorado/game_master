@@ -1,5 +1,6 @@
 // app/(tabs)/game.tsx
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Platform } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useGameStore } from '../../hooks/use-game-store';
 import { MS_PER_DAY } from '../../constants/game-data';
 import { UI_GAME_OVER } from '../../constants/dialogues';
@@ -97,17 +98,27 @@ export default function GameScreen() {
             </View>
             <BottomNavBar />
             {activeToast && (
-                <View style={[
-                    styles.toast,
-                    activeToast.appId === 'bacen' ? styles.toastBacen : styles.toastLaranjas,
-                ]}>
-                    <Text style={[
-                        styles.toastText,
-                        activeToast.appId === 'bacen' ? styles.toastTextBacen : styles.toastTextLaranjas,
-                    ]}>
-                        {activeToast.message}
-                    </Text>
-                </View>
+                <TouchableOpacity
+                    style={[styles.toast, activeToast.appId === 'bacen' ? styles.toastBacen : styles.toastLaranjas]}
+                    onPress={() => actions.clearToast()}
+                    activeOpacity={0.9}
+                >
+                    {activeToast.appId === 'laranjas' ? (
+                        <LinearGradient colors={['#ff6a00', '#c94300']} style={styles.toastIcon}>
+                            <Text style={styles.toastIconEmoji}>🍊</Text>
+                        </LinearGradient>
+                    ) : (
+                        <View style={[styles.toastIcon, styles.toastIconBacen]}>
+                            <Text style={styles.toastIconLetter}>B</Text>
+                        </View>
+                    )}
+                    <View style={styles.toastText}>
+                        <Text style={[styles.toastAppName, activeToast.appId === 'bacen' ? styles.toastAccentBacen : styles.toastAccentLaranjas]}>
+                            {activeToast.appId === 'laranjas' ? 'Laranjas' : 'BACEN'}
+                        </Text>
+                        <Text style={styles.toastMessage}>{activeToast.message}</Text>
+                    </View>
+                </TouchableOpacity>
             )}
             <AppOverview />
             <PayModal />
@@ -127,34 +138,65 @@ const styles = StyleSheet.create({
     },
     toast: {
         position: 'absolute',
-        bottom: 60,
-        left: 20,
-        right: 20,
-        borderRadius: 6,
-        borderWidth: 1,
-        paddingVertical: 12,
-        paddingHorizontal: 16,
+        top: 54,
+        left: 12,
+        right: 12,
+        zIndex: 10000,
+        borderRadius: 14,
+        paddingVertical: 10,
+        paddingHorizontal: 12,
+        flexDirection: 'row',
         alignItems: 'center',
+        gap: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.4,
+        shadowRadius: 6,
+        elevation: 8,
     },
     toastLaranjas: {
-        backgroundColor: '#0a0a0a',
-        borderColor: '#f97316',
+        backgroundColor: 'rgba(30,12,0,0.92)',
     },
     toastBacen: {
-        backgroundColor: '#0b0118',
-        borderColor: '#7c3aed',
+        backgroundColor: 'rgba(10,16,40,0.92)',
+    },
+    toastIcon: {
+        width: 32,
+        height: 32,
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    toastIconBacen: {
+        backgroundColor: '#f59e0b',
+    },
+    toastIconEmoji: {
+        fontSize: 17,
+    },
+    toastIconLetter: {
+        fontSize: 17,
+        fontWeight: '900',
+        color: '#1d4ed8',
     },
     toastText: {
-        fontFamily: 'Courier',
-        fontSize: 13,
-        fontWeight: '700',
-        letterSpacing: 1,
+        flex: 1,
     },
-    toastTextLaranjas: {
+    toastAppName: {
+        fontSize: 12,
+        fontWeight: '700',
+        fontFamily: Platform.select({ ios: 'SFProText-Semibold', android: 'sans-serif-medium' }),
+    },
+    toastAccentLaranjas: {
         color: '#f97316',
     },
-    toastTextBacen: {
-        color: '#a78bfa',
+    toastAccentBacen: {
+        color: '#60a5fa',
+    },
+    toastMessage: {
+        color: 'rgba(255,255,255,0.6)',
+        fontSize: 12,
+        marginTop: 1,
+        fontFamily: Platform.select({ ios: 'SFProText-Regular', android: 'sans-serif' }),
     },
     gameOver: {
         flex: 1,

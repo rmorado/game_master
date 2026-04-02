@@ -1,7 +1,7 @@
 // hooks/use-game-store.ts
 import { create } from 'zustand';
 import { GameState, Batch, DebtPack, BankOffer, EventPayload } from '../types/game';
-import { LEVELS, BAG_DIRTY_THRESHOLD } from '../constants/game-data';
+import { LEVELS, BAG_DIRTY_THRESHOLD, CPF_COST } from '../constants/game-data';
 import { BANKS, SCRIPTED_EVENTS, DIALOGUES, LEVEL_EVENTS, TUTORIAL, UI_CHAT } from '../constants/dialogues';
 import { formatMoney } from '../utils/format';
 import { evaluateConditionSet, applyEffects } from '../utils/dialogue';
@@ -19,6 +19,15 @@ function trackedTimeout(fn: () => void, ms: number) {
         fn();
     }, ms);
     pendingTimeouts.push(id);
+}
+
+// ─── Auction helper ─────────────────────────────────────────────────────────
+
+function generateOffers(packValue: number, minPct: number, maxPct: number): BankOffer[] {
+    return BANKS.map(bank => {
+        const pct = minPct + Math.random() * (maxPct - minPct);
+        return { bankName: bank.name, discountRate: 1 - pct, offerValue: Math.floor(packValue * pct) };
+    });
 }
 
 // ─── Chat helper ────────────────────────────────────────────────────────────
@@ -313,10 +322,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 for (const auction of nowCompleted) {
                     const pack = preAuction.debtPacks.find(p => p.id === auction.packId);
                     if (!pack) continue;
-                    const offers: BankOffer[] = BANKS.map(bank => {
-                        const pct = auction.minPct + Math.random() * (auction.maxPct - auction.minPct);
-                        return { bankName: bank.name, discountRate: 1 - pct, offerValue: Math.floor(pack.value * pct) };
-                    });
+                    const offers = generateOffers(pack.value, auction.minPct, auction.maxPct);
                     set(s => ({
                         pendingAuctions: s.pendingAuctions.filter(a => a.packId !== auction.packId),
                         completedAuctions: [...s.completedAuctions, { packId: auction.packId, offers }],
@@ -415,7 +421,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
         startLoan: (cpfCount: number, durationMs: number) => {
             const { dirty, cpfs, tutStep, pendingLoan } = get();
-            const cost = cpfCount * 5000;
+            const cost = cpfCount * CPF_COST;
             if (dirty < cost || cpfs < cpfCount || pendingLoan !== null) return;
 
             const inTutorial = tutStep > 0 && tutStep < TUTORIAL.length;
@@ -446,7 +452,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             if (!pendingLoan) return;
             const { cpfCount } = pendingLoan;
             const lvl = LEVELS[levelIdx];
-            const newPack: DebtPack = { id: Date.now(), value: cpfCount * 5000, cpfsUsed: cpfCount, dayCreated: day };
+            const newPack: DebtPack = { id: Date.now(), value: cpfCount * CPF_COST, cpfsUsed: cpfCount, dayCreated: day };
             set(s => ({
                 pendingLoan: null,
                 debtPacks: [...s.debtPacks, newPack],
@@ -462,10 +468,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             if (inTutorial) {
                 const pack = debtPacks.find(p => p.id === packId);
                 if (!pack) return;
-                const offers: BankOffer[] = BANKS.map(bank => {
-                    const pct = minPct + Math.random() * (maxPct - minPct);
-                    return { bankName: bank.name, discountRate: 1 - pct, offerValue: Math.floor(pack.value * pct) };
-                });
+                const offers = generateOffers(pack.value, minPct, maxPct);
                 set(s => ({ completedAuctions: [...s.completedAuctions, { packId, offers }] }));
             } else {
                 set(s => ({ pendingAuctions: [...s.pendingAuctions, { packId, endDay: s.day + days, minPct, maxPct }] }));
