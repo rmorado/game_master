@@ -1,10 +1,10 @@
 // hooks/use-game-store.ts
 import { create } from 'zustand';
-import { GameState, Batch, DebtPack, BankOffer, EventPayload, Lang } from '../types/game';
-import { LEVELS, BAG_DIRTY_THRESHOLD, CPF_COST } from '../constants/game-data';
-import { BANKS, SCRIPTED_EVENTS, DIALOGUES, LEVEL_EVENTS, TUTORIAL } from '../constants/dialogues';
+import { BANKS, DIALOGUES, LEVEL_EVENTS, SCRIPTED_EVENTS, TUTORIAL } from '../constants/dialogues';
+import { BAG_DIRTY_THRESHOLD, CPF_COST, LEVELS } from '../constants/game-data';
+import { BankOffer, Batch, DebtPack, EventPayload, GameState, Lang } from '../types/game';
+import { applyEffects, evaluateConditionSet, resolveBi } from '../utils/dialogue';
 import { formatMoney } from '../utils/format';
-import { evaluateConditionSet, applyEffects, resolveBi } from '../utils/dialogue';
 
 const MSG_POPUP_DURATION = 2000;
 
@@ -137,12 +137,12 @@ type GameStore = GameState & {
 
 const initialState: GameState = {
     day: 1,
-    dirty: 20_000_000,
+    dirty: 5_000_000,
     clean: 0,
     cpfs: 0,
     suspicion: 0,
     pressure: 0,
-    batches: [{ id: 1, due: 14_000_000, days: 90 }],
+    batches: [{ id: 1, due: 3_000_000, days: 90 }],
     debtPacks: [],
     currentSellPackId: null,
     bankOffers: [],
@@ -152,7 +152,7 @@ const initialState: GameState = {
     consecutiveBagDeclines: 0,
     levelIdx: 0,
     totalWashed: 0,
-    totalReceived: 20000000,
+    totalReceived: 5_000_000,
     totalPaid: 0,
     transfersByContact: {},
     contacts: { drugdealer: true, hacker: true, lawyer: true },

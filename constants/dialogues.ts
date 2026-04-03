@@ -16,8 +16,8 @@ export const TUTORIAL: TutorialStep[] = [
     {
         id: 0,
         text: bi(
-            "Bem-vindo, Vacaro. Você lava dinheiro pro PCC: eles mandam uma quantia, você devolve pelo menos 60%.",
-            "Welcome, Vacaro. You launder money for the PCC: they send a sum, you return at least 60%.",
+            "Bem-vindo, Vicaro. Você lava dinheiro pro PCC: eles mandam uma quantia, você devolve pelo menos 60%.",
+            "Welcome, Vicaro. You launder money for the PCC: they send a sum, you return at least 60%.",
         ),
         target: null,
         screen: 'home',
@@ -27,7 +27,7 @@ export const TUTORIAL: TutorialStep[] = [
         id: 1,
         text: bi(
             "O esquema: empréstimos falsos em nome de CPFs reais, vendidos como dívida pra outros bancos.",
-            "The scheme: fake loans under real CPFs, sold as debt to other banks.",
+            "The scheme: fake loans under real Social Security numbers (CPFs), sold as debt to other banks.",
         ),
         target: null,
         screen: 'home',
@@ -284,8 +284,8 @@ const JUDGE_COST = 5000000;
 const MADAME_COST = 1200000000;
 const BLACKMAIL_COST = 3000000;
 const PIPOCO_TEXT = bi(
-    'uma moto aponta na esquina e vem na sua direção. a pessoa na garupa tira um revolver do casaco e dá quatro tiros sem descer da moto. Vacaro morto, na esquina da faria lima com tucumã.',
-    'a motorcycle rounds the corner heading your way. the pillion rider pulls a revolver from their jacket and fires four shots without dismounting. Vacaro dead, on the corner of faria lima and tucumã.',
+    'uma moto aponta na esquina e vem na sua direção. a pessoa na garupa tira um revolver do casaco e dá quatro tiros sem descer da moto. Vicaro morto, na esquina da faria lima com tucumã.',
+    'a motorcycle rounds the corner heading your way. the pillion rider pulls a revolver from their jacket and fires four shots without dismounting. Vicaro dead, on the corner of faria lima and tucumã.',
 );
 const BTC_TRACK_RESPONSE = bi(
     'já saiu dessa carteira. tô rastreando — te aviso.',

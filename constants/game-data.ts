@@ -1,7 +1,7 @@
 // constants/game-data.ts
 import { Level } from '../types/game';
 
-export const MS_PER_DAY = 5_000;              // real milliseconds per game day
+export const MS_PER_DAY = 2_000;              // real milliseconds per game day
 export const CPF_COST = 5_000;                 // dirty money per CPF purchased or used in a loan
 export const BAG_DIRTY_THRESHOLD = 4_000_000;  // PCC sends next bag when dirty ≤ this
 
@@ -19,15 +19,15 @@ export function gameDate(day: number, lang: 'pt' | 'en' = 'pt'): string {
 }
 
 export const LOAN_OPTIONS = [
-    { cpfCount: 100,  durationMs: 10_000 },
-    { cpfCount: 500,  durationMs: 30_000 },
-    { cpfCount: 1000, durationMs: 45_000 },
+    { cpfCount: 100,  durationMs: 5_000 },
+    { cpfCount: 500,  durationMs: 15_000 },
+    { cpfCount: 1000, durationMs: 25_000 },
 ] as const;
 
 export const AUCTION_DURATIONS = [
-    { label: 'curto',  days: 15, minPct: 0.50, maxPct: 0.70 },
-    { label: 'médio',  days: 20, minPct: 0.60, maxPct: 0.80 },
-    { label: 'longo',  days: 30, minPct: 0.70, maxPct: 0.90 },
+    { label: 'curto',  days: 5, minPct: 0.50, maxPct: 0.70 },
+    { label: 'médio',  days: 10, minPct: 0.60, maxPct: 0.80 },
+    { label: 'longo',  days: 20, minPct: 0.70, maxPct: 0.90 },
 ] as const;
 
 export const LEVELS: Level[] = [
