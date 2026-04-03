@@ -2,7 +2,8 @@
 import { create } from 'zustand';
 import { BANKS, DIALOGUES, LEVEL_EVENTS, SCRIPTED_EVENTS, TUTORIAL } from '../constants/dialogues';
 import { BAG_DIRTY_THRESHOLD, CPF_COST, LEVELS } from '../constants/game-data';
-import { BankOffer, Batch, DebtPack, EventPayload, GameState, Lang } from '../types/game';
+import { BankOffer, Batch, DebtPack, EventPayload, GameState, Lang, NewsItem } from '../types/game';
+import { pickHeadline } from '../constants/news';
 import { applyEffects, evaluateConditionSet, resolveBi } from '../utils/dialogue';
 import { formatMoney } from '../utils/format';
 
@@ -119,6 +120,7 @@ type GameStore = GameState & {
         advanceTutorial: () => void;
         skipTutorial: () => void;
         dismissNewMessagePopup: () => void;
+        dismissNewsPopup: () => void;
         chooseDialogueOption: (optionId: string) => void;
         advanceLevelDialogue: () => void;
         gameOver: (reason: string, detail: string) => void;
@@ -187,6 +189,11 @@ const initialState: GameState = {
     showAppOverview: false,
     language: 'pt' as Lang,
     langPicker: true,
+    newsHistory: [],
+    currentNews: null,
+    showNewsPopup: false,
+    counterThisWeek: false,
+    lastNewsDay: 0,
 };
 
 // ─── Store ───────────────────────────────────────────────────────────────────
@@ -351,6 +358,21 @@ export const useGameStore = create<GameStore>((set, get) => ({
                         }));
                     }
                 });
+            }
+
+            // ── Weekly news ──
+            const newsState = get();
+            if (newsState.day - newsState.lastNewsDay >= 7) {
+                const headline = pickHeadline(newsState.suspicion, newsState.counterThisWeek);
+                const item: NewsItem = { day: newsState.day, subject: headline.subject, pt: headline.pt, en: headline.en };
+                set(s => ({
+                    newsHistory: [item, ...s.newsHistory].slice(0, 5),
+                    currentNews: item,
+                    showNewsPopup: true,
+                    counterThisWeek: false,
+                    lastNewsDay: newsState.day,
+                }));
+                trackedTimeout(() => set({ showNewsPopup: false }), 5000);
             }
         },
 
@@ -570,6 +592,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
         dismissNewMessagePopup: () => {
             set({ showNewMessagePopup: false });
+        },
+
+        dismissNewsPopup: () => {
+            set({ showNewsPopup: false });
         },
 
         chooseDialogueOption: (optionId: string) => {

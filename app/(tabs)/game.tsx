@@ -14,6 +14,8 @@ import { BacenScreen } from '../../components/BacenScreen';
 import { CarteiraScreen } from '../../components/CarteiraScreen';
 import { DossieScreen } from '../../components/DossieScreen';
 import { SettingsScreen } from '../../components/SettingsScreen';
+import { NewsScreen } from '../../components/NewsScreen';
+import { NewsPopup } from '../../components/NewsPopup';
 import { PayModal } from '../../components/PayModal';
 import { TutorialOverlay } from '../../components/TutorialOverlay';
 import { NewMessagePopup } from '../../components/NewMessagePopup';
@@ -89,6 +91,7 @@ export default function GameScreen() {
             case 'carteira': return <CarteiraScreen />;
             case 'dossie':  return <DossieScreen />;
             case 'settings': return <SettingsScreen />;
+            case 'news':    return <NewsScreen />;
             default:        return <HomeScreen />;
         }
     };
@@ -127,6 +130,7 @@ export default function GameScreen() {
             <PayModal />
             <TutorialOverlay />
             <NewMessagePopup />
+            <NewsPopup />
         </View>
     );
 }

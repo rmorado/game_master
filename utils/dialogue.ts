@@ -67,6 +67,9 @@ export function applyEffects(effects: Effect[], state: GameState): Partial<GameS
                 const min = effect.min ?? 0;
                 const max = effect.max ?? 100;
                 patch[effect.resource] = Math.max(min, Math.min(max, current + effect.delta));
+                if (effect.resource === 'suspicion' && effect.delta < 0) {
+                    patch.counterThisWeek = true;
+                }
                 break;
             }
             case 'set':

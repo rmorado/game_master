@@ -180,8 +180,7 @@ export function HomeScreen() {
                         label={str.home.apps.news}
                         gradient={['#1d4ed8', '#0f2a80']}
                         emoji="📰"
-                        onPress={() => {}}
-                        dim={true}
+                        onPress={() => go('news')}
                     />
                     <AppIcon
                         label={str.home.apps.settings}

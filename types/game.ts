@@ -46,7 +46,7 @@ export interface GameState {
     eventsTriggered: string[];
     isPaused: boolean;
     tutStep: number;
-    activeApp: 'home' | 'zep' | 'chat' | 'laranjas' | 'bacen' | 'carteira' | 'dossie' | 'settings';
+    activeApp: 'home' | 'zep' | 'chat' | 'laranjas' | 'bacen' | 'carteira' | 'dossie' | 'settings' | 'news';
     language: Lang;
     modal: ModalType;
     currentChat: string | null;
@@ -80,6 +80,12 @@ export interface GameState {
     levelUpScreen: number | null;       // levelIdx that was just reached, or null
     levelUpDialogueIdx: number;         // which dialogue in the sequence we're showing
     langPicker: boolean;
+    // News system
+    newsHistory: NewsItem[];
+    currentNews: NewsItem | null;
+    showNewsPopup: boolean;
+    counterThisWeek: boolean;
+    lastNewsDay: number;
     // Game over state
     isGameOver: boolean;
     gameOverReason: string;
@@ -89,6 +95,13 @@ export interface GameState {
     navHistory: string[];
     visitedApps: string[];
     showAppOverview: boolean;
+}
+
+export interface NewsItem {
+    day: number;
+    subject: string;
+    pt: string;
+    en: string;
 }
 
 export interface Message {
