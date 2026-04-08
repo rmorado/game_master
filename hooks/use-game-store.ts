@@ -189,7 +189,7 @@ const initialState: GameState = {
     visitedApps: ['home'],
     showAppOverview: false,
     language: 'pt' as Lang,
-    langPicker: true,
+    langPicker: false,
     newsHistory: [],
     currentNews: null,
     showNewsPopup: false,
