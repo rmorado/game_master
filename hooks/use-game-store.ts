@@ -184,6 +184,7 @@ const initialState: GameState = {
     gameOverReason: '',
     gameOverDetail: '',
     omstreDayStart: 0,
+    levelStartDay: 1,
     navHistory: [],
     visitedApps: ['home'],
     showAppOverview: false,
@@ -320,6 +321,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                     levelUpScreen: newLevel,
                     levelUpDialogueIdx: -1,
                     isPaused: true,
+                    levelStartDay: afterState.day,
                 });
             }
             // Track O Mestre start day
@@ -363,7 +365,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             // ── Weekly news ──
             const newsState = get();
             if (newsState.day - newsState.lastNewsDay >= 7) {
-                const headline = pickHeadline(newsState.suspicion, newsState.counterThisWeek);
+                const headline = pickHeadline(newsState.suspicion, newsState.counterThisWeek, newsState.levelIdx);
                 const item: NewsItem = { day: newsState.day, subject: headline.subject, pt: headline.pt, en: headline.en };
                 set(s => ({
                     newsHistory: [item, ...s.newsHistory].slice(0, 5),
@@ -513,7 +515,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 isPaused: true,
                 completedAuctions: s.completedAuctions.filter(a => a.packId !== packId),
             }));
-            if (get().tutStep === 11) get().actions.advanceTutorial();
         },
 
         cancelOffers: () => {
@@ -543,6 +544,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 ? Math.max(1, Math.round(pack.cpfsUsed * lvl.suspRate * 0.5))
                 : 1;
 
+            const inTutorial = get().tutStep === 11;
             set(s => ({
                 clean: s.clean + offerValue,
                 totalWashed: s.totalWashed + offerValue,
@@ -550,10 +552,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 debtPacks: s.debtPacks.filter(p => p.id !== packId),
                 currentSellPackId: null,
                 bankOffers: [],
-                activeApp: 'home' as const,
+                // In tutorial, stay on BACEN so step 12 overlay is visible
+                activeApp: inTutorial ? ('bacen' as const) : ('home' as const),
                 isPaused: false,
             }));
 
+            if (inTutorial) get().actions.advanceTutorial();
         },
 
         confirmPay: () => {

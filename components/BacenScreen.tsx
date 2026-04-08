@@ -344,7 +344,14 @@ export function BacenScreen() {
                                         ) : (
                                             <TouchableOpacity
                                                 style={[styles.startBtn, showHighlight && styles.startBtnHighlight]}
-                                                onPress={() => setAuctionPickerPackId(pack.id)}
+                                                onPress={() => {
+                                                    if (tutStep === 11) {
+                                                        const dur = AUCTION_DURATIONS[1];
+                                                        handleStartAuction(pack.id, dur.days, dur.minPct, dur.maxPct);
+                                                    } else {
+                                                        setAuctionPickerPackId(pack.id);
+                                                    }
+                                                }}
                                                 activeOpacity={0.8}
                                             >
                                                 <Text style={styles.startBtnText}>{str.bacen.auctionStart}</Text>

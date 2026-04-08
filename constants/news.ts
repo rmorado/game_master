@@ -68,11 +68,19 @@ export const NEWS: NewsHeadline[] = [
     { subject: 'Meister', suspicion: 'Counter', pt: 'Deputados fazem votação extraordinária no sábado e votam contra CPI do Meister', en: 'Deputies hold emergency Saturday vote and block Meister parliamentary inquiry' },
 ];
 
-export function pickHeadline(suspicion: number, counterThisWeek: boolean): NewsHeadline {
-    const pool: NewsSuspicion = counterThisWeek ? 'Counter'
-        : suspicion <= 20 ? '20'
-        : suspicion <= 40 ? '40'
-        : 'Positive';
+export function pickHeadline(suspicion: number, counterThisWeek: boolean, levelIdx: number): NewsHeadline {
+    if (counterThisWeek) {
+        const candidates = NEWS.filter(h => h.suspicion === 'Counter');
+        return candidates[Math.floor(Math.random() * candidates.length)];
+    }
+
+    // At level 1+, suspicion >= 30: 50% chance to pull a Meister headline
+    if (levelIdx >= 1 && suspicion >= 30 && Math.random() < 0.5) {
+        const candidates = NEWS.filter(h => h.suspicion === 'Positive');
+        return candidates[Math.floor(Math.random() * candidates.length)];
+    }
+
+    const pool: NewsSuspicion = suspicion <= 20 ? '20' : suspicion <= 40 ? '40' : 'Positive';
     const candidates = NEWS.filter(h => h.suspicion === pool);
     return candidates[Math.floor(Math.random() * candidates.length)];
 }

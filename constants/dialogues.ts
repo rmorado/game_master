@@ -45,7 +45,7 @@ export const TUTORIAL: TutorialStep[] = [
         id: 3,
         text: bi(
             "Este é o Hacker. Ele vende identidades. Laranjas que nem sabem que estão na feira.",
-            "This is the Hacker. He sells identities. Laranjas who don't even know they're on the market.",
+            "This is the Hacker. He sells stolen identities — people who have no idea they're being used as fronts.",
         ),
         target: 'contact_hacker',
         screen: 'zep',
@@ -82,8 +82,8 @@ export const TUTORIAL: TutorialStep[] = [
     {
         id: 7,
         text: bi(
-            "Use CRIAR DERIVATIVO para gerar o derivativo de dívida.",
-            "Use CREATE DERIVATIVE to generate the debt.",
+            "Selecione um pacote para gerar o derivativo de dívida.",
+            "Select a package to generate your debt derivative.",
         ),
         target: 'btn_loan',
         screen: 'laranjas',
@@ -111,8 +111,8 @@ export const TUTORIAL: TutorialStep[] = [
     {
         id: 10,
         text: bi(
-            "No BACEN você vende derivativos para outros bancos. Escolha a melhor oferta.",
-            "In BACEN you sell derivatives to other banks. Choose the best offer.",
+            "No BACEN você vende derivativos de dívida para outros bancos. Inicie um leilão e aceite a melhor oferta.",
+            "In BACEN you sell debt derivatives to other banks. Start an auction and accept the best offer.",
         ),
         target: null,
         screen: 'bacen',
@@ -120,7 +120,10 @@ export const TUTORIAL: TutorialStep[] = [
     // 11 — Sell derivativo
     {
         id: 11,
-        text: bi("Comece o leilão.", "Start the auction."),
+        text: bi(
+            "Inicie o leilão — depois resgate e aceite a melhor proposta.",
+            "Start the auction — then claim the result and accept the best offer.",
+        ),
         target: 'btn_sell',
         screen: 'bacen',
         boxPosition: { top: 450 },
@@ -130,7 +133,7 @@ export const TUTORIAL: TutorialStep[] = [
         id: 12,
         text: bi("Dinheiro limpo. Última etapa: devolver ao PCC.", "Clean money. Last step: return to the PCC."),
         target: null,
-        screen: 'home',
+        screen: 'bacen',
     },
     // 13 — Open CARTEIRA
     {
@@ -261,6 +264,16 @@ export const CHARACTERS = {
         greeting: bi("Vamos resolver isso.", "Let's sort this out."),
     },
 
+    druglord: {
+        id: "druglord",
+        name: "Hector",
+        sub: bi("PCC — Direção", "PCC — Leadership"),
+        borderColor: "#8B0000",
+        avatar: require('../assets/images/characters/MJdruglord01.png'),
+        intro: bi("O esquema cresceu. Preciso que você cresça com ele.", "The operation grew. I need you to grow with it."),
+        greeting: bi("Fala.", "Talk."),
+    },
+
     deputy: {
         id: "deputy",
         name: bi("Dep. Motta", "Rep. Motta"),
@@ -368,6 +381,42 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                 ],
                 response: PIPOCO_TEXT,
                 effects: [{ type: 'gameOver', reason: 'pressure', detail: PIPOCO_TEXT.pt }],
+            },
+        ],
+    },
+
+    // ── Hector (druglord / PCC boss) ─────────────────────────────────────
+    druglord: {
+        characterId: 'druglord',
+        options: [
+            {
+                id: 'druglord_check_in',
+                text: bi('Tá tudo em cima.', 'Everything\'s running smooth.'),
+                response: bi('Continua assim.', 'Keep it that way.'),
+            },
+            {
+                id: 'druglord_pressure_ack',
+                text: bi('Tô trabalhando nisso.', 'I\'m working on it.'),
+                visible: [
+                    { type: 'custom', fn: (s: GameState) => s.eventsTriggered.includes('druglord_warning_1'), description: 'after first warning' },
+                    { type: 'dialogueNotSeen', optionId: 'druglord_pressure_ack' },
+                ],
+                response: bi(
+                    'Não quero saber que você tá trabalhando. Quero resultado. Você sabe o que acontece quando eu não recebo resultado.',
+                    'I don\'t want to hear you\'re working on it. I want results. You know what happens when I don\'t get results.',
+                ),
+            },
+            {
+                id: 'druglord_reassure',
+                text: bi('Tô no controle.', 'I\'ve got it under control.'),
+                visible: [
+                    { type: 'custom', fn: (s: GameState) => s.eventsTriggered.includes('druglord_warning_2'), description: 'after second warning' },
+                    { type: 'dialogueNotSeen', optionId: 'druglord_reassure' },
+                ],
+                response: bi(
+                    'Espero que sim. Não tem terceiro aviso.',
+                    'I hope so. There is no third warning.',
+                ),
             },
         ],
     },
@@ -611,14 +660,42 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                     'Não. O prazo é regulamentar. Envie os documentos ou vamos abrir um processo formal.',
                     'No. The deadline is regulatory. Submit the documents or we will open a formal proceeding.',
                 ),
+                effects: [{ type: 'adjust', resource: 'suspicion', delta: 15 }],
             },
             {
                 id: 'investigador_done',
                 text: bi('Alguma novidade?', 'Any updates?'),
                 visible: [
                     { type: 'custom', fn: (s: GameState) => s.dialoguesSeen.includes('investigador_comply') || s.dialoguesSeen.includes('investigador_stall'), description: 'after investigador interaction' },
+                    { type: 'dialogueNotSeen', optionId: 'investigador_comply_followup' },
+                    { type: 'dialogueNotSeen', optionId: 'investigador_stall_followup' },
                 ],
                 response: bi('A análise está em andamento. Não saia do país.', 'The analysis is ongoing. Do not leave the country.'),
+            },
+            {
+                id: 'investigador_comply_followup',
+                text: bi('O que a análise encontrou?', 'What did the analysis find?'),
+                visible: [
+                    { type: 'custom', fn: (s: GameState) => s.eventsTriggered.includes('investigador_escalate_comply'), description: 'escalation fired' },
+                    { type: 'dialogueNotSeen', optionId: 'investigador_comply_followup' },
+                ],
+                response: bi(
+                    'Movimentações que não batem com a renda declarada. Estamos trabalhando junto com a Receita Federal. Você vai querer um advogado.',
+                    'Movements that don\'t match declared income. We\'re working with the tax authorities. You\'ll want a lawyer.',
+                ),
+            },
+            {
+                id: 'investigador_stall_followup',
+                text: bi('Tá bem — vou cooperar.', 'Fine — I\'ll cooperate.'),
+                visible: [
+                    { type: 'custom', fn: (s: GameState) => s.eventsTriggered.includes('investigador_escalate_stall'), description: 'stall escalation fired' },
+                    { type: 'dialogueNotSeen', optionId: 'investigador_stall_followup' },
+                ],
+                response: bi(
+                    'O processo já foi aberto. Sua cooperação será anotada, mas não suspende a investigação.',
+                    'The process has already been opened. Your cooperation will be noted, but it doesn\'t suspend the investigation.',
+                ),
+                effects: [{ type: 'adjust', resource: 'suspicion', delta: -5 }],
             },
         ],
     },
@@ -716,19 +793,29 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
 export const LEVEL_EVENTS: { [levelIdx: number]: LevelEvent } = {
     1: {
         title: bi("GERENTE", "MANAGER"),
-        subtitle: bi("O esquema cresceu. Agora vem a atenção.", "The scheme grew. Now comes the attention."),
+        subtitle: bi("O esquema cresceu. Agora vem a atenção.", "The operation grew. Now comes the attention."),
         dialogues: [
-            { from: 'drugdealer', text: bi('Bom trabalho. Você tá subindo. Mas cuidado — o Banco Central tá de olho.', 'Good work. You\'re moving up. But careful — the Central Bank is watching.') },
-            { from: 'system', text: bi('Novo contato apareceu no Zep.', 'New contact appeared on Zep.') },
+            { from: 'drugdealer', text: bi(
+                'Bom trabalho. O volume vai subir. E com ele, o risco.',
+                'Good work. Volume is going up. And with it, the risk.',
+            )},
+            { from: 'druglord', text: bi(
+                'Vicaro. Eu me chamo Hector. Direto ao ponto: o esquema cresceu, as transferências também. Preciso de 50 milhões limpos. Sem barulho, sem notícia, sem federal na porta.',
+                'Vicaro. My name is Hector. Straight to the point: the operation grew, transfers too. I need 50 million clean. No noise, no press, no federal at the door.',
+            )},
+            { from: 'system', text: bi(
+                'Novo contato apareceu no Zep. E uma mensagem do Banco Central.',
+                'New contact appeared on Zep. And a message from the Central Bank.',
+            )},
         ],
-        unlocks: ['investigador'],
+        unlocks: ['investigador', 'druglord'],
         payloads: [
             {
                 type: 'incoming_message',
                 contactId: 'investigador',
                 text: bi(
-                    'Boa tarde. Sou do departamento de compliance do Banco Central. Identificamos movimentações atípicas nas suas contas. Precisamos dos seus registros bancários para uma análise preliminar.',
-                    'Good afternoon. I\'m from the Central Bank compliance department. We have identified atypical movements in your accounts. We need your banking records for a preliminary analysis.',
+                    'Boa tarde. Sou do departamento de compliance do Banco Central. Identificamos movimentações atípicas nas contas do Banco Meister. Precisamos dos seus registros para uma análise preliminar. Aguardo resposta em 48h.',
+                    'Good afternoon. I\'m from the Central Bank compliance department. We have identified atypical movements in Banco Meister\'s accounts. We need your records for a preliminary analysis. I expect a response within 48 hours.',
                 ),
             },
         ],
@@ -859,6 +946,66 @@ export const SCRIPTED_EVENTS: ScriptedEvent[] = [
             type: 'incoming_message',
             contactId: 'drugdealer',
             text: bi('Isso tá demorando demais.', 'This is taking too long.'),
+        },
+    },
+    {
+        id: 'druglord_warning_1',
+        trigger: (s) =>
+            s.levelIdx >= 1 &&
+            s.day >= s.levelStartDay + 30 &&
+            s.totalPaid < 15_000_000 &&
+            s.contacts['druglord'] === true,
+        payload: {
+            type: 'incoming_message',
+            contactId: 'druglord',
+            text: bi(
+                'Tô esperando mais movimentação limpa. O ritmo tá abaixo do esperado. Isso não é pedido.',
+                'I\'m expecting more clean movement. The pace is below expectations. This isn\'t a request.',
+            ),
+        },
+    },
+    {
+        id: 'druglord_warning_2',
+        trigger: (s) =>
+            s.levelIdx >= 1 &&
+            s.day >= s.levelStartDay + 60 &&
+            s.totalPaid < 30_000_000 &&
+            s.eventsTriggered.includes('druglord_warning_1'),
+        payload: {
+            type: 'incoming_message',
+            contactId: 'druglord',
+            text: bi(
+                'Última vez que aviso com calma. Você não tá entregando. Isso tem consequências que você não vai gostar.',
+                'Last time I ask calmly. You\'re not delivering. There are consequences you won\'t like.',
+            ),
+        },
+    },
+    {
+        id: 'investigador_escalate_comply',
+        trigger: (s) =>
+            s.dialoguesSeen.includes('investigador_comply') &&
+            s.day >= s.levelStartDay + 20,
+        payload: {
+            type: 'incoming_message',
+            contactId: 'investigador',
+            text: bi(
+                'Vicaro. A análise identificou inconsistências nos registros enviados. Precisamos de uma conversa. Não é opcional.',
+                'Vicaro. The analysis identified inconsistencies in the submitted records. We need to talk. This is not optional.',
+            ),
+        },
+    },
+    {
+        id: 'investigador_escalate_stall',
+        trigger: (s) =>
+            s.dialoguesSeen.includes('investigador_stall') &&
+            s.day >= s.levelStartDay + 10,
+        payload: {
+            type: 'incoming_message',
+            contactId: 'investigador',
+            text: bi(
+                'Prazo vencido. O Banco Central abriu processo formal contra o Banco Meister. Você tem 72 horas para apresentar advogado.',
+                'Deadline passed. The Central Bank has opened a formal proceeding against Banco Meister. You have 72 hours to present legal counsel.',
+            ),
         },
     },
 ];
