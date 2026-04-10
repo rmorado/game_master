@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O Mestre — Balance Dashboard</title>
+<style>
+:root {
+  --bg: #0a0a0a; --surface: #111214; --surface2: #16171a;
+  --border: #1e1e22; --accent: #f97316; --green: #22c55e;
+  --red: #dc2626; --yellow: #fbbf24; --purple: #a78bfa;
+  --text: #e5e7eb; --muted: #9ca3af;
+  --font: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; line-height: 1.5; }
+
+header { padding: 20px 28px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; gap: 16px; }
+header h1 { color: var(--accent); font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+header p { color: var(--muted); font-size: 13px; }
+
+.tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 28px; }
+.tab { padding: 12px 20px; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.panel { display: none; padding: 28px; }
+.panel.active { display: block; }
+
+.section { margin-bottom: 32px; }
+h2 { color: var(--accent); font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 14px; }
+h3 { color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 10px; }
+
+table { width: 100%; border-collapse: collapse; }
+th { background: var(--surface2); color: var(--muted); font-size: 11px; font-weight: 600; padding: 8px 12px; text-align: left; border: 1px solid var(--border); letter-spacing: 0.3px; white-space: nowrap; }
+td { padding: 8px 12px; border: 1px solid var(--border); vertical-align: middle; white-space: nowrap; font-size: 13px; }
+tr:hover td { background: var(--surface2); }
+.divider td { background: var(--bg) !important; border-left: none; border-right: none; height: 8px; padding: 0; }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+/* Colors */
+.c-orange { color: var(--accent); }
+.c-green  { color: var(--green); }
+.c-red    { color: var(--red); }
+.c-yellow { color: var(--yellow); }
+.c-purple { color: var(--purple); }
+.c-muted  { color: var(--muted); }
+.bold { font-weight: bold; }
+
+/* Badges */
+.badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.3px; }
+.b-green  { background: #14532d; color: var(--green); }
+.b-yellow { background: #451a03; color: var(--yellow); }
+.b-red    { background: #450a0a; color: var(--red); }
+.b-purple { background: #2e1065; color: var(--purple); }
+.b-gray   { background: #1f2937; color: var(--muted); }
+
+/* Bar */
+.bar-wrap { width: 120px; height: 6px; background: #1a1a1a; border-radius: 3px; overflow: hidden; display: inline-block; vertical-align: middle; }
+.bar { height: 100%; border-radius: 3px; }
+.bg-green { background: var(--green); }
+.bg-orange { background: var(--accent); }
+.bg-red { background: var(--red); }
+
+/* Controls */
+.controls { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 22px; }
+.ctrl { display: flex; flex-direction: column; gap: 6px; }
+.ctrl label { color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; }
+.ctrl input, .ctrl select {
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); padding: 7px 10px; border-radius: 6px;
+  font-family: var(--font); font-size: 13px;
+}
+.ctrl input { width: 110px; }
+.ctrl select { min-width: 180px; }
+.ctrl input:focus, .ctrl select:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+
+/* Insight box */
+.insight { background: #0d1117; border-left: 3px solid var(--accent); padding: 12px 16px; border-radius: 0 6px 6px 0; margin-bottom: 18px; color: var(--muted); font-size: 13px; line-height: 1.7; }
+.insight b { color: var(--text); }
+
+/* Stat tiles */
+.stat-tile { text-align: center; }
+.stat-tile .val { font-size: 26px; font-weight: 700; }
+.stat-tile .lbl { color: var(--muted); font-size: 10px; font-weight: 600; margin-top: 5px; letter-spacing: 0.5px; text-transform: uppercase; }
+.stat-tile .sub { color: var(--muted); font-size: 11px; margin-top: 3px; }
+
+hr.sep { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚖ O MESTRE — BALANCE DASHBOARD</h1>
+  <p>Live simulation of game mechanics. Edit constants to retune.</p>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-tab="economics">ECONOMICS</div>
+  <div class="tab" data-tab="suspicion">SUSPICION SIM</div>
+  <div class="tab" data-tab="pressure">PRESSURE</div>
+  <div class="tab" data-tab="constants">EDIT CONSTANTS</div>
+</div>
+
+<!-- ─── ECONOMICS ───────────────────────────────────────────────────────────── -->
+<div id="tab-economics" class="panel active">
+  <div class="section">
+    <h2>Suspicion Curve</h2>
+    <div class="insight">Solid = new superlinear formula. Dashed = old linear baseline. Dots mark the three available loan sizes (100 / 500 / 1000 CPFs). Adjust <b>SUSP_CURVE</b> in the Edit Constants tab to reshape the curve.</div>
+    <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;">
+      <div id="chart-curve" style="flex:1;min-width:400px;"></div>
+      <div id="chart-legend" class="card" style="min-width:180px;font-size:13px;"></div>
+    </div>
+  </div>
+  <div class="section">
+    <h2>Level Overview</h2>
+    <table id="tbl-levels"></table>
+  </div>
+  <div class="section">
+    <h2>Per-Derivativo Economics</h2>
+    <div class="insight">Each row shows the suspicion cost and clean money for <b>one derivativo operation</b> (create + sell) at medium auction (60–80% discount). Use this to understand the cost-per-clean ratio at each level and loan size.</div>
+    <table id="tbl-per-round"></table>
+  </div>
+  <div class="section">
+    <h2>Full-Bag Feasibility</h2>
+    <div class="insight">How many loans are needed to launder <b>one complete bag</b>, and what is the total suspicion cost? Red = hits game over without mitigation. Use the Suspicion Sim tab to model lawyer usage.</div>
+    <table id="tbl-full-bag"></table>
+  </div>
+  <div class="section">
+    <h2>Rounds to Level Goal</h2>
+    <div class="insight">Minimum derivativos needed to accumulate enough <b>totalPaid</b> to reach the level goal, at average auction price. Last column shows how many lawyer uses are mathematically required to stay under 100 suspicion.</div>
+    <table id="tbl-rounds-goal"></table>
+  </div>
+</div>
+
+<!-- ─── SUSPICION SIM ────────────────────────────────────────────────────────── -->
+<div id="tab-suspicion" class="panel">
+  <div class="controls">
+    <div class="ctrl"><label>LEVEL</label>
+      <select id="s-level"><option value="0">Laranja (0.05)</option><option value="1">Gerente (0.04)</option><option value="2">Doleiro (0.025)</option><option value="3">O Mestre (0.015)</option></select></div>
+    <div class="ctrl"><label>LOAN SIZE</label>
+      <select id="s-loan"><option value="100">Small — 100 CPFs</option><option value="500">Medium — 500 CPFs</option><option value="1000" selected>Large — 1000 CPFs</option></select></div>
+    <div class="ctrl"><label>AUCTION</label>
+      <select id="s-auction"><option value="0">Short 50–70%</option><option value="1" selected>Medium 60–80%</option><option value="2">Long 70–90%</option></select></div>
+    <div class="ctrl"><label>START SUSPICION</label><input type="number" id="s-start" value="0" min="0" max="99"></div>
+    <div class="ctrl"><label>LAWYER EVERY N LOANS</label><input type="number" id="s-lawyer-n" value="0" min="0" max="20" placeholder="0=never"></div>
+  </div>
+
+  <div class="grid2">
+    <div>
+      <h3>Loan Sequence</h3>
+      <table id="tbl-sim"></table>
+    </div>
+    <div>
+      <h3>Summary</h3>
+      <div id="sim-summary" class="card"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── PRESSURE ─────────────────────────────────────────────────────────────── -->
+<div id="tab-pressure" class="panel">
+  <div class="controls">
+    <div class="ctrl"><label>LEVEL</label>
+      <select id="p-level"><option value="0">Laranja</option><option value="1">Gerente</option><option value="2">Doleiro</option><option value="3">O Mestre</option></select></div>
+    <div class="ctrl"><label>OPEN BATCHES</label><input type="number" id="p-batches" value="1" min="1" max="6"></div>
+    <div class="ctrl"><label>START PRESSURE</label><input type="number" id="p-start" value="0" min="0" max="99"></div>
+  </div>
+
+  <div class="insight">
+    <b>Pressure drift rules:</b> (1) batch defaults → +<span id="p-default-val">25</span>/batch instantly · (2) any batch &lt;30 days left → +<span id="p-crit-val">0.5</span>/day · (3) more than 2 open batches → +<span id="p-many-val">0.1</span>/day · (4) otherwise → −<span id="p-drain-val">0.1</span>/day passive drain. Game over at 100.
+  </div>
+
+  <div class="section">
+    <h2>Pressure Timeline — No Payments Made</h2>
+    <table id="tbl-pressure"></table>
+  </div>
+
+  <div class="section">
+    <h2>Debt Summary per Level</h2>
+    <table id="tbl-batches"></table>
+  </div>
+</div>
+
+<!-- ─── CONSTANTS ────────────────────────────────────────────────────────────── -->
+<div id="tab-constants" class="panel">
+  <p style="color:var(--muted);font-size:13px;margin-bottom:20px;">Changes update all tabs instantly. These mirror <code>constants/game-data.ts</code> and <code>hooks/use-game-store.ts</code>.</p>
+  <div class="grid2">
+    <div class="card section">
+      <h3>Global Constants</h3><br>
+      <div class="grid2">
+        <div class="ctrl" style="margin-bottom:10px;"><label>CPF_COST (dirty per CPF)</label><input type="number" id="c-cpf-cost" value="5000"></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label>BAG_DIRTY_THRESHOLD</label><input type="number" id="c-bag-thresh" value="4000000"></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label>Lawyer −suspicion</label><input type="number" id="c-lawyer-susp" value="15"></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label>Batch deadline (days)</label><input type="number" id="c-batch-days" value="90"></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label>Batch due = bag ×</label><input type="number" id="c-batch-pct" value="0.7" step="0.05"></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label>Pressure per default</label><input type="number" id="c-pres-default" value="25"></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label>Pressure/day critical</label><input type="number" id="c-pres-crit" value="0.5" step="0.1"></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label>Pressure/day many batches</label><input type="number" id="c-pres-many" value="0.1" step="0.05"></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label>Pressure drain/day</label><input type="number" id="c-pres-drain" value="0.1" step="0.05"></div>
+        <div class="ctrl"><label>SUSP_RATE (base rate, fixed per level)</label><input type="number" id="c-susp-rate" value="0.05" step="0.005"></div>
+        <div class="ctrl"><label>SUSP_CURVE (create exponent offset)</label><input type="number" id="c-susp-curve" value="0.2" step="0.05"></div>
+      </div>
+    </div>
+    <div class="card section">
+      <h3>Level Settings</h3><br>
+      <table id="tbl-level-edit"></table>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── State ────────────────────────────────────────────────────────────────────
+let G = {
+  CPF_COST: 5000, BAG_THRESH: 4_000_000,
+  LAWYER_SUSP: 15, BATCH_DAYS: 90, BATCH_PCT: 0.7,
+  PRES_DEFAULT: 25, PRES_CRIT: 0.5, PRES_MANY: 0.1, PRES_DRAIN: 0.1,
+  SUSP_CURVE: 0.2,   // exponent: small batches proportionally cheaper
+};
+
+let LEVELS = [
+  { name: 'Laranja',  goal: 20_000_000,    bag: 20_000_000    },
+  { name: 'Gerente',  goal: 50_000_000,    bag: 50_000_000    },
+  { name: 'Doleiro',  goal: 500_000_000,   bag: 150_000_000   },
+  { name: 'O Mestre', goal: null,          bag: 1_000_000_000 },
+];
+let SUSP_RATE = 0.05; // fixed — does not vary by level
+
+const AUCTIONS = [
+  { label: 'Short (5d)',   min: 0.50, max: 0.70 },
+  { label: 'Medium (10d)', min: 0.60, max: 0.80 },
+  { label: 'Long (20d)',   min: 0.70, max: 0.90 },
+];
+const LOAN_SIZES = [100, 500, 1000];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const F = n => {
+  if (n == null) return '∞';
+  if (Math.abs(n) >= 1e9) return (n/1e9).toFixed(2)+'B';
+  if (Math.abs(n) >= 1e6) return (n/1e6).toFixed(2)+'M';
+  if (Math.abs(n) >= 1e3) return (n/1e3).toFixed(0)+'k';
+  return n.toFixed(1);
+};
+
+// Suspicion only on create, fixed rate, superlinear — mirrors calcCreateSusp()
+const sc = (cpf) => Math.round(Math.pow(cpf, 1 + G.SUSP_CURVE) * SUSP_RATE / Math.pow(100, G.SUSP_CURVE));
+const ss = () => 0; // no suspicion on sell
+const st = (cpf) => sc(cpf); // sell adds 0 suspicion
+const fv = cpf => cpf * G.CPF_COST;
+const cAvg = (cpf, auc) => fv(cpf) * (auc.min + auc.max) / 2;
+
+function suspClass(s) {
+  if (s >= 100) return 'c-red bold';
+  if (s >= 75)  return 'c-red';
+  if (s >= 50)  return 'c-yellow';
+  return 'c-green';
+}
+function suspBadge(s) {
+  if (s >= 100) return '<span class="badge b-red">GAME OVER</span>';
+  if (s >= 75)  return '<span class="badge b-red">🚨 POLICE</span>';
+  if (s >= 50)  return '<span class="badge b-yellow">⚠ WARNING</span>';
+  return '<span class="badge b-green">SAFE</span>';
+}
+function presBar(p) {
+  const w = Math.min(100, p);
+  const cls = p >= 75 ? 'bg-red' : p >= 50 ? 'bg-orange' : 'bg-green';
+  return `<div class="bar-wrap"><div class="bar ${cls}" style="width:${w}%"></div></div>`;
+}
+
+// ─── Tab System ───────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('tab-' + t.dataset.tab).classList.add('active');
+  });
+});
+
+// ─── SUSPICION CURVE CHART ────────────────────────────────────────────────────
+function renderCurveChart() {
+  const container = document.getElementById('chart-curve');
+  const W = container.clientWidth || 560;
+  const H = 300;
+  const mL = 48, mR = 72, mT = 24, mB = 40;
+  const cW = W - mL - mR, cH = H - mT - mB;
+
+  const maxCpf = 1050, maxSusp = 110;
+  const px = cpf  => mL + (cpf  / maxCpf) * cW;
+  const py = susp => mT + cH - (Math.min(susp, maxSusp) / maxSusp) * cH;
+
+  const COLORS = ['#f97316','#22c55e','#a78bfa','#fbbf24'];
+  const THRESH = [{v:50,label:'50 ⚠',col:'#fbbf24'},{v:75,label:'75 🚨',col:'#ef4444'},{v:100,label:'100 💀',col:'#dc2626'}];
+
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;background:#0e0e14;border-radius:8px;border:1px solid #1e1e22;">`;
+
+  // Grid
+  for (let g = 0; g <= 100; g += 25) {
+    const y = py(g);
+    s += `<line x1="${mL}" y1="${y}" x2="${W-mR}" y2="${y}" stroke="#1e1e22" stroke-width="1"/>`;
+    s += `<text x="${mL-6}" y="${y+4}" text-anchor="end" fill="#6b7280" font-size="11" font-family="sans-serif">${g}</text>`;
+  }
+  for (let c = 0; c <= 1000; c += 200) {
+    const x = px(c);
+    s += `<line x1="${x}" y1="${mT}" x2="${x}" y2="${H-mB}" stroke="#1e1e22" stroke-width="1"/>`;
+    s += `<text x="${x}" y="${H-mB+16}" text-anchor="middle" fill="#6b7280" font-size="11" font-family="sans-serif">${c}</text>`;
+  }
+
+  // Threshold lines
+  THRESH.forEach(t => {
+    const y = py(t.v);
+    s += `<line x1="${mL}" y1="${y}" x2="${W-mR}" y2="${y}" stroke="${t.col}" stroke-width="1" stroke-dasharray="4,3" opacity="0.55"/>`;
+    s += `<text x="${W-mR+5}" y="${y+4}" fill="${t.col}" font-size="10" font-family="sans-serif" opacity="0.9">${t.label}</text>`;
+  });
+
+  // Loan size tick marks
+  [100, 500, 1000].forEach(cpf => {
+    const x = px(cpf);
+    s += `<line x1="${x}" y1="${mT}" x2="${x}" y2="${H-mB}" stroke="#f97316" stroke-width="1" stroke-dasharray="3,3" opacity="0.3"/>`;
+    s += `<text x="${x}" y="${mT-7}" text-anchor="middle" fill="#f97316" font-size="10" font-family="sans-serif" opacity="0.7">${cpf}</text>`;
+  });
+
+  // Curves — one per level
+  LEVELS.forEach((l, i) => {
+    // Old linear (dashed, faint) — uses fixed SUSP_RATE for reference
+    const oldPts = [];
+    for (let c = 5; c <= 1000; c += 5) oldPts.push(`${px(c).toFixed(1)},${py(c * SUSP_RATE).toFixed(1)}`);
+    s += `<polyline points="${oldPts.join(' ')}" fill="none" stroke="${COLORS[i]}" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.3"/>`;
+
+    // New superlinear (solid)
+    const newPts = [];
+    for (let c = 5; c <= 1000; c += 5) newPts.push(`${px(c).toFixed(1)},${py(sc(c)).toFixed(1)}`);
+    s += `<polyline points="${newPts.join(' ')}" fill="none" stroke="${COLORS[i]}" stroke-width="2.5"/>`;
+
+    // Dots at loan sizes
+    [100, 500, 1000].forEach(cpf => {
+      const newY = py(sc(cpf));
+      const oldY = py(cpf * SUSP_RATE);
+      s += `<circle cx="${px(cpf)}" cy="${newY}" r="4" fill="${COLORS[i]}" stroke="#0e0e14" stroke-width="1.5"/>`;
+      s += `<circle cx="${px(cpf)}" cy="${oldY}" r="3" fill="none" stroke="${COLORS[i]}" stroke-width="1.5" opacity="0.4"/>`;
+    });
+
+    // Level label at right edge
+    const labelY = py(sc(980));
+    s += `<text x="${W-mR+6}" y="${labelY+4}" fill="${COLORS[i]}" font-size="11" font-weight="bold" font-family="sans-serif">${l.name}</text>`;
+  });
+
+  // Axes
+  s += `<line x1="${mL}" y1="${mT}" x2="${mL}" y2="${H-mB}" stroke="#374151" stroke-width="1.5"/>`;
+  s += `<line x1="${mL}" y1="${H-mB}" x2="${W-mR}" y2="${H-mB}" stroke="#374151" stroke-width="1.5"/>`;
+
+  // Axis labels
+  s += `<text x="${mL+cW/2}" y="${H-2}" text-anchor="middle" fill="#6b7280" font-size="12" font-family="sans-serif">CPFs</text>`;
+  s += `<text x="10" y="${mT+cH/2}" text-anchor="middle" fill="#6b7280" font-size="12" font-family="sans-serif" transform="rotate(-90,10,${mT+cH/2})">Suspicion (create)</text>`;
+
+  s += '</svg>';
+  container.innerHTML = s;
+
+  // Legend
+  const legend = document.getElementById('chart-legend');
+  const rows = LEVELS.map((l, i) => {
+    const v100 = sc(100), v500 = sc(500), v1000 = sc(1000);
+    return `<div style="margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+        <div style="width:20px;height:3px;background:${COLORS[i]};border-radius:2px;"></div>
+        <span style="font-weight:700;color:${COLORS[i]}">${l.name}</span>
+      </div>
+      <div style="color:var(--muted);font-size:12px;line-height:1.8;padding-left:28px;">
+        100 CPF → <b style="color:var(--text)">${v100}</b><br>
+        500 CPF → <b style="color:var(--text)">${v500}</b><br>
+        1000 CPF → <b style="color:var(--text)">${v1000}</b>
+      </div>
+    </div>`;
+  }).join('');
+  legend.innerHTML = `
+    <h3 style="margin-bottom:12px;">Create suspicion at each loan size</h3>
+    ${rows}
+    <hr style="border-color:var(--border);margin:10px 0;">
+    <div style="color:var(--muted);font-size:11px;line-height:1.7;">
+      <span style="opacity:1">●</span> Solid = new formula<br>
+      <span style="opacity:0.4">●</span> Dashed = old linear
+    </div>`;
+}
+
+// ─── ECONOMICS ────────────────────────────────────────────────────────────────
+function renderLevels() {
+  document.getElementById('tbl-levels').innerHTML =
+    `<tr><th>Level</th><th>Goal (totalPaid)</th><th>Bag Size</th><th>Batch Due (${(G.BATCH_PCT*100).toFixed(0)}%)</th><th>Bags to Goal</th></tr>` +
+    LEVELS.map(l => {
+      const bagsToGoal = l.goal ? Math.ceil(l.goal / (l.bag * G.BATCH_PCT)) : null;
+      return `<tr>
+        <td class="bold">${l.name}</td>
+        <td>${l.goal ? F(l.goal) : '<span class="badge b-purple">SURVIVAL</span>'}</td>
+        <td class="c-orange">${F(l.bag)}</td>
+        <td class="c-red">${F(l.bag * G.BATCH_PCT)}</td>
+        <td>${bagsToGoal ? bagsToGoal : '—'}</td>
+      </tr>`;
+    }).join('');
+}
+
+function renderPerRound() {
+  let html = `<tr><th>Level</th><th>Loan</th><th>Dirty Cost</th><th>Suspicion</th><th>Clean Min</th><th>Clean Avg</th><th>Clean Max</th><th>Clean/Susp pt (avg)</th></tr>`;
+  LEVELS.forEach((l, li) => {
+    LOAN_SIZES.forEach((cpf, ci) => {
+      const scv = sc(cpf), stv = scv;
+      const ratio = cAvg(cpf, AUCTIONS[1]) / stv;
+      const stCls = stv >= 50 ? 'c-red bold' : stv >= 25 ? 'c-orange' : 'c-green';
+      html += `<tr>
+        <td>${ci===0 ? '<b>'+l.name+'</b>' : ''}</td>
+        <td>${cpf} CPFs</td>
+        <td class="c-red">${F(fv(cpf))}</td>
+        <td class="${stCls}">${stv.toFixed(1)}</td>
+        <td class="c-muted">${F(fv(cpf)*AUCTIONS[1].min)}</td>
+        <td class="c-green">${F(cAvg(cpf, AUCTIONS[1]))}</td>
+        <td class="c-muted">${F(fv(cpf)*AUCTIONS[1].max)}</td>
+        <td class="c-orange">${F(ratio/1000)}k</td>
+      </tr>`;
+    });
+    if (li < LEVELS.length-1) html += `<tr class="divider"><td colspan="10"></td></tr>`;
+  });
+  document.getElementById('tbl-per-round').innerHTML = html;
+}
+
+function renderFullBag() {
+  let html = `<tr><th>Level</th><th>Loan</th><th>Loans for Full Bag</th><th>Total Susp</th><th>Loans before 50</th><th>Loans before 75</th><th>Loans before 100</th><th>Feasible?</th></tr>`;
+  LEVELS.forEach((l, li) => {
+    LOAN_SIZES.forEach((cpf, ci) => {
+      const totalCpfs = l.bag / G.CPF_COST;
+      const loansNeeded = Math.ceil(totalCpfs / cpf);
+      const stv = st(cpf);
+      const totalSusp = stv * loansNeeded;
+      const b50  = Math.floor(49 / stv);
+      const b75  = Math.floor(74 / stv);
+      const b100 = Math.floor(99 / stv);
+      const feasible = b100 >= loansNeeded;
+      html += `<tr>
+        <td>${ci===0 ? '<b>'+l.name+'</b>' : ''}</td>
+        <td>${cpf} CPFs</td>
+        <td>${loansNeeded}</td>
+        <td class="${totalSusp >= 100 ? 'c-red bold' : totalSusp >= 50 ? 'c-orange' : 'c-green'}">${totalSusp.toFixed(0)}</td>
+        <td class="c-muted">${b50}</td>
+        <td class="c-yellow">${b75}</td>
+        <td class="${b100 < loansNeeded ? 'c-red' : 'c-green'}">${b100}</td>
+        <td>${feasible ? '<span class="badge b-green">YES</span>' : '<span class="badge b-red">NO — need lawyer</span>'}</td>
+      </tr>`;
+    });
+    if (li < LEVELS.length-1) html += `<tr class="divider"><td colspan="8"></td></tr>`;
+  });
+  document.getElementById('tbl-full-bag').innerHTML = html;
+}
+
+function renderRoundsGoal() {
+  let html = `<tr><th>Level</th><th>Loan</th><th>Auction</th><th>Clean/Round</th><th>Rounds Needed</th><th>Total Susp</th><th>Lawyer Uses (min)</th><th>Lawyer eff</th></tr>`;
+  LEVELS.forEach((l, li) => {
+    if (!l.goal) {
+      html += `<tr><td><b>${l.name}</b></td><td colspan="7" class="c-muted">Survival — no goal</td></tr>`;
+    } else {
+      LOAN_SIZES.forEach((cpf, ci) => {
+        AUCTIONS.forEach((auc, ai) => {
+          const ca = cAvg(cpf, auc);
+          const stv = st(cpf, l.sr);
+          const rounds = Math.ceil(l.goal / ca);
+          const totalSusp = stv * rounds;
+          const lawyerUses = Math.max(0, Math.ceil((totalSusp - 99) / G.LAWYER_SUSP));
+          const lawyerPct = lawyerUses > 0 ? (lawyerUses / rounds * 100).toFixed(0) + '% of rounds' : '—';
+          html += `<tr>
+            <td>${ci===0 && ai===0 ? '<b>'+l.name+'</b>' : ''}</td>
+            <td>${ai===0 ? cpf+' CPFs' : ''}</td>
+            <td>${auc.label}</td>
+            <td class="c-green">${F(ca)}</td>
+            <td>${rounds}</td>
+            <td class="${totalSusp>=100 ? 'c-red bold' : 'c-orange'}">${totalSusp.toFixed(0)}</td>
+            <td class="${lawyerUses>10 ? 'c-red' : lawyerUses>3 ? 'c-orange' : 'c-green'}">${lawyerUses}</td>
+            <td class="c-muted">${lawyerPct}</td>
+          </tr>`;
+        });
+      });
+    }
+    if (li < LEVELS.length-1) html += `<tr class="divider"><td colspan="8"></td></tr>`;
+  });
+  document.getElementById('tbl-rounds-goal').innerHTML = html;
+}
+
+// ─── SUSPICION SIM ────────────────────────────────────────────────────────────
+function updateSim() {
+  const lvlIdx = +document.getElementById('s-level').value;
+  const cpf    = +document.getElementById('s-loan').value;
+  const aucIdx = +document.getElementById('s-auction').value;
+  const start  = +document.getElementById('s-start').value || 0;
+  const lawyerN = +document.getElementById('s-lawyer-n').value || 0;
+
+  const l = LEVELS[lvlIdx];
+  const auc = AUCTIONS[aucIdx];
+  const scv = sc(cpf), ssv = 0, stv = scv;
+  const cleanPer = cAvg(cpf, auc);
+  const totalCpfsForBag = l.bag / G.CPF_COST;
+  const loansForBag = Math.ceil(totalCpfsForBag / cpf);
+
+  let susp = start;
+  let cumClean = 0, cumDirty = 0, lawyerTotal = 0;
+  let rows = [], gameOverAt = null;
+
+  for (let i = 1; i <= 40; i++) {
+    let lawyerApplied = false;
+    if (lawyerN > 0 && i > 1 && (i-1) % lawyerN === 0) {
+      susp = Math.max(0, susp - G.LAWYER_SUSP);
+      lawyerTotal++;
+      lawyerApplied = true;
+    }
+    const before = susp;
+    susp = Math.min(100, susp + stv);
+    cumClean += cleanPer;
+    cumDirty += fv(cpf);
+    rows.push({ i, before, after: susp, cumClean, cumDirty, lawyerApplied, go: susp >= 100 });
+    if (susp >= 100) { gameOverAt = i; break; }
+  }
+
+  const lastSafe = rows.filter(r => !r.go).pop();
+  const safeLoans = gameOverAt ? gameOverAt - 1 : rows.length;
+  const cleanBeforeGO = lastSafe ? lastSafe.cumClean : 0;
+
+  // Table
+  document.getElementById('tbl-sim').innerHTML =
+    `<tr><th>#</th><th>Susp Before</th><th>+${scv.toFixed(1)} (create)</th><th>Susp After</th><th>Status</th><th>Cum Clean</th><th>% Bag Dirty</th></tr>` +
+    rows.map(r => `<tr>
+      <td>${r.i}${r.lawyerApplied ? ' <span class="badge b-purple">−'+G.LAWYER_SUSP+' LAWYER</span>' : ''}</td>
+      <td class="${suspClass(r.before)}">${r.before.toFixed(1)}</td>
+      <td class="c-muted">+${stv.toFixed(1)}</td>
+      <td class="${suspClass(r.after)}">${r.after.toFixed(1)}</td>
+      <td>${suspBadge(r.after)}</td>
+      <td class="c-green">${F(r.cumClean)}</td>
+      <td class="c-muted">${((r.cumDirty / l.bag)*100).toFixed(0)}%</td>
+    </tr>`).join('');
+
+  // Summary
+  const loansTo50  = start >= 50 ? 0 : Math.ceil((50  - start) / stv);
+  const loansTo75  = start >= 75 ? 0 : Math.ceil((75  - start) / stv);
+  const loansTo100 = start >= 100 ? 0 : Math.ceil((100 - start) / stv);
+  const bagPct = ((cleanBeforeGO / (l.goal || l.bag)) * 100).toFixed(1);
+
+  document.getElementById('sim-summary').innerHTML = `
+    <div class="grid3" style="margin-bottom:14px;">
+      <div class="stat-tile"><div class="val c-orange">${stv.toFixed(1)}</div><div class="lbl">SUSP/LOAN</div><div class="sub">on create only</div></div>
+      <div class="stat-tile"><div class="val ${safeLoans < loansForBag ? 'c-red' : 'c-green'}">${safeLoans}</div><div class="lbl">SAFE LOANS</div><div class="sub">need ${loansForBag} for full bag</div></div>
+      <div class="stat-tile"><div class="val c-green">${F(cleanBeforeGO)}</div><div class="lbl">CLEAN EARNED</div><div class="sub">${bagPct}% of ${l.goal ? 'goal' : 'bag'}</div></div>
+    </div>
+    <hr class="sep">
+    <div style="margin-bottom:12px;">
+      <h3 style="margin-bottom:8px;">Suspicion Thresholds (no lawyer)</h3>
+      <div style="margin-bottom:5px;">⚠ <b>50</b> hit after loan <span class="c-yellow">${loansTo50}</span> — scripted event fires</div>
+      <div style="margin-bottom:5px;">🚨 <b>75</b> hit after loan <span class="c-red">${loansTo75}</span> — police warning (SCRIPTED_EVENT)</div>
+      <div>💀 <b>100</b> hit after loan <span class="c-red bold">${loansTo100}</span> — GAME OVER</div>
+    </div>
+    ${lawyerN > 0 ? `<hr class="sep"><div>
+      <h3 style="margin-bottom:8px;">Lawyer Impact</h3>
+      <div>Uses: <span class="c-purple">${lawyerTotal}</span> × −${G.LAWYER_SUSP} suspicion each</div>
+      <div style="color:var(--muted);font-size:11px;margin-top:4px;">Applied every ${lawyerN} loans</div>
+    </div>` : ''}
+    ${safeLoans < loansForBag ? `<hr class="sep"><div class="insight" style="margin:0;font-size:11px;"><b>⚠ Bag cannot be fully laundered</b> without mitigation. ${loansForBag - safeLoans} more loans needed after hitting 100. Use lawyer every ${Math.ceil(loansForBag / Math.ceil((loansForBag * stv - 99) / G.LAWYER_SUSP))} loans to break even.</div>` : `<hr class="sep"><div class="insight" style="margin:0;font-size:11px;"><b>✓ Full bag can be laundered</b> within suspicion limit${lawyerN > 0 ? ' with lawyer usage.' : ' — no lawyer needed.'}</div>`}
+  `;
+}
+
+// ─── PRESSURE ────────────────────────────────────────────────────────────────
+function updatePressure() {
+  const lvlIdx = +document.getElementById('p-level').value;
+  const numBatches = +document.getElementById('p-batches').value || 1;
+  const startP = +document.getElementById('p-start').value || 0;
+  const l = LEVELS[lvlIdx];
+
+  // Update insight values
+  document.querySelectorAll('#p-default-val').forEach(e => e.textContent = G.PRES_DEFAULT);
+  document.querySelectorAll('#p-crit-val').forEach(e => e.textContent = G.PRES_CRIT);
+  document.querySelectorAll('#p-many-val').forEach(e => e.textContent = G.PRES_MANY);
+  document.querySelectorAll('#p-drain-val').forEach(e => e.textContent = G.PRES_DRAIN);
+
+  let pres = startP;
+  let rows = [];
+
+  for (let day = 0; day <= G.BATCH_DAYS + 1; day++) {
+    const daysLeft = G.BATCH_DAYS - day;
+    const isCritical = daysLeft < 30 && day > 0;
+    const manyBatches = numBatches > 2;
+    const isDefault = day === G.BATCH_DAYS;
+
+    if (day > 0) {
+      if (isDefault) {
+        pres = Math.min(100, pres + G.PRES_DEFAULT * numBatches);
+      } else if (isCritical) {
+        pres = Math.min(100, pres + G.PRES_CRIT * numBatches);
+      } else if (manyBatches) {
+        pres = Math.min(100, pres + G.PRES_MANY);
+      } else if (pres > 0) {
+        pres = Math.max(0, pres - G.PRES_DRAIN);
+      }
+    }
+
+    const milestones = new Set([0,1,7,14,21,30,45,60,G.BATCH_DAYS-29,G.BATCH_DAYS-14,G.BATCH_DAYS-7,G.BATCH_DAYS-1,G.BATCH_DAYS]);
+    if (milestones.has(day) || pres >= 75 || pres >= 100) {
+      const phase = isDefault ? '<span class="badge b-red">DEFAULT</span>'
+        : isCritical ? '<span class="badge b-yellow">CRITICAL &lt;30d</span>'
+        : manyBatches ? '<span class="badge b-yellow">MANY BATCHES</span>'
+        : '<span class="badge b-green">PASSIVE</span>';
+      let event = '';
+      if (isDefault) event = `<span class="badge b-red">PRESSURE +${G.PRES_DEFAULT * numBatches}</span>`;
+      else if (pres >= 100) event = '<span class="badge b-red">💀 GAME OVER</span>';
+      else if (pres >= 75) event = '<span class="badge b-red">🚨 CARTEL WARNING</span>';
+
+      rows.push({ day, daysLeft: Math.max(0, daysLeft), pres: Math.round(pres*10)/10, phase, event });
+    }
+
+    if (pres >= 100 && day > 0) break;
+  }
+
+  document.getElementById('tbl-pressure').innerHTML =
+    `<tr><th>Day</th><th>Days Left</th><th>Phase</th><th>Pressure</th><th>Bar</th><th>Event</th></tr>` +
+    rows.map(r => `<tr>
+      <td class="c-muted">Day ${r.day}</td>
+      <td>${r.daysLeft}</td>
+      <td>${r.phase}</td>
+      <td class="${r.pres>=100 ? 'c-red bold' : r.pres>=75 ? 'c-red' : r.pres>=50 ? 'c-orange' : 'c-green'}">${r.pres.toFixed(1)}</td>
+      <td>${presBar(r.pres)}</td>
+      <td>${r.event}</td>
+    </tr>`).join('');
+
+  // Per-level batch summary
+  document.getElementById('tbl-batches').innerHTML =
+    `<tr><th>Level</th><th>Bag Size</th><th>Batch Due</th><th>Deadline</th><th>Pres @ Critical (d${G.BATCH_DAYS-29})</th><th>Pres @ Default (d${G.BATCH_DAYS})</th><th>Batches for Game Over</th></tr>` +
+    LEVELS.map(lv => {
+      const bd = lv.bag * G.BATCH_PCT;
+      const pressAtCritical = (startP + 30 * G.PRES_CRIT).toFixed(1);
+      const pressAtDefault = (+pressAtCritical + G.PRES_DEFAULT).toFixed(1);
+      const batchesGO = Math.ceil((100 - startP) / G.PRES_DEFAULT);
+      return `<tr>
+        <td class="bold">${lv.name}</td>
+        <td class="c-orange">${F(lv.bag)}</td>
+        <td class="c-red">${F(bd)}</td>
+        <td>${G.BATCH_DAYS} days</td>
+        <td class="${+pressAtCritical >= 75 ? 'c-red' : 'c-orange'}">${pressAtCritical}</td>
+        <td class="${+pressAtDefault >= 100 ? 'c-red bold' : 'c-orange'}">${pressAtDefault}</td>
+        <td class="${batchesGO <= 2 ? 'c-red bold' : batchesGO <= 4 ? 'c-orange' : 'c-green'}">${batchesGO}</td>
+      </tr>`;
+    }).join('');
+}
+
+// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+function readConstants() {
+  G.CPF_COST      = +document.getElementById('c-cpf-cost').value    || 5000;
+  G.BAG_THRESH    = +document.getElementById('c-bag-thresh').value   || 4000000;
+  G.LAWYER_SUSP   = +document.getElementById('c-lawyer-susp').value  || 15;
+  G.BATCH_DAYS    = +document.getElementById('c-batch-days').value   || 90;
+  G.BATCH_PCT     = +document.getElementById('c-batch-pct').value    || 0.7;
+  G.PRES_DEFAULT  = +document.getElementById('c-pres-default').value || 25;
+  G.PRES_CRIT     = +document.getElementById('c-pres-crit').value    || 0.5;
+  G.PRES_MANY     = +document.getElementById('c-pres-many').value    || 0.1;
+  G.PRES_DRAIN    = +document.getElementById('c-pres-drain').value   || 0.1;
+  SUSP_RATE       = +document.getElementById('c-susp-rate').value    || 0.05;
+  G.SUSP_CURVE    = +document.getElementById('c-susp-curve').value   ?? 0.2;
+}
+
+function renderLevelEditTable() {
+  document.getElementById('tbl-level-edit').innerHTML =
+    `<tr><th>Level</th><th>Goal</th><th>Bag Size</th></tr>` +
+    LEVELS.map((l, i) => `<tr>
+      <td class="bold">${l.name}</td>
+      <td><input type="number" value="${l.goal || 0}" style="width:100px" onchange="LEVELS[${i}].goal = +this.value || null; renderAll()"></td>
+      <td><input type="number" value="${l.bag}" style="width:120px" onchange="LEVELS[${i}].bag = +this.value; renderAll()"></td>
+    </tr>`).join('');
+}
+
+// ─── Wire-up & Init ───────────────────────────────────────────────────────────
+function renderAll() {
+  renderCurveChart();
+  renderLevels();
+  renderPerRound();
+  renderFullBag();
+  renderRoundsGoal();
+  updateSim();
+  updatePressure();
+}
+
+// Live updates from controls
+['s-level','s-loan','s-auction','s-start','s-lawyer-n'].forEach(id =>
+  document.getElementById(id).addEventListener('change', updateSim));
+['p-level','p-batches','p-start'].forEach(id =>
+  document.getElementById(id).addEventListener('change', updatePressure));
+
+const constantIds = ['c-cpf-cost','c-bag-thresh','c-lawyer-susp','c-batch-days','c-batch-pct','c-pres-default','c-pres-crit','c-pres-many','c-pres-drain','c-susp-rate','c-susp-curve'];
+constantIds.forEach(id =>
+  document.getElementById(id).addEventListener('change', () => { readConstants(); renderAll(); }));
+
+renderLevelEditTable();
+renderAll();
+window.addEventListener('resize', renderCurveChart);
+</script>
+</body>
+</html>

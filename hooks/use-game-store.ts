@@ -1,7 +1,11 @@
 // hooks/use-game-store.ts
 import { create } from 'zustand';
 import { BANKS, DIALOGUES, LEVEL_EVENTS, SCRIPTED_EVENTS, TUTORIAL } from '../constants/dialogues';
-import { BAG_DIRTY_THRESHOLD, CPF_COST, LEVELS } from '../constants/game-data';
+import { BAG_DIRTY_THRESHOLD, CPF_COST, LEVELS, SUSP_CURVE, SUSP_RATE } from '../constants/game-data';
+
+function calcCreateSusp(cpfCount: number): number {
+    return Math.round(Math.pow(cpfCount, 1 + SUSP_CURVE) * SUSP_RATE / Math.pow(100, SUSP_CURVE));
+}
 import { BankOffer, Batch, DebtPack, EventPayload, GameState, Lang, NewsItem } from '../types/game';
 import { pickHeadline } from '../constants/news';
 import { applyEffects, evaluateConditionSet, resolveBi } from '../utils/dialogue';
@@ -203,11 +207,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
     ...initialState,
     actions: {
         advanceTutorial: () => {
-            set(state => ({ tutStep: state.tutStep + 1 }));
+            set(state => ({
+                tutStep: state.tutStep + 1,
+                // Reset news clock when tutorial completes so first news fires 7 days later
+                ...(state.tutStep + 1 >= TUTORIAL.length ? { lastNewsDay: state.day } : {}),
+            }));
         },
 
         skipTutorial: () => {
-            set({ tutStep: TUTORIAL.length, isPaused: false });
+            set(state => ({ tutStep: TUTORIAL.length, isPaused: false, lastNewsDay: state.day }));
         },
 
         advanceLevelDialogue: () => {
@@ -362,9 +370,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 });
             }
 
-            // ── Weekly news ──
+            // ── Weekly news (suppressed during tutorial) ──
             const newsState = get();
-            if (newsState.day - newsState.lastNewsDay >= 7) {
+            if (newsState.tutStep >= TUTORIAL.length && newsState.day - newsState.lastNewsDay >= 7) {
                 const headline = pickHeadline(newsState.suspicion, newsState.counterThisWeek, newsState.levelIdx);
                 const item: NewsItem = { day: newsState.day, subject: headline.subject, pt: headline.pt, en: headline.en };
                 set(s => ({
@@ -465,12 +473,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
             if (tutStep === 7) get().actions.advanceTutorial();
 
             if (inTutorial) {
-                const { levelIdx: lvlIdx, day } = get();
-                const lvl = LEVELS[lvlIdx];
+                const { day } = get();
                 const newPack: DebtPack = { id: Date.now(), value: cost, cpfsUsed: cpfCount, dayCreated: day };
                 set(s => ({
                     debtPacks: [...s.debtPacks, newPack],
-                    suspicion: s.suspicion + cpfCount * lvl.suspRate,
+                    suspicion: s.suspicion + calcCreateSusp(cpfCount),
                 }));
             } else {
                 trackedTimeout(() => get().actions.completeLoan(), durationMs);
@@ -478,15 +485,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
         },
 
         completeLoan: () => {
-            const { pendingLoan, levelIdx, day } = get();
+            const { pendingLoan, day } = get();
             if (!pendingLoan) return;
             const { cpfCount } = pendingLoan;
-            const lvl = LEVELS[levelIdx];
             const newPack: DebtPack = { id: Date.now(), value: cpfCount * CPF_COST, cpfsUsed: cpfCount, dayCreated: day };
             set(s => ({
                 pendingLoan: null,
                 debtPacks: [...s.debtPacks, newPack],
-                suspicion: s.suspicion + cpfCount * lvl.suspRate,
+                suspicion: s.suspicion + calcCreateSusp(cpfCount),
             }));
             get().actions.showToast('derivativo criado', 'laranjas');
         },
@@ -537,18 +543,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
         },
 
         sellDebtPack: (packId: number, offerValue: number) => {
-            const { debtPacks, levelIdx } = get();
-            const pack = debtPacks.find(p => p.id === packId);
-            const lvl = LEVELS[levelIdx];
-            const suspicionIncrease = pack
-                ? Math.max(1, Math.round(pack.cpfsUsed * lvl.suspRate * 0.5))
-                : 1;
-
             const inTutorial = get().tutStep === 11;
             set(s => ({
                 clean: s.clean + offerValue,
                 totalWashed: s.totalWashed + offerValue,
-                suspicion: s.suspicion + suspicionIncrease,
                 debtPacks: s.debtPacks.filter(p => p.id !== packId),
                 currentSellPackId: null,
                 bankOffers: [],

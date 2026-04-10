@@ -24,6 +24,26 @@ import { BottomNavBar } from '../../components/BottomNavBar';
 import { AppOverview } from '../../components/AppOverview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+function gaugeColor(value: number) {
+    if (value >= 75) return styles.debugRed;
+    if (value >= 50) return styles.debugYellow;
+    return styles.debugGreen;
+}
+
+function DebugHud({ top }: { top: number }) {
+    const { suspicion, pressure } = useGameStore(useShallow(s => ({
+        suspicion: s.suspicion,
+        pressure: s.pressure,
+    })));
+    return (
+        <View style={[styles.debugHud, { top }]} pointerEvents="none">
+            <Text style={[styles.debugVal, gaugeColor(suspicion)]}>S: {Math.round(suspicion)}</Text>
+            <Text style={styles.debugSep}>·</Text>
+            <Text style={[styles.debugVal, gaugeColor(pressure)]}>P: {Math.round(pressure)}</Text>
+        </View>
+    );
+}
+
 export default function GameScreen() {
     const insets = useSafeAreaInsets();
     const { actions, activeApp, isGameOver, gameOverReason, gameOverDetail, levelIdx, day, omstreDayStart, levelUpScreen, activeToast } = useGameStore(useShallow(state => ({
@@ -131,6 +151,7 @@ export default function GameScreen() {
             <TutorialOverlay />
             <NewMessagePopup />
             <NewsPopup />
+            <DebugHud top={insets.top + 6} />
         </View>
     );
 }
@@ -140,6 +161,32 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#0f0f0f',
     },
+    debugHud: {
+        position: 'absolute',
+        left: 10,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        zIndex: 99999,
+        elevation: 99999,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        paddingHorizontal: 7,
+        paddingVertical: 3,
+        borderRadius: 6,
+    },
+    debugVal: {
+        fontSize: 11,
+        fontWeight: '700',
+        fontVariant: ['tabular-nums'],
+        letterSpacing: 0.3,
+    },
+    debugSep: {
+        fontSize: 10,
+        color: '#444',
+    },
+    debugGreen:  { color: '#22c55e' },
+    debugYellow: { color: '#fbbf24' },
+    debugRed:    { color: '#ef4444' },
     appArea: {
         flex: 1,
     },

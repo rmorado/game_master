@@ -8,7 +8,6 @@ export interface Level {
     name: string;
     goal: number | null;   // null = O Mestre survival mode
     bagSize: number;
-    suspRate: number;
 }
 
 // ─── Scripted Event System ───────────────────────────────────────────────────

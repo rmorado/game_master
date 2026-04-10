@@ -126,7 +126,7 @@ export const TUTORIAL: TutorialStep[] = [
         ),
         target: 'btn_sell',
         screen: 'bacen',
-        boxPosition: { top: 450 },
+        boxPosition: { bottom: 120 },
     },
     // 12 — Money received, go pay PCC (info)
     {

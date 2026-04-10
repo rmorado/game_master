@@ -4,6 +4,10 @@ import { Level } from '../types/game';
 export const MS_PER_DAY = 2_000;              // real milliseconds per game day
 export const CPF_COST = 5_000;                 // dirty money per CPF purchased or used in a loan
 export const BAG_DIRTY_THRESHOLD = 4_000_000;  // PCC sends next bag when dirty ≤ this
+export const SUSP_RATE  = 0.05;                // fixed suspicion rate — does NOT vary by level
+export const SUSP_CURVE = 0.2;                 // superlinear exponent: large batches cost more per CPF
+//   formula: cpfCount^(1+SUSP_CURVE) * SUSP_RATE / 100^SUSP_CURVE
+//   100 CPFs → 5 susp · 500 CPFs → 35 susp · 1000 CPFs → 79 susp (at any level)
 
 // Game calendar — day 1 = 1 dec 2025
 const GAME_EPOCH = new Date(2025, 11, 1);      // month is 0-indexed: 11 = December
@@ -31,8 +35,8 @@ export const AUCTION_DURATIONS = [
 ] as const;
 
 export const LEVELS: Level[] = [
-    { id: 1, name: "Laranja",   goal:   20_000_000,  bagSize:    20_000_000,  suspRate: 0.05  },
-    { id: 2, name: "Gerente",   goal:   50_000_000,  bagSize:    50_000_000,  suspRate: 0.04  },
-    { id: 3, name: "Doleiro",   goal:  500_000_000,  bagSize:   150_000_000,  suspRate: 0.025 },
-    { id: 4, name: "O Mestre",  goal: null,          bagSize: 1_000_000_000,  suspRate: 0.015 },
+    { id: 1, name: "Laranja",   goal:   20_000_000,  bagSize:    20_000_000 },
+    { id: 2, name: "Gerente",   goal:   50_000_000,  bagSize:    50_000_000 },
+    { id: 3, name: "Doleiro",   goal:  500_000_000,  bagSize:   150_000_000 },
+    { id: 4, name: "O Mestre",  goal: null,          bagSize: 1_000_000_000 },
 ];
