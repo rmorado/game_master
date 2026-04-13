@@ -128,6 +128,7 @@ type GameStore = GameState & {
         chooseDialogueOption: (optionId: string) => void;
         advanceLevelDialogue: () => void;
         gameOver: (reason: string, detail: string) => void;
+        completeIntro: () => void;
         restartGame: () => void;
         goBack: () => void;
         toggleAppOverview: () => void;
@@ -189,11 +190,12 @@ const initialState: GameState = {
     gameOverDetail: '',
     omstreDayStart: 0,
     levelStartDay: 1,
+    introSeen: false,
     navHistory: [],
     visitedApps: ['home'],
     showAppOverview: false,
     language: 'pt' as Lang,
-    langPicker: false,
+    langPicker: true,
     newsHistory: [],
     currentNews: null,
     showNewsPopup: false,
@@ -246,6 +248,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
         gameOver: (reason, detail) => {
             set({ isGameOver: true, isPaused: true, gameOverReason: reason, gameOverDetail: detail });
+        },
+
+        completeIntro: () => {
+            set({ introSeen: true });
         },
 
         restartGame: () => {

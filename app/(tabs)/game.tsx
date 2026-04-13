@@ -22,6 +22,7 @@ import { NewMessagePopup } from '../../components/NewMessagePopup';
 import { LevelUpScreen } from '../../components/LevelUpScreen';
 import { BottomNavBar } from '../../components/BottomNavBar';
 import { AppOverview } from '../../components/AppOverview';
+import { IntroScreen } from '../../components/IntroScreen';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function gaugeColor(value: number) {
@@ -46,9 +47,10 @@ function DebugHud({ top }: { top: number }) {
 
 export default function GameScreen() {
     const insets = useSafeAreaInsets();
-    const { actions, activeApp, isGameOver, gameOverReason, gameOverDetail, levelIdx, day, omstreDayStart, levelUpScreen, activeToast } = useGameStore(useShallow(state => ({
+    const { actions, activeApp, introSeen, isGameOver, gameOverReason, gameOverDetail, levelIdx, day, omstreDayStart, levelUpScreen, activeToast } = useGameStore(useShallow(state => ({
         actions: state.actions,
         activeApp: state.activeApp,
+        introSeen: state.introSeen,
         isGameOver: state.isGameOver,
         gameOverReason: state.gameOverReason,
         gameOverDetail: state.gameOverDetail,
@@ -75,6 +77,10 @@ export default function GameScreen() {
         if (toastTimer.current) clearTimeout(toastTimer.current);
         toastTimer.current = setTimeout(() => actions.clearToast(), 3000);
     }, [activeToast?.id]);
+
+    if (!introSeen) {
+        return <IntroScreen onComplete={() => actions.completeIntro()} />;
+    }
 
     if (isGameOver) {
         const masterDays = levelIdx === 3 && omstreDayStart > 0

@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -68,7 +69,8 @@ tr:hover td { background: var(--surface2); }
 
 /* Controls */
 .controls { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 22px; }
-.ctrl { display: flex; flex-direction: column; gap: 6px; }
+.ctrl { display: flex; flex-direction: column; gap: 4px; }
+.fmt-hint { color: var(--muted); font-size: 10px; letter-spacing: 0.2px; opacity: 0.7; }
 .ctrl label { color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; }
 .ctrl input, .ctrl select {
   background: var(--surface); border: 1px solid var(--border);
@@ -139,25 +141,70 @@ hr.sep { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 
 <!-- ─── SUSPICION SIM ────────────────────────────────────────────────────────── -->
 <div id="tab-suspicion" class="panel">
-  <div class="controls">
-    <div class="ctrl"><label>LEVEL</label>
-      <select id="s-level"><option value="0">Laranja (0.05)</option><option value="1">Gerente (0.04)</option><option value="2">Doleiro (0.025)</option><option value="3">O Mestre (0.015)</option></select></div>
-    <div class="ctrl"><label>LOAN SIZE</label>
-      <select id="s-loan"><option value="100">Small — 100 CPFs</option><option value="500">Medium — 500 CPFs</option><option value="1000" selected>Large — 1000 CPFs</option></select></div>
-    <div class="ctrl"><label>AUCTION</label>
-      <select id="s-auction"><option value="0">Short 50–70%</option><option value="1" selected>Medium 60–80%</option><option value="2">Long 70–90%</option></select></div>
-    <div class="ctrl"><label>START SUSPICION</label><input type="number" id="s-start" value="0" min="0" max="99"></div>
-    <div class="ctrl"><label>LAWYER EVERY N LOANS</label><input type="number" id="s-lawyer-n" value="0" min="0" max="20" placeholder="0=never"></div>
-  </div>
+  <div style="display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start">
 
-  <div class="grid2">
+    <!-- ── LEFT: builder ─────────────────────────────────── -->
     <div>
-      <h3>Loan Sequence</h3>
-      <table id="tbl-sim"></table>
+      <div class="card section">
+        <h3 style="margin-bottom:14px">Add Action</h3>
+        <div class="ctrl" style="margin-bottom:10px">
+          <label>Action Type</label>
+          <select id="sim-action-type" style="min-width:unset;width:100%" onchange="simActionTypeChange()">
+            <option value="loan">Create Derivativo</option>
+            <option value="lawyer">Hire Lawyer</option>
+            <option value="milestone">Milestone / Note</option>
+          </select>
+        </div>
+        <div id="sim-loan-opts">
+          <div class="ctrl" style="margin-bottom:8px">
+            <label>CPF Count</label>
+            <select id="sim-cpf-preset" style="min-width:unset;width:100%" onchange="simPresetChange()">
+              <option value="100">Small — 100 CPFs</option>
+              <option value="500" selected>Medium — 500 CPFs</option>
+              <option value="1000">Large — 1000 CPFs</option>
+              <option value="custom">Custom…</option>
+            </select>
+          </div>
+          <div class="ctrl" id="sim-cpf-custom-wrap" style="display:none;margin-bottom:8px">
+            <label>Custom CPF Count</label>
+            <input type="number" id="sim-cpf-custom" value="500" min="1" max="2000" style="width:100%">
+          </div>
+        </div>
+        <div id="sim-milestone-opts" style="display:none">
+          <div class="ctrl" style="margin-bottom:8px">
+            <label>Label</label>
+            <input type="text" id="sim-milestone-label" placeholder="e.g. druglord_warning_1" style="width:100%">
+          </div>
+        </div>
+        <button onclick="simAddAction()" style="width:100%;margin-top:4px;padding:8px;background:var(--accent);color:#000;font-weight:700;font-size:12px;letter-spacing:0.5px;border:none;border-radius:6px;cursor:pointer">+ ADD ACTION</button>
+      </div>
+
+      <div class="card section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <h3 style="margin:0">Start Suspicion</h3>
+          <input type="number" id="sim-start" value="0" min="0" max="99" style="width:70px;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:13px" oninput="renderSim()">
+        </div>
+        <button onclick="simClear()" style="width:100%;padding:7px;background:transparent;color:var(--muted);font-weight:600;font-size:11px;letter-spacing:0.5px;border:1px solid var(--border);border-radius:6px;cursor:pointer">CLEAR ALL</button>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom:12px">Sequence</h3>
+        <div id="sim-seq-list" style="display:flex;flex-direction:column;gap:6px">
+          <div style="color:var(--muted);font-size:12px;text-align:center;padding:16px 0">No actions yet. Add one above.</div>
+        </div>
+      </div>
     </div>
+
+    <!-- ── RIGHT: timeline ──────────────────────────────── -->
     <div>
-      <h3>Summary</h3>
-      <div id="sim-summary" class="card"></div>
+      <div class="section">
+        <h3 style="margin-bottom:10px">Suspicion Over Time</h3>
+        <svg id="sim-chart" width="100%" height="180" style="display:block;background:var(--surface);border:1px solid var(--border);border-radius:8px"></svg>
+      </div>
+      <div class="section">
+        <table id="sim-timeline"></table>
+      </div>
+      <div id="sim-thresholds" class="card" style="margin-top:16px"></div>
     </div>
   </div>
 </div>
@@ -193,17 +240,17 @@ hr.sep { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
     <div class="card section">
       <h3>Global Constants</h3><br>
       <div class="grid2">
-        <div class="ctrl" style="margin-bottom:10px;"><label>CPF_COST (dirty per CPF)</label><input type="number" id="c-cpf-cost" value="5000"></div>
-        <div class="ctrl" style="margin-bottom:10px;"><label>BAG_DIRTY_THRESHOLD</label><input type="number" id="c-bag-thresh" value="4000000"></div>
-        <div class="ctrl" style="margin-bottom:10px;"><label>Lawyer −suspicion</label><input type="number" id="c-lawyer-susp" value="15"></div>
-        <div class="ctrl" style="margin-bottom:10px;"><label>Batch deadline (days)</label><input type="number" id="c-batch-days" value="90"></div>
-        <div class="ctrl" style="margin-bottom:10px;"><label>Batch due = bag ×</label><input type="number" id="c-batch-pct" value="0.7" step="0.05"></div>
-        <div class="ctrl" style="margin-bottom:10px;"><label>Pressure per default</label><input type="number" id="c-pres-default" value="25"></div>
-        <div class="ctrl" style="margin-bottom:10px;"><label>Pressure/day critical</label><input type="number" id="c-pres-crit" value="0.5" step="0.1"></div>
-        <div class="ctrl" style="margin-bottom:10px;"><label>Pressure/day many batches</label><input type="number" id="c-pres-many" value="0.1" step="0.05"></div>
-        <div class="ctrl" style="margin-bottom:10px;"><label>Pressure drain/day</label><input type="number" id="c-pres-drain" value="0.1" step="0.05"></div>
-        <div class="ctrl"><label>SUSP_RATE (base rate, fixed per level)</label><input type="number" id="c-susp-rate" value="0.05" step="0.005"></div>
-        <div class="ctrl"><label>SUSP_CURVE (create exponent offset)</label><input type="number" id="c-susp-curve" value="0.2" step="0.05"></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label title="Dirty money cost per CPF. Also sets the face value of each debt pack (N CPFs × cost).">CPF_COST — dirty money per CPF</label><input type="number" id="c-cpf-cost" value="5000" data-fmt><small class="fmt-hint" id="fmt-c-cpf-cost">5.000</small></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label title="PCC only sends the next bag once your dirty balance drops to or below this value.">BAG_DIRTY_THRESHOLD — triggers next bag</label><input type="number" id="c-bag-thresh" value="4000000" data-fmt><small class="fmt-hint" id="fmt-c-bag-thresh">4.000.000</small></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label title="Suspicion points removed each time you hire the lawyer.">Lawyer — suspicion removed per hire</label><input type="number" id="c-lawyer-susp" value="15"></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label title="Days before an unpaid batch defaults. Hitting 0 adds pressure and destroys the batch.">Batch deadline (days before default)</label><input type="number" id="c-batch-days" value="90"></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label title="Debt created per bag = bagSize × this fraction. You always owe less than you received, but it must come from clean money.">Batch due = bag × (repayment fraction)</label><input type="number" id="c-batch-pct" value="0.7" step="0.05"></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label title="Pressure spike added instantly when a batch expires unpaid.">Pressure per defaulted batch</label><input type="number" id="c-pres-default" value="25"></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label title="Pressure added per tick when any batch has fewer than 30 days left.">Pressure/day — batch critical (&lt;30d)</label><input type="number" id="c-pres-crit" value="0.5" step="0.1"></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label title="Pressure added per tick when you have more than 2 open batches simultaneously.">Pressure/day — too many open batches</label><input type="number" id="c-pres-many" value="0.1" step="0.05"></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label title="Pressure lost per tick when no critical conditions are active. Natural decay.">Pressure drain/day (natural decay)</label><input type="number" id="c-pres-drain" value="0.1" step="0.05"></div>
+        <div class="ctrl"><label title="Linear coefficient in suspicion formula: cpf^(1+CURVE) × RATE / 100^CURVE. Fixed — does not vary by level.">SUSP_RATE — base suspicion multiplier</label><input type="number" id="c-susp-rate" value="0.05" step="0.005"></div>
+        <div class="ctrl"><label title="Exponent offset that makes large loans disproportionately suspicious. 0 = linear. 0.2 = a 1000-CPF loan costs more than 10× a 100-CPF loan.">SUSP_CURVE — big-loan penalty exponent</label><input type="number" id="c-susp-curve" value="0.2" step="0.05"></div>
       </div>
     </div>
     <div class="card section">
@@ -238,6 +285,7 @@ const AUCTIONS = [
 const LOAN_SIZES = [100, 500, 1000];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+const fmtN = n => isNaN(n) || n === 0 ? '0' : Math.round(n).toLocaleString('pt-BR');
 const F = n => {
   if (n == null) return '∞';
   if (Math.abs(n) >= 1e9) return (n/1e9).toFixed(2)+'B';
@@ -486,83 +534,208 @@ function renderRoundsGoal() {
 }
 
 // ─── SUSPICION SIM ────────────────────────────────────────────────────────────
-function updateSim() {
-  const lvlIdx = +document.getElementById('s-level').value;
-  const cpf    = +document.getElementById('s-loan').value;
-  const aucIdx = +document.getElementById('s-auction').value;
-  const start  = +document.getElementById('s-start').value || 0;
-  const lawyerN = +document.getElementById('s-lawyer-n').value || 0;
+// Sequence: array of { type: 'loan'|'lawyer'|'milestone', cpf?: number, label?: string }
+let simSequence = [];
 
-  const l = LEVELS[lvlIdx];
-  const auc = AUCTIONS[aucIdx];
-  const scv = sc(cpf), ssv = 0, stv = scv;
-  const cleanPer = cAvg(cpf, auc);
-  const totalCpfsForBag = l.bag / G.CPF_COST;
-  const loansForBag = Math.ceil(totalCpfsForBag / cpf);
+function simGetCpf() {
+  const preset = document.getElementById('sim-cpf-preset').value;
+  return preset === 'custom'
+    ? (+document.getElementById('sim-cpf-custom').value || 500)
+    : +preset;
+}
 
+function simActionTypeChange() {
+  const t = document.getElementById('sim-action-type').value;
+  document.getElementById('sim-loan-opts').style.display      = t === 'loan'      ? '' : 'none';
+  document.getElementById('sim-milestone-opts').style.display = t === 'milestone' ? '' : 'none';
+}
+
+function simPresetChange() {
+  const custom = document.getElementById('sim-cpf-preset').value === 'custom';
+  document.getElementById('sim-cpf-custom-wrap').style.display = custom ? '' : 'none';
+}
+
+function simAddAction() {
+  const t = document.getElementById('sim-action-type').value;
+  if (t === 'loan') {
+    simSequence.push({ type: 'loan', cpf: simGetCpf() });
+  } else if (t === 'lawyer') {
+    simSequence.push({ type: 'lawyer' });
+  } else {
+    const label = document.getElementById('sim-milestone-label').value.trim() || 'Milestone';
+    simSequence.push({ type: 'milestone', label });
+    document.getElementById('sim-milestone-label').value = '';
+  }
+  renderSim();
+}
+
+function simRemove(idx) {
+  simSequence.splice(idx, 1);
+  renderSim();
+}
+
+function simClear() {
+  simSequence = [];
+  renderSim();
+}
+
+function renderSim() {
+  const start = +document.getElementById('sim-start').value || 0;
+
+  // ── Compute running suspicion ──────────────────────────
   let susp = start;
-  let cumClean = 0, cumDirty = 0, lawyerTotal = 0;
-  let rows = [], gameOverAt = null;
-
-  for (let i = 1; i <= 40; i++) {
-    let lawyerApplied = false;
-    if (lawyerN > 0 && i > 1 && (i-1) % lawyerN === 0) {
-      susp = Math.max(0, susp - G.LAWYER_SUSP);
-      lawyerTotal++;
-      lawyerApplied = true;
-    }
+  const computed = simSequence.map((step, i) => {
+    if (step.type === 'milestone') return { ...step, idx: i, suspBefore: susp, delta: 0, suspAfter: susp, gameOver: false };
+    let delta = 0;
+    if (step.type === 'loan')   delta = +sc(step.cpf);
+    if (step.type === 'lawyer') delta = -G.LAWYER_SUSP;
     const before = susp;
-    susp = Math.min(100, susp + stv);
-    cumClean += cleanPer;
-    cumDirty += fv(cpf);
-    rows.push({ i, before, after: susp, cumClean, cumDirty, lawyerApplied, go: susp >= 100 });
-    if (susp >= 100) { gameOverAt = i; break; }
+    susp = Math.max(0, Math.min(100, susp + delta));
+    const go = susp >= 100;
+    return { ...step, idx: i, suspBefore: before, delta, suspAfter: susp, gameOver: go };
+  });
+
+  // ── Sequence list ──────────────────────────────────────
+  const listEl = document.getElementById('sim-seq-list');
+  if (simSequence.length === 0) {
+    listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:16px 0">No actions yet. Add one above.</div>';
+  } else {
+    listEl.innerHTML = computed.map(s => {
+      const dot = s.type === 'milestone'
+        ? `<span style="width:10px;height:10px;border-radius:2px;background:#3b82f6;display:inline-block;flex-shrink:0"></span>`
+        : s.type === 'lawyer'
+          ? `<span style="width:10px;height:10px;border-radius:50%;background:var(--purple);display:inline-block;flex-shrink:0"></span>`
+          : `<span style="width:10px;height:10px;border-radius:50%;background:var(--accent);display:inline-block;flex-shrink:0"></span>`;
+      const label = s.type === 'loan'
+        ? `Create Derivativo <span style="color:var(--accent)">${s.cpf} CPFs</span> <span style="color:var(--muted);font-size:11px">+${s.delta}</span>`
+        : s.type === 'lawyer'
+          ? `Hire Lawyer <span style="color:var(--purple);font-size:11px">${s.delta}</span>`
+          : `<span style="color:#3b82f6">▷ ${s.label}</span>`;
+      const suspPill = s.type !== 'milestone'
+        ? `<span style="margin-left:auto;font-size:11px;font-weight:700;color:${s.suspAfter>=100?'var(--red)':s.suspAfter>=75?'var(--red)':s.suspAfter>=50?'var(--yellow)':'var(--green)'}">→${s.suspAfter.toFixed(0)}</span>`
+        : `<span style="margin-left:auto;font-size:11px;color:var(--muted)">${s.suspAfter.toFixed(0)}</span>`;
+      return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
+        ${dot}
+        <span style="font-size:12px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${label}</span>
+        ${suspPill}
+        <button onclick="simRemove(${s.idx})" style="flex-shrink:0;background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;line-height:1;padding:0 2px">×</button>
+      </div>`;
+    }).join('');
   }
 
-  const lastSafe = rows.filter(r => !r.go).pop();
-  const safeLoans = gameOverAt ? gameOverAt - 1 : rows.length;
-  const cleanBeforeGO = lastSafe ? lastSafe.cumClean : 0;
+  // ── SVG Chart ─────────────────────────────────────────
+  const svg = document.getElementById('sim-chart');
+  const W = svg.clientWidth || 600;
+  const H = 180;
+  const PAD = { top: 14, right: 20, bottom: 28, left: 36 };
+  const cW = W - PAD.left - PAD.right;
+  const cH = H - PAD.top - PAD.bottom;
 
-  // Table
-  document.getElementById('tbl-sim').innerHTML =
-    `<tr><th>#</th><th>Susp Before</th><th>+${scv.toFixed(1)} (create)</th><th>Susp After</th><th>Status</th><th>Cum Clean</th><th>% Bag Dirty</th></tr>` +
-    rows.map(r => `<tr>
-      <td>${r.i}${r.lawyerApplied ? ' <span class="badge b-purple">−'+G.LAWYER_SUSP+' LAWYER</span>' : ''}</td>
-      <td class="${suspClass(r.before)}">${r.before.toFixed(1)}</td>
-      <td class="c-muted">+${stv.toFixed(1)}</td>
-      <td class="${suspClass(r.after)}">${r.after.toFixed(1)}</td>
-      <td>${suspBadge(r.after)}</td>
-      <td class="c-green">${F(r.cumClean)}</td>
-      <td class="c-muted">${((r.cumDirty / l.bag)*100).toFixed(0)}%</td>
-    </tr>`).join('');
+  const nonMile = computed.filter(s => s.type !== 'milestone');
+  const pts = [{ x: 0, y: start }, ...nonMile.map((s, i) => ({ x: i + 1, y: s.suspAfter }))];
+  const maxX = Math.max(pts.length - 1, 1);
 
-  // Summary
-  const loansTo50  = start >= 50 ? 0 : Math.ceil((50  - start) / stv);
-  const loansTo75  = start >= 75 ? 0 : Math.ceil((75  - start) / stv);
-  const loansTo100 = start >= 100 ? 0 : Math.ceil((100 - start) / stv);
-  const bagPct = ((cleanBeforeGO / (l.goal || l.bag)) * 100).toFixed(1);
+  const px = x => PAD.left + (x / maxX) * cW;
+  const py = y => PAD.top + (1 - y / 100) * cH;
 
-  document.getElementById('sim-summary').innerHTML = `
-    <div class="grid3" style="margin-bottom:14px;">
-      <div class="stat-tile"><div class="val c-orange">${stv.toFixed(1)}</div><div class="lbl">SUSP/LOAN</div><div class="sub">on create only</div></div>
-      <div class="stat-tile"><div class="val ${safeLoans < loansForBag ? 'c-red' : 'c-green'}">${safeLoans}</div><div class="lbl">SAFE LOANS</div><div class="sub">need ${loansForBag} for full bag</div></div>
-      <div class="stat-tile"><div class="val c-green">${F(cleanBeforeGO)}</div><div class="lbl">CLEAN EARNED</div><div class="sub">${bagPct}% of ${l.goal ? 'goal' : 'bag'}</div></div>
-    </div>
-    <hr class="sep">
-    <div style="margin-bottom:12px;">
-      <h3 style="margin-bottom:8px;">Suspicion Thresholds (no lawyer)</h3>
-      <div style="margin-bottom:5px;">⚠ <b>50</b> hit after loan <span class="c-yellow">${loansTo50}</span> — scripted event fires</div>
-      <div style="margin-bottom:5px;">🚨 <b>75</b> hit after loan <span class="c-red">${loansTo75}</span> — police warning (SCRIPTED_EVENT)</div>
-      <div>💀 <b>100</b> hit after loan <span class="c-red bold">${loansTo100}</span> — GAME OVER</div>
-    </div>
-    ${lawyerN > 0 ? `<hr class="sep"><div>
-      <h3 style="margin-bottom:8px;">Lawyer Impact</h3>
-      <div>Uses: <span class="c-purple">${lawyerTotal}</span> × −${G.LAWYER_SUSP} suspicion each</div>
-      <div style="color:var(--muted);font-size:11px;margin-top:4px;">Applied every ${lawyerN} loans</div>
-    </div>` : ''}
-    ${safeLoans < loansForBag ? `<hr class="sep"><div class="insight" style="margin:0;font-size:11px;"><b>⚠ Bag cannot be fully laundered</b> without mitigation. ${loansForBag - safeLoans} more loans needed after hitting 100. Use lawyer every ${Math.ceil(loansForBag / Math.ceil((loansForBag * stv - 99) / G.LAWYER_SUSP))} loans to break even.</div>` : `<hr class="sep"><div class="insight" style="margin:0;font-size:11px;"><b>✓ Full bag can be laundered</b> within suspicion limit${lawyerN > 0 ? ' with lawyer usage.' : ' — no lawyer needed.'}</div>`}
-  `;
+  const thresholds = [
+    { v: 25,  color: '#6b7280', label: '25' },
+    { v: 50,  color: '#fbbf24', label: '50' },
+    { v: 75,  color: '#f97316', label: '75' },
+    { v: 100, color: '#dc2626', label: '100' },
+  ];
+
+  let svgContent = '';
+
+  // threshold lines
+  thresholds.forEach(t => {
+    const y = py(t.v);
+    svgContent += `<line x1="${PAD.left}" y1="${y}" x2="${W - PAD.right}" y2="${y}" stroke="${t.color}" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>`;
+    svgContent += `<text x="${PAD.left - 4}" y="${y + 4}" text-anchor="end" font-size="9" fill="${t.color}" opacity="0.8">${t.label}</text>`;
+  });
+
+  // milestone vertical lines
+  let mileX = 0; // track how many non-milestone steps passed
+  computed.forEach(s => {
+    if (s.type !== 'milestone') { mileX++; return; }
+    const x = px(mileX);
+    svgContent += `<line x1="${x}" y1="${PAD.top}" x2="${x}" y2="${H - PAD.bottom}" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4,3" opacity="0.7"/>`;
+    // label rotated
+    svgContent += `<text x="${x + 3}" y="${PAD.top + 10}" font-size="9" fill="#3b82f6" opacity="0.9">${s.label.length > 18 ? s.label.slice(0,18)+'…' : s.label}</text>`;
+  });
+
+  // line path
+  if (pts.length > 1) {
+    const d = pts.map((p, i) => `${i===0?'M':'L'}${px(p.x).toFixed(1)},${py(p.y).toFixed(1)}`).join(' ');
+    svgContent += `<path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2"/>`;
+  }
+
+  // points
+  pts.forEach(p => {
+    const color = p.y >= 100 ? '#dc2626' : p.y >= 75 ? '#f97316' : p.y >= 50 ? '#fbbf24' : '#22c55e';
+    svgContent += `<circle cx="${px(p.x).toFixed(1)}" cy="${py(p.y).toFixed(1)}" r="3.5" fill="${color}" stroke="var(--bg)" stroke-width="1.5"/>`;
+  });
+
+  // x-axis labels (only show if not too many)
+  if (pts.length <= 20) {
+    pts.forEach((p, i) => {
+      if (i === 0) return;
+      svgContent += `<text x="${px(p.x).toFixed(1)}" y="${H - 6}" text-anchor="middle" font-size="9" fill="var(--muted)">${i}</text>`;
+    });
+  }
+
+  svg.innerHTML = svgContent;
+
+  // ── Timeline table ─────────────────────────────────────
+  if (computed.length === 0) {
+    document.getElementById('sim-timeline').innerHTML = '';
+    document.getElementById('sim-thresholds').innerHTML = '<div style="color:var(--muted);font-size:12px">Add actions to see timeline.</div>';
+    return;
+  }
+
+  let loanCount = 0;
+  document.getElementById('sim-timeline').innerHTML =
+    `<tr><th>#</th><th>Action</th><th>Δ Susp</th><th>Suspicion</th><th>Bar</th><th>Status</th></tr>` +
+    computed.map((s, i) => {
+      if (s.type !== 'milestone') loanCount++;
+      if (s.type === 'milestone') {
+        return `<tr style="background:#0a1628">
+          <td class="c-muted">${i + 1}</td>
+          <td colspan="4" style="color:#3b82f6;font-style:italic">▷ ${s.label}</td>
+          <td style="color:#3b82f6;font-size:11px">susp: ${s.suspAfter.toFixed(0)}</td>
+        </tr>`;
+      }
+      const actionLabel = s.type === 'loan'
+        ? `Create Derivativo <span class="c-muted" style="font-size:11px">${s.cpf} CPFs</span>`
+        : `Hire Lawyer`;
+      const deltaStr = s.delta > 0 ? `<span class="c-orange">+${s.delta}</span>` : `<span class="c-purple">${s.delta}</span>`;
+      const bar = `<div class="bar-wrap"><div class="bar ${s.suspAfter>=75?'bg-red':s.suspAfter>=50?'bg-orange':'bg-green'}" style="width:${Math.min(100,s.suspAfter)}%"></div></div>`;
+      return `<tr${s.gameOver ? ' style="background:#1a0000"' : ''}>
+        <td class="c-muted">${i + 1}</td>
+        <td>${actionLabel}</td>
+        <td>${deltaStr}</td>
+        <td class="${suspClass(s.suspAfter)} bold">${s.suspAfter.toFixed(1)}</td>
+        <td>${bar}</td>
+        <td>${s.gameOver ? '<span class="badge b-red">GAME OVER</span>' : suspBadge(s.suspAfter)}</td>
+      </tr>`;
+    }).join('');
+
+  // ── Threshold summary ──────────────────────────────────
+  const cross = (thr) => {
+    const idx = computed.findIndex(s => s.type !== 'milestone' && s.suspAfter >= thr);
+    return idx === -1 ? null : `action #${idx + 1}`;
+  };
+  document.getElementById('sim-thresholds').innerHTML = `
+    <h3 style="margin-bottom:12px">Threshold Crossings</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;text-align:center">
+      <div><div class="val" style="font-size:20px;font-weight:700;color:#6b7280">${cross(25) ?? '—'}</div><div class="lbl" style="font-size:10px;color:#6b7280;margin-top:4px">SUSP ≥ 25</div></div>
+      <div><div class="val" style="font-size:20px;font-weight:700;color:var(--yellow)">${cross(50) ?? '—'}</div><div class="lbl" style="font-size:10px;color:var(--muted);margin-top:4px">SUSP ≥ 50</div></div>
+      <div><div class="val" style="font-size:20px;font-weight:700;color:var(--accent)">${cross(75) ?? '—'}</div><div class="lbl" style="font-size:10px;color:var(--muted);margin-top:4px">SUSP ≥ 75</div></div>
+      <div><div class="val" style="font-size:20px;font-weight:700;color:var(--red)">${cross(100) ?? '—'}</div><div class="lbl" style="font-size:10px;color:var(--muted);margin-top:4px">GAME OVER</div></div>
+    </div>`;
 }
+
+function updateSim() { renderSim(); }
 
 // ─── PRESSURE ────────────────────────────────────────────────────────────────
 function updatePressure() {
@@ -666,8 +839,18 @@ function renderLevelEditTable() {
     `<tr><th>Level</th><th>Goal</th><th>Bag Size</th></tr>` +
     LEVELS.map((l, i) => `<tr>
       <td class="bold">${l.name}</td>
-      <td><input type="number" value="${l.goal || 0}" style="width:100px" onchange="LEVELS[${i}].goal = +this.value || null; renderAll()"></td>
-      <td><input type="number" value="${l.bag}" style="width:120px" onchange="LEVELS[${i}].bag = +this.value; renderAll()"></td>
+      <td>
+        <input type="number" value="${l.goal || 0}" style="width:100px"
+          oninput="document.getElementById('fmt-lg-${i}').textContent=fmtN(+this.value)"
+          onchange="LEVELS[${i}].goal = +this.value || null; renderAll()">
+        <small class="fmt-hint" id="fmt-lg-${i}">${l.goal ? l.goal.toLocaleString('pt-BR') : '0'}</small>
+      </td>
+      <td>
+        <input type="number" value="${l.bag}" style="width:120px"
+          oninput="document.getElementById('fmt-lb-${i}').textContent=fmtN(+this.value)"
+          onchange="LEVELS[${i}].bag = +this.value; renderAll()">
+        <small class="fmt-hint" id="fmt-lb-${i}">${l.bag.toLocaleString('pt-BR')}</small>
+      </td>
     </tr>`).join('');
 }
 
@@ -682,15 +865,20 @@ function renderAll() {
   updatePressure();
 }
 
-// Live updates from controls
-['s-level','s-loan','s-auction','s-start','s-lawyer-n'].forEach(id =>
-  document.getElementById(id).addEventListener('change', updateSim));
+// Live updates from controls (sim-start wired inline via oninput)
 ['p-level','p-batches','p-start'].forEach(id =>
   document.getElementById(id).addEventListener('change', updatePressure));
 
 const constantIds = ['c-cpf-cost','c-bag-thresh','c-lawyer-susp','c-batch-days','c-batch-pct','c-pres-default','c-pres-crit','c-pres-many','c-pres-drain','c-susp-rate','c-susp-curve'];
 constantIds.forEach(id =>
   document.getElementById(id).addEventListener('change', () => { readConstants(); renderAll(); }));
+// Live formatted hints for large-number global constant inputs
+['c-cpf-cost','c-bag-thresh'].forEach(id => {
+  document.getElementById(id).addEventListener('input', e => {
+    const hint = document.getElementById('fmt-' + id);
+    if (hint) hint.textContent = fmtN(+e.target.value);
+  });
+});
 
 renderLevelEditTable();
 renderAll();

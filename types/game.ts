@@ -91,6 +91,7 @@ export interface GameState {
     gameOverDetail: string;
     omstreDayStart: number;
     levelStartDay: number;
+    introSeen: boolean;
     // Android-style nav
     navHistory: string[];
     visitedApps: string[];
