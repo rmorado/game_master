@@ -1,7 +1,7 @@
 // hooks/use-game-store.ts
 import { create } from 'zustand';
 import { BANKS, DIALOGUES, LEVEL_EVENTS, SCRIPTED_EVENTS, TUTORIAL } from '../constants/dialogues';
-import { BAG_DIRTY_THRESHOLD, CPF_COST, LEVELS, SUSP_CURVE, SUSP_RATE } from '../constants/game-data';
+import { BAG_DIRTY_THRESHOLD, BATCH_DAYS, BATCH_PCT, CPF_COST, LEVELS, PRES_CRIT, PRES_DEFAULT, PRES_DRAIN, PRES_MANY, SUSP_CURVE, SUSP_RATE } from '../constants/game-data';
 
 function calcCreateSusp(cpfCount: number): number {
     return Math.round(Math.pow(cpfCount, 1 + SUSP_CURVE) * SUSP_RATE / Math.pow(100, SUSP_CURVE));
@@ -149,7 +149,7 @@ const initialState: GameState = {
     cpfs: 0,
     suspicion: 0,
     pressure: 0,
-    batches: [{ id: 1, due: 3_000_000, days: 90 }],
+    batches: [{ id: 1, due: 3_000_000, days: BATCH_DAYS }],
     debtPacks: [],
     currentSellPackId: null,
     bankOffers: [],
@@ -195,7 +195,7 @@ const initialState: GameState = {
     visitedApps: ['home'],
     showAppOverview: false,
     language: 'pt' as Lang,
-    langPicker: true,
+    langPicker: false,
     newsHistory: [],
     currentNews: null,
     showNewsPopup: false,
@@ -251,7 +251,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         },
 
         completeIntro: () => {
-            set({ introSeen: true });
+            set({ introSeen: true, langPicker: true });
         },
 
         restartGame: () => {
@@ -272,11 +272,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
             // ── Bag spawn (threshold-based) ──
             if (state.tutStep >= TUTORIAL.length && state.dirty <= BAG_DIRTY_THRESHOLD && !state.hasPendingBag) {
                 const amount = lvl.bagSize;
-                const bagMsg = state.pressure >= 100
-                    ? 'tou mandando agora'
+                const bagMsgBi = state.pressure >= 100
+                    ? { pt: 'tou mandando agora', en: 'sending it now' }
                     : state.pressure >= 40
-                        ? 'Tou mandando ssaporra pra vc lavar'
-                        : 'Mandando umas roupas pra lavanderia';
+                        ? { pt: 'Tou mandando ssaporra pra vc lavar', en: 'Sending this shit for you to wash' }
+                        : { pt: 'Mandando umas roupas pra lavanderia', en: 'Sending some clothes to the laundry' };
+                const bagMsg = resolveBi(bagMsgBi, state.language);
                 set(s => ({
                     hasPendingBag: true,
                     pendingBagAmount: amount,
@@ -293,7 +294,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             for (const b of get().batches) {
                 const newDays = b.days - 1;
                 if (newDays <= 0) {
-                    pressureSpike += 25;
+                    pressureSpike += PRES_DEFAULT;
                 } else {
                     if (newDays < 30) critical = true;
                     updatedBatches.push({ ...b, days: newDays });
@@ -308,11 +309,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
             // ── Pressure drift ──
             const current = get();
             if (critical) {
-                set(s => ({ pressure: Math.min(100, s.pressure + 0.5) }));
+                set(s => ({ pressure: Math.min(100, s.pressure + PRES_CRIT) }));
             } else if (current.batches.length > 2) {
-                set(s => ({ pressure: Math.min(100, s.pressure + 0.1) }));
+                set(s => ({ pressure: Math.min(100, s.pressure + PRES_MANY) }));
             } else if (current.pressure > 0) {
-                set(s => ({ pressure: Math.max(0, s.pressure - 0.1) }));
+                set(s => ({ pressure: Math.max(0, s.pressure - PRES_DRAIN) }));
             }
 
             // ── Game over checks ──
@@ -393,8 +394,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         },
 
         receiveBag: (amount) => {
-            const due = amount * 0.7;
-            const newBatch: Batch = { id: Date.now(), due, days: 90 };
+            const due = amount * BATCH_PCT;
+            const newBatch: Batch = { id: Date.now(), due, days: BATCH_DAYS };
 
             const depositMsg = `Malote de ${formatMoney(amount)} depositado. Movimenta isso logo.`;
             set(s => ({

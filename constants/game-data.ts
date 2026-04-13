@@ -9,6 +9,14 @@ export const SUSP_CURVE = 0.2;                 // superlinear exponent: large ba
 //   formula: cpfCount^(1+SUSP_CURVE) * SUSP_RATE / 100^SUSP_CURVE
 //   100 CPFs → 5 susp · 500 CPFs → 35 susp · 1000 CPFs → 79 susp (at any level)
 
+export const BATCH_DAYS   = 90;   // days before unpaid batch defaults
+export const BATCH_PCT    = 0.7;  // debt = bag × this fraction
+export const PRES_DEFAULT = 25;   // pressure spike per defaulted batch
+export const PRES_CRIT    = 0.5;  // pressure/day when any batch < 30d left
+export const PRES_MANY    = 0.1;  // pressure/day when > 2 open batches
+export const PRES_DRAIN   = 0.1;  // pressure drain/day when no critical state
+export const LAWYER_SUSP  = 15;   // suspicion removed per lawyer hire
+
 // Game calendar — day 1 = 1 dec 2025
 const GAME_EPOCH = new Date(2025, 11, 1);      // month is 0-indexed: 11 = December
 const PT_MONTHS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];

@@ -3,6 +3,7 @@
 
 import { Bi, CharacterDialogue, GameState, LevelEvent, ScriptedEvent, TutorialStep } from '../types/game';
 import { formatMoney as fmt } from '../utils/format';
+import { LAWYER_SUSP } from '../constants/game-data';
 
 // Bilingual string helper
 export const bi = (pt: string, en: string): Bi => ({ pt, en });
@@ -457,7 +458,7 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
         options: [
             {
                 id: 'buy_100_cpfs',
-                text: `manda mais 100 CPFs [R$${fmt(500000)}]`,
+                text: bi(`manda mais 100 CPFs [R$${fmt(500000)}]`, `send me 100 CPFs [R$${fmt(500000)}]`),
                 response: bi('transferido', 'transferred'),
                 disabledResponse: (s: GameState) => {
                     const days = s.cpfCooldownUntilDay - s.day;
@@ -482,7 +483,7 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
             },
             {
                 id: 'buy_500_cpfs',
-                text: `manda mais 500 CPFs [R$${fmt(2500000)}]`,
+                text: bi(`manda mais 500 CPFs [R$${fmt(2500000)}]`, `send me 500 CPFs [R$${fmt(2500000)}]`),
                 response: bi('transferido', 'transferred'),
                 disabledResponse: (s: GameState) => {
                     const days = s.cpfCooldownUntilDay - s.day;
@@ -576,7 +577,7 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                 disabledResponse: bi('preciso do valor antes de qualquer coisa.', 'I need the amount before anything else.'),
                 effects: [
                     { type: 'spend', resource: 'dirty', amount: 1000000 },
-                    { type: 'adjust', resource: 'suspicion', delta: -15 },
+                    { type: 'adjust', resource: 'suspicion', delta: -LAWYER_SUSP },
                     { type: 'trackTransfer', contactId: 'lawyer', amount: 1000000 },
                 ],
             },

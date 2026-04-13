@@ -235,7 +235,10 @@ hr.sep { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 
 <!-- ─── CONSTANTS ────────────────────────────────────────────────────────────── -->
 <div id="tab-constants" class="panel">
-  <p style="color:var(--muted);font-size:13px;margin-bottom:20px;">Changes update all tabs instantly. These mirror <code>constants/game-data.ts</code> and <code>hooks/use-game-store.ts</code>.</p>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+    <p style="color:var(--muted);font-size:13px;margin:0">Changes update all tabs instantly. These mirror <code>constants/game-data.ts</code>.</p>
+    <button onclick="exportGameData()" style="padding:9px 20px;background:var(--accent);color:#000;font-weight:700;font-size:12px;letter-spacing:0.5px;border:none;border-radius:6px;cursor:pointer;white-space:nowrap">⬇ Export game-data.ts</button>
+  </div>
   <div class="grid2">
     <div class="card section">
       <h3>Global Constants</h3><br>
@@ -852,6 +855,70 @@ function renderLevelEditTable() {
         <small class="fmt-hint" id="fmt-lb-${i}">${l.bag.toLocaleString('pt-BR')}</small>
       </td>
     </tr>`).join('');
+}
+
+// ─── Export ───────────────────────────────────────────────────────────────────
+function exportGameData() {
+  readConstants();
+  const levelsTs = LEVELS.map(l =>
+    `    { id: ${LEVELS.indexOf(l)+1}, name: "${l.name}", goal: ${l.goal === null ? 'null' : l.goal.toLocaleString('en').replace(/,/g,'_')}, bagSize: ${l.bag.toLocaleString('en').replace(/,/g,'_')} },`
+  ).join('\n');
+
+  const src = `// constants/game-data.ts
+import { Level } from '../types/game';
+
+export const MS_PER_DAY = 2_000;              // real milliseconds per game day
+export const CPF_COST = ${G.CPF_COST};
+export const BAG_DIRTY_THRESHOLD = ${G.BAG_THRESH};
+export const SUSP_RATE  = ${SUSP_RATE};
+export const SUSP_CURVE = ${G.SUSP_CURVE};
+//   formula: cpfCount^(1+SUSP_CURVE) * SUSP_RATE / 100^SUSP_CURVE
+//   100 CPFs → 5 susp · 500 CPFs → 35 susp · 1000 CPFs → 79 susp (at any level)
+
+export const BATCH_DAYS   = ${G.BATCH_DAYS};
+export const BATCH_PCT    = ${G.BATCH_PCT};
+export const PRES_DEFAULT = ${G.PRES_DEFAULT};
+export const PRES_CRIT    = ${G.PRES_CRIT};
+export const PRES_MANY    = ${G.PRES_MANY};
+export const PRES_DRAIN   = ${G.PRES_DRAIN};
+export const LAWYER_SUSP  = ${G.LAWYER_SUSP};
+
+// Game calendar — day 1 = 1 dec 2025
+const GAME_EPOCH = new Date(2025, 11, 1);
+const PT_MONTHS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const EN_MONTHS = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+
+export function gameDate(day: number, lang: 'pt' | 'en' = 'pt'): string {
+    const d = new Date(GAME_EPOCH);
+    d.setDate(d.getDate() + (day - 1));
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mon = (lang === 'en' ? EN_MONTHS : PT_MONTHS)[d.getMonth()];
+    return \`\${dd}-\${mon}\`;
+}
+
+export const LOAN_OPTIONS = [
+    { cpfCount: 100,  durationMs: 5_000 },
+    { cpfCount: 500,  durationMs: 15_000 },
+    { cpfCount: 1000, durationMs: 25_000 },
+] as const;
+
+export const AUCTION_DURATIONS = [
+    { label: 'curto',  days: 5,  minPct: 0.50, maxPct: 0.70 },
+    { label: 'médio',  days: 10, minPct: 0.60, maxPct: 0.80 },
+    { label: 'longo',  days: 20, minPct: 0.70, maxPct: 0.90 },
+] as const;
+
+export const LEVELS: Level[] = [
+${levelsTs}
+];
+`;
+
+  const blob = new Blob([src], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'game-data.ts';
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 // ─── Wire-up & Init ───────────────────────────────────────────────────────────

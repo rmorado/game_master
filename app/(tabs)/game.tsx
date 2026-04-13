@@ -47,10 +47,11 @@ function DebugHud({ top }: { top: number }) {
 
 export default function GameScreen() {
     const insets = useSafeAreaInsets();
-    const { actions, activeApp, introSeen, isGameOver, gameOverReason, gameOverDetail, levelIdx, day, omstreDayStart, levelUpScreen, activeToast } = useGameStore(useShallow(state => ({
+    const { actions, activeApp, introSeen, langPicker, isGameOver, gameOverReason, gameOverDetail, levelIdx, day, omstreDayStart, levelUpScreen, activeToast } = useGameStore(useShallow(state => ({
         actions: state.actions,
         activeApp: state.activeApp,
         introSeen: state.introSeen,
+        langPicker: state.langPicker,
         isGameOver: state.isGameOver,
         gameOverReason: state.gameOverReason,
         gameOverDetail: state.gameOverDetail,
@@ -80,6 +81,21 @@ export default function GameScreen() {
 
     if (!introSeen) {
         return <IntroScreen onComplete={() => actions.completeIntro()} />;
+    }
+
+    if (langPicker) {
+        return (
+            <View style={styles.langPickerScreen}>
+                <View style={styles.langPickerRow}>
+                    <TouchableOpacity style={styles.flagBtn} onPress={() => actions.setLanguage('pt')} activeOpacity={0.7}>
+                        <Text style={styles.flagEmoji}>🇧🇷</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.flagBtn} onPress={() => actions.setLanguage('en')} activeOpacity={0.7}>
+                        <Text style={styles.flagEmoji}>🇬🇧</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        );
     }
 
     if (isGameOver) {
@@ -257,6 +273,29 @@ const styles = StyleSheet.create({
         fontSize: 12,
         marginTop: 1,
         fontFamily: Platform.select({ ios: 'SFProText-Regular', android: 'sans-serif' }),
+    },
+    langPickerScreen: {
+        flex: 1,
+        backgroundColor: '#000',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    langPickerRow: {
+        flexDirection: 'row',
+        gap: 32,
+    },
+    flagBtn: {
+        width: 100,
+        height: 100,
+        borderRadius: 16,
+        backgroundColor: 'rgba(255,255,255,0.06)',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.15)',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    flagEmoji: {
+        fontSize: 52,
     },
     gameOver: {
         flex: 1,

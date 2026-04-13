@@ -1,7 +1,9 @@
 // components/IntroScreen.tsx
 import { useRef, useState } from 'react';
-import { Animated, StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
+import { Animated, Dimensions, StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
 
+const { width, height } = Dimensions.get('screen');
+const HALF = height / 2;
 const FADE_MS = 300;
 
 const IMGS = [
@@ -19,16 +21,20 @@ interface Props {
     onComplete: () => void;
 }
 
+// Layout: top slot holds panels 0 and 2 stacked; bottom slot holds panels 1 and 3 stacked.
+// Steps:
+//   0 → tap → bottom panel 1 fades in
+//   1 → tap → top swaps 0→2, bottom fades out (panel 1 gone, panel 3 not yet)
+//   2 → tap → bottom panel 3 fades in
+//   3 → tap → onComplete
 export function IntroScreen({ onComplete }: Props) {
     const [step, setStep] = useState(0);
     const isAnimating = useRef(false);
 
-    // Top slot: img0 and img2 stacked
-    const op0 = useRef(new Animated.Value(1)).current;
-    const op2 = useRef(new Animated.Value(0)).current;
-    // Bottom slot: img1 and img3 stacked
-    const op1 = useRef(new Animated.Value(0)).current;
-    const op3 = useRef(new Animated.Value(0)).current;
+    const op0 = useRef(new Animated.Value(1)).current;  // top: panel 0 (starts visible)
+    const op2 = useRef(new Animated.Value(0)).current;  // top: panel 2
+    const op1 = useRef(new Animated.Value(0)).current;  // bottom: panel 1
+    const op3 = useRef(new Animated.Value(0)).current;  // bottom: panel 3
 
     const handleTap = () => {
         if (isAnimating.current) return;
@@ -37,14 +43,11 @@ export function IntroScreen({ onComplete }: Props) {
         if (step === 0) {
             fade(op1, 1).start(() => { isAnimating.current = false; setStep(1); });
         } else if (step === 1) {
-            Animated.parallel([
-                fade(op0, 0),
-                fade(op2, 1),
-                fade(op1, 0),
-            ]).start(() => { isAnimating.current = false; setStep(2); });
+            Animated.parallel([fade(op0, 0), fade(op2, 1), fade(op1, 0)])
+                .start(() => { isAnimating.current = false; setStep(2); });
         } else if (step === 2) {
             fade(op3, 1).start(() => { isAnimating.current = false; setStep(3); });
-        } else if (step === 3) {
+        } else {
             isAnimating.current = false;
             onComplete();
         }
@@ -53,12 +56,10 @@ export function IntroScreen({ onComplete }: Props) {
     return (
         <TouchableWithoutFeedback onPress={handleTap}>
             <View style={styles.root}>
-                {/* Top half */}
                 <View style={styles.slot}>
                     <Animated.Image source={IMGS[0]} style={[styles.panel, { opacity: op0 }]} resizeMode="cover" />
                     <Animated.Image source={IMGS[2]} style={[styles.panel, { opacity: op2 }]} resizeMode="cover" />
                 </View>
-                {/* Bottom half */}
                 <View style={styles.slot}>
                     <Animated.Image source={IMGS[1]} style={[styles.panel, { opacity: op1 }]} resizeMode="cover" />
                     <Animated.Image source={IMGS[3]} style={[styles.panel, { opacity: op3 }]} resizeMode="cover" />
@@ -70,13 +71,17 @@ export function IntroScreen({ onComplete }: Props) {
 
 const styles = StyleSheet.create({
     root: {
-        flex: 1,
+        width,
+        height,
         backgroundColor: '#000',
     },
     slot: {
-        flex: 1,
+        width,
+        height: HALF,
     },
     panel: {
-        ...StyleSheet.absoluteFillObject,
+        position: 'absolute',
+        width,
+        height: HALF,
     },
 });
