@@ -40,6 +40,7 @@ export interface GameState {
     totalWashed: number;
     totalReceived: number;
     totalPaid: number;
+    swissAccount: number;
     transfersByContact: Record<string, number>;
     contacts: Record<string, boolean>;
     eventsTriggered: string[];

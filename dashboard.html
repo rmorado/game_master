@@ -112,7 +112,7 @@ hr.sep { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 <div id="tab-economics" class="panel active">
   <div class="section">
     <h2>Suspicion Curve</h2>
-    <div class="insight">Solid = new superlinear formula. Dashed = old linear baseline. Dots mark the three available loan sizes (100 / 500 / 1000 CPFs). Adjust <b>SUSP_CURVE</b> in the Edit Constants tab to reshape the curve.</div>
+    <div class="insight">Solid = new superlinear formula. Dashed = old linear baseline. Dots mark the two available loan sizes (100 / 500 CPFs). Adjust <b>SUSP_CURVE</b> in the Edit Constants tab to reshape the curve.</div>
     <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;">
       <div id="chart-curve" style="flex:1;min-width:400px;"></div>
       <div id="chart-legend" class="card" style="min-width:180px;font-size:13px;"></div>
@@ -160,8 +160,7 @@ hr.sep { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
             <label>CPF Count</label>
             <select id="sim-cpf-preset" style="min-width:unset;width:100%" onchange="simPresetChange()">
               <option value="100">Small — 100 CPFs</option>
-              <option value="500" selected>Medium — 500 CPFs</option>
-              <option value="1000">Large — 1000 CPFs</option>
+              <option value="500" selected>Large — 500 CPFs</option>
               <option value="custom">Custom…</option>
             </select>
           </div>
@@ -243,17 +242,18 @@ hr.sep { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
     <div class="card section">
       <h3>Global Constants</h3><br>
       <div class="grid2">
-        <div class="ctrl" style="margin-bottom:10px;"><label title="Dirty money cost per CPF. Also sets the face value of each debt pack (N CPFs × cost).">CPF_COST — dirty money per CPF</label><input type="number" id="c-cpf-cost" value="5000" data-fmt><small class="fmt-hint" id="fmt-c-cpf-cost">5.000</small></div>
-        <div class="ctrl" style="margin-bottom:10px;"><label title="PCC only sends the next bag once your dirty balance drops to or below this value.">BAG_DIRTY_THRESHOLD — triggers next bag</label><input type="number" id="c-bag-thresh" value="4000000" data-fmt><small class="fmt-hint" id="fmt-c-bag-thresh">4.000.000</small></div>
-        <div class="ctrl" style="margin-bottom:10px;"><label title="Suspicion points removed each time you hire the lawyer.">Lawyer — suspicion removed per hire</label><input type="number" id="c-lawyer-susp" value="15"></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label title="Dirty money paid to the hacker per CPF purchased.">CPF_COST — hacker price per CPF</label><input type="number" id="c-cpf-cost" value="1000" data-fmt><small class="fmt-hint" id="fmt-c-cpf-cost">1.000</small></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label title="Face value of each CPF slot in a derivativo (dirty money spent + debt pack size).">CPF_LOAN_VALUE — loan face value per CPF</label><input type="number" id="c-cpf-loan-value" value="5000" data-fmt><small class="fmt-hint" id="fmt-c-cpf-loan-value">5.000</small></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label title="PCC only sends the next bag once your dirty balance drops to or below this value.">BAG_DIRTY_THRESHOLD — triggers next bag</label><input type="number" id="c-bag-thresh" value="1000000" data-fmt><small class="fmt-hint" id="fmt-c-bag-thresh">1.000.000</small></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label title="Suspicion points removed each time you hire the lawyer.">Lawyer — suspicion removed per hire</label><input type="number" id="c-lawyer-susp" value="10"></div>
         <div class="ctrl" style="margin-bottom:10px;"><label title="Days before an unpaid batch defaults. Hitting 0 adds pressure and destroys the batch.">Batch deadline (days before default)</label><input type="number" id="c-batch-days" value="90"></div>
         <div class="ctrl" style="margin-bottom:10px;"><label title="Debt created per bag = bagSize × this fraction. You always owe less than you received, but it must come from clean money.">Batch due = bag × (repayment fraction)</label><input type="number" id="c-batch-pct" value="0.7" step="0.05"></div>
-        <div class="ctrl" style="margin-bottom:10px;"><label title="Pressure spike added instantly when a batch expires unpaid.">Pressure per defaulted batch</label><input type="number" id="c-pres-default" value="25"></div>
-        <div class="ctrl" style="margin-bottom:10px;"><label title="Pressure added per tick when any batch has fewer than 30 days left.">Pressure/day — batch critical (&lt;30d)</label><input type="number" id="c-pres-crit" value="0.5" step="0.1"></div>
-        <div class="ctrl" style="margin-bottom:10px;"><label title="Pressure added per tick when you have more than 2 open batches simultaneously.">Pressure/day — too many open batches</label><input type="number" id="c-pres-many" value="0.1" step="0.05"></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label title="Pressure spike added instantly when a batch expires unpaid.">Pressure per defaulted batch</label><input type="number" id="c-pres-default" value="30"></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label title="Pressure added per tick when any batch has fewer than 30 days left.">Pressure/day — batch critical (&lt;30d)</label><input type="number" id="c-pres-crit" value="0" step="0.1"></div>
+        <div class="ctrl" style="margin-bottom:10px;"><label title="Pressure added per tick when you have more than 2 open batches simultaneously.">Pressure/day — too many open batches</label><input type="number" id="c-pres-many" value="0" step="0.05"></div>
         <div class="ctrl" style="margin-bottom:10px;"><label title="Pressure lost per tick when no critical conditions are active. Natural decay.">Pressure drain/day (natural decay)</label><input type="number" id="c-pres-drain" value="0.1" step="0.05"></div>
         <div class="ctrl"><label title="Linear coefficient in suspicion formula: cpf^(1+CURVE) × RATE / 100^CURVE. Fixed — does not vary by level.">SUSP_RATE — base suspicion multiplier</label><input type="number" id="c-susp-rate" value="0.05" step="0.005"></div>
-        <div class="ctrl"><label title="Exponent offset that makes large loans disproportionately suspicious. 0 = linear. 0.2 = a 1000-CPF loan costs more than 10× a 100-CPF loan.">SUSP_CURVE — big-loan penalty exponent</label><input type="number" id="c-susp-curve" value="0.2" step="0.05"></div>
+        <div class="ctrl"><label title="Exponent offset that makes large loans disproportionately suspicious. 0 = linear. 0.2 = a 500-CPF loan costs more than 5× a 100-CPF loan.">SUSP_CURVE — big-loan penalty exponent</label><input type="number" id="c-susp-curve" value="0.15" step="0.05"></div>
       </div>
     </div>
     <div class="card section">
@@ -266,10 +266,11 @@ hr.sep { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 <script>
 // ─── State ────────────────────────────────────────────────────────────────────
 let G = {
-  CPF_COST: 5000, BAG_THRESH: 4_000_000,
-  LAWYER_SUSP: 15, BATCH_DAYS: 90, BATCH_PCT: 0.7,
-  PRES_DEFAULT: 25, PRES_CRIT: 0.5, PRES_MANY: 0.1, PRES_DRAIN: 0.1,
-  SUSP_CURVE: 0.2,   // exponent: small batches proportionally cheaper
+  CPF_COST: 1000, CPF_LOAN_VALUE: 5000, BAG_THRESH: 1_000_000,
+  LAWYER_SUSP: 10, BATCH_DAYS: 90, BATCH_PCT: 0.7,
+  PRES_DEFAULT: 30, PRES_CRIT: 0, PRES_MANY: 0, PRES_DRAIN: 0.1,
+  SUSP_RATE: 0.05,
+  SUSP_CURVE: 0.15,
 };
 
 let LEVELS = [
@@ -278,14 +279,17 @@ let LEVELS = [
   { name: 'Doleiro',  goal: 500_000_000,   bag: 150_000_000   },
   { name: 'O Mestre', goal: null,          bag: 1_000_000_000 },
 ];
-let SUSP_RATE = 0.05; // fixed — does not vary by level
 
 const AUCTIONS = [
   { label: 'Short (5d)',   min: 0.50, max: 0.70 },
   { label: 'Medium (10d)', min: 0.60, max: 0.80 },
   { label: 'Long (20d)',   min: 0.70, max: 0.90 },
 ];
-const LOAN_SIZES = [100, 500, 1000];
+const LOAN_OPTIONS = [
+  { cpfCount: 100, durationMs: 5_000 },
+  { cpfCount: 500, durationMs: 15_000 },
+];
+const LOAN_SIZES = LOAN_OPTIONS.map(o => o.cpfCount);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const fmtN = n => isNaN(n) || n === 0 ? '0' : Math.round(n).toLocaleString('pt-BR');
@@ -298,10 +302,10 @@ const F = n => {
 };
 
 // Suspicion only on create, fixed rate, superlinear — mirrors calcCreateSusp()
-const sc = (cpf) => Math.round(Math.pow(cpf, 1 + G.SUSP_CURVE) * SUSP_RATE / Math.pow(100, G.SUSP_CURVE));
+const sc = (cpf) => Math.round(Math.pow(cpf, 1 + G.SUSP_CURVE) * G.SUSP_RATE / Math.pow(100, G.SUSP_CURVE));
 const ss = () => 0; // no suspicion on sell
 const st = (cpf) => sc(cpf); // sell adds 0 suspicion
-const fv = cpf => cpf * G.CPF_COST;
+const fv = cpf => cpf * G.CPF_LOAN_VALUE;
 const cAvg = (cpf, auc) => fv(cpf) * (auc.min + auc.max) / 2;
 
 function suspClass(s) {
@@ -355,7 +359,7 @@ function renderCurveChart() {
     s += `<line x1="${mL}" y1="${y}" x2="${W-mR}" y2="${y}" stroke="#1e1e22" stroke-width="1"/>`;
     s += `<text x="${mL-6}" y="${y+4}" text-anchor="end" fill="#6b7280" font-size="11" font-family="sans-serif">${g}</text>`;
   }
-  for (let c = 0; c <= 1000; c += 200) {
+  for (let c = 0; c <= 500; c += 100) {
     const x = px(c);
     s += `<line x1="${x}" y1="${mT}" x2="${x}" y2="${H-mB}" stroke="#1e1e22" stroke-width="1"/>`;
     s += `<text x="${x}" y="${H-mB+16}" text-anchor="middle" fill="#6b7280" font-size="11" font-family="sans-serif">${c}</text>`;
@@ -369,7 +373,7 @@ function renderCurveChart() {
   });
 
   // Loan size tick marks
-  [100, 500, 1000].forEach(cpf => {
+  [100, 500].forEach(cpf => {
     const x = px(cpf);
     s += `<line x1="${x}" y1="${mT}" x2="${x}" y2="${H-mB}" stroke="#f97316" stroke-width="1" stroke-dasharray="3,3" opacity="0.3"/>`;
     s += `<text x="${x}" y="${mT-7}" text-anchor="middle" fill="#f97316" font-size="10" font-family="sans-serif" opacity="0.7">${cpf}</text>`;
@@ -379,24 +383,24 @@ function renderCurveChart() {
   LEVELS.forEach((l, i) => {
     // Old linear (dashed, faint) — uses fixed SUSP_RATE for reference
     const oldPts = [];
-    for (let c = 5; c <= 1000; c += 5) oldPts.push(`${px(c).toFixed(1)},${py(c * SUSP_RATE).toFixed(1)}`);
+    for (let c = 5; c <= 500; c += 5) oldPts.push(`${px(c).toFixed(1)},${py(c * G.SUSP_RATE).toFixed(1)}`);
     s += `<polyline points="${oldPts.join(' ')}" fill="none" stroke="${COLORS[i]}" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.3"/>`;
 
     // New superlinear (solid)
     const newPts = [];
-    for (let c = 5; c <= 1000; c += 5) newPts.push(`${px(c).toFixed(1)},${py(sc(c)).toFixed(1)}`);
+    for (let c = 5; c <= 500; c += 5) newPts.push(`${px(c).toFixed(1)},${py(sc(c)).toFixed(1)}`);
     s += `<polyline points="${newPts.join(' ')}" fill="none" stroke="${COLORS[i]}" stroke-width="2.5"/>`;
 
     // Dots at loan sizes
-    [100, 500, 1000].forEach(cpf => {
+    [100, 500].forEach(cpf => {
       const newY = py(sc(cpf));
-      const oldY = py(cpf * SUSP_RATE);
+      const oldY = py(cpf * G.SUSP_RATE);
       s += `<circle cx="${px(cpf)}" cy="${newY}" r="4" fill="${COLORS[i]}" stroke="#0e0e14" stroke-width="1.5"/>`;
       s += `<circle cx="${px(cpf)}" cy="${oldY}" r="3" fill="none" stroke="${COLORS[i]}" stroke-width="1.5" opacity="0.4"/>`;
     });
 
     // Level label at right edge
-    const labelY = py(sc(980));
+    const labelY = py(sc(490));
     s += `<text x="${W-mR+6}" y="${labelY+4}" fill="${COLORS[i]}" font-size="11" font-weight="bold" font-family="sans-serif">${l.name}</text>`;
   });
 
@@ -413,8 +417,8 @@ function renderCurveChart() {
 
   // Legend
   const legend = document.getElementById('chart-legend');
+  const v100 = sc(100), v500 = sc(500);
   const rows = LEVELS.map((l, i) => {
-    const v100 = sc(100), v500 = sc(500), v1000 = sc(1000);
     return `<div style="margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
         <div style="width:20px;height:3px;background:${COLORS[i]};border-radius:2px;"></div>
@@ -422,8 +426,7 @@ function renderCurveChart() {
       </div>
       <div style="color:var(--muted);font-size:12px;line-height:1.8;padding-left:28px;">
         100 CPF → <b style="color:var(--text)">${v100}</b><br>
-        500 CPF → <b style="color:var(--text)">${v500}</b><br>
-        1000 CPF → <b style="color:var(--text)">${v1000}</b>
+        500 CPF → <b style="color:var(--text)">${v500}</b>
       </div>
     </div>`;
   }).join('');
@@ -480,7 +483,7 @@ function renderFullBag() {
   let html = `<tr><th>Level</th><th>Loan</th><th>Loans for Full Bag</th><th>Total Susp</th><th>Loans before 50</th><th>Loans before 75</th><th>Loans before 100</th><th>Feasible?</th></tr>`;
   LEVELS.forEach((l, li) => {
     LOAN_SIZES.forEach((cpf, ci) => {
-      const totalCpfs = l.bag / G.CPF_COST;
+      const totalCpfs = l.bag / G.CPF_LOAN_VALUE;
       const loansNeeded = Math.ceil(totalCpfs / cpf);
       const stv = st(cpf);
       const totalSusp = stv * loansNeeded;
@@ -824,17 +827,18 @@ function updatePressure() {
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 function readConstants() {
-  G.CPF_COST      = +document.getElementById('c-cpf-cost').value    || 5000;
-  G.BAG_THRESH    = +document.getElementById('c-bag-thresh').value   || 4000000;
-  G.LAWYER_SUSP   = +document.getElementById('c-lawyer-susp').value  || 15;
+  G.CPF_COST      = +document.getElementById('c-cpf-cost').value      || 1000;
+  G.CPF_LOAN_VALUE = +document.getElementById('c-cpf-loan-value').value || 5000;
+  G.BAG_THRESH    = +document.getElementById('c-bag-thresh').value   || 1000000;
+  G.LAWYER_SUSP   = +document.getElementById('c-lawyer-susp').value  || 10;
   G.BATCH_DAYS    = +document.getElementById('c-batch-days').value   || 90;
   G.BATCH_PCT     = +document.getElementById('c-batch-pct').value    || 0.7;
-  G.PRES_DEFAULT  = +document.getElementById('c-pres-default').value || 25;
-  G.PRES_CRIT     = +document.getElementById('c-pres-crit').value    || 0.5;
-  G.PRES_MANY     = +document.getElementById('c-pres-many').value    || 0.1;
+  G.PRES_DEFAULT  = +document.getElementById('c-pres-default').value || 30;
+  G.PRES_CRIT     = +document.getElementById('c-pres-crit').value    || 0;
+  G.PRES_MANY     = +document.getElementById('c-pres-many').value    || 0;
   G.PRES_DRAIN    = +document.getElementById('c-pres-drain').value   || 0.1;
-  SUSP_RATE       = +document.getElementById('c-susp-rate').value    || 0.05;
-  G.SUSP_CURVE    = +document.getElementById('c-susp-curve').value   ?? 0.2;
+  G.SUSP_RATE     = +document.getElementById('c-susp-rate').value    || 0.05;
+  G.SUSP_CURVE    = +document.getElementById('c-susp-curve').value   ?? 0.15;
 }
 
 function renderLevelEditTable() {
@@ -860,20 +864,24 @@ function renderLevelEditTable() {
 // ─── Export ───────────────────────────────────────────────────────────────────
 function exportGameData() {
   readConstants();
-  const levelsTs = LEVELS.map(l =>
-    `    { id: ${LEVELS.indexOf(l)+1}, name: "${l.name}", goal: ${l.goal === null ? 'null' : l.goal.toLocaleString('en').replace(/,/g,'_')}, bagSize: ${l.bag.toLocaleString('en').replace(/,/g,'_')} },`
+  const levelsTs = LEVELS.map((l, i) =>
+    `    { id: ${i+1}, name: "${l.name}", goal: ${l.goal === null ? 'null' : l.goal.toLocaleString('en').replace(/,/g,'_')}, bagSize: ${l.bag.toLocaleString('en').replace(/,/g,'_')} },`
+  ).join('\n');
+  const loanOptsTs = LOAN_OPTIONS.map(o =>
+    `    { cpfCount: ${o.cpfCount}, durationMs: ${o.durationMs.toLocaleString('en').replace(/,/g,'_')} },`
   ).join('\n');
 
   const src = `// constants/game-data.ts
 import { Level } from '../types/game';
 
 export const MS_PER_DAY = 2_000;              // real milliseconds per game day
-export const CPF_COST = ${G.CPF_COST};
+export const CPF_COST       = ${G.CPF_COST};
+export const CPF_LOAN_VALUE = ${G.CPF_LOAN_VALUE};
 export const BAG_DIRTY_THRESHOLD = ${G.BAG_THRESH};
-export const SUSP_RATE  = ${SUSP_RATE};
+export const SUSP_RATE  = ${G.SUSP_RATE};
 export const SUSP_CURVE = ${G.SUSP_CURVE};
 //   formula: cpfCount^(1+SUSP_CURVE) * SUSP_RATE / 100^SUSP_CURVE
-//   100 CPFs → 5 susp · 500 CPFs → 35 susp · 1000 CPFs → 79 susp (at any level)
+//   100 CPFs → 5 susp · 500 CPFs → 35 susp (at any level)
 
 export const BATCH_DAYS   = ${G.BATCH_DAYS};
 export const BATCH_PCT    = ${G.BATCH_PCT};
@@ -897,9 +905,7 @@ export function gameDate(day: number, lang: 'pt' | 'en' = 'pt'): string {
 }
 
 export const LOAN_OPTIONS = [
-    { cpfCount: 100,  durationMs: 5_000 },
-    { cpfCount: 500,  durationMs: 15_000 },
-    { cpfCount: 1000, durationMs: 25_000 },
+${loanOptsTs}
 ] as const;
 
 export const AUCTION_DURATIONS = [
@@ -940,7 +946,7 @@ const constantIds = ['c-cpf-cost','c-bag-thresh','c-lawyer-susp','c-batch-days',
 constantIds.forEach(id =>
   document.getElementById(id).addEventListener('change', () => { readConstants(); renderAll(); }));
 // Live formatted hints for large-number global constant inputs
-['c-cpf-cost','c-bag-thresh'].forEach(id => {
+['c-cpf-cost','c-cpf-loan-value','c-bag-thresh'].forEach(id => {
   document.getElementById(id).addEventListener('input', e => {
     const hint = document.getElementById('fmt-' + id);
     if (hint) hint.textContent = fmtN(+e.target.value);

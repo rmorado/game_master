@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../hooks/use-game-store';
 import { useStrings } from '../constants/strings';
-import { LOAN_OPTIONS, MS_PER_DAY, CPF_COST } from '../constants/game-data';
+import { LOAN_OPTIONS, MS_PER_DAY, CPF_LOAN_VALUE } from '../constants/game-data';
 import { formatBRL } from '../utils/format';
 
 const ORANGE = '#f97316';
@@ -80,7 +80,7 @@ export function LaranjaScreen() {
 
                     <View style={styles.optionsSection}>
                         {LOAN_OPTIONS.map(opt => {
-                            const cost = opt.cpfCount * CPF_COST;
+                            const cost = opt.cpfCount * CPF_LOAN_VALUE;
                             const days = Math.round(opt.durationMs / MS_PER_DAY);
                             const canAfford = dirty >= cost && cpfs >= opt.cpfCount;
                             const disabled = !canAfford || (tutStep > 0 && tutStep < 7);

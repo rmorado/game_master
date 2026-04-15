@@ -52,16 +52,17 @@ function getContactStatus(
     }
 }
 
-const CONTACT_ORDER = ['drugdealer', 'hacker', 'investigador', 'anonimo', 'lawyer', 'deputy', 'judge', 'madame'];
+const CONTACT_ORDER = ['drugdealer', 'hacker', 'contador', 'investigador', 'anonimo', 'lawyer', 'deputy', 'judge', 'madame'];
 
 export function DossieScreen() {
     const {
-        dirty, clean, cpfs, totalReceived, totalPaid, transfersByContact,
+        dirty, clean, swissAccount, cpfs, totalReceived, totalPaid, transfersByContact,
         contacts, hasPendingBag, hasUsedNotNow, dialoguesSeen,
         language, actions,
     } = useGameStore(useShallow(s => ({
         dirty: s.dirty,
         clean: s.clean,
+        swissAccount: s.swissAccount,
         cpfs: s.cpfs,
         totalReceived: s.totalReceived,
         totalPaid: s.totalPaid,
@@ -120,6 +121,15 @@ export function DossieScreen() {
                         <Text style={styles.rowLabel}>{str.dossie.rowCpfs}</Text>
                         <Text style={[styles.rowValue, { color: '#fff' }]}>{cpfs.toLocaleString('pt-BR')}</Text>
                     </View>
+                    {dialoguesSeen.includes('contador_ja_era_hora') && (
+                        <>
+                            <View style={styles.divider} />
+                            <View style={styles.row}>
+                                <Text style={styles.rowLabel}>{str.dossie.rowSwiss}</Text>
+                                <Text style={[styles.rowValue, { color: '#4ade80' }]}>R$ {formatMoney(swissAccount)}</Text>
+                            </View>
+                        </>
+                    )}
                 </View>
 
                 {/* Contacts section */}
@@ -135,7 +145,10 @@ export function DossieScreen() {
                         return (
                             <View key={id}>
                                 <View style={styles.contactRow}>
-                                    <Image source={char.avatar} style={styles.avatar} />
+                                    {char.avatar
+                                    ? <Image source={char.avatar} style={styles.avatar} />
+                                    : <View style={[styles.avatar, styles.avatarPlaceholder]} />
+                                }
                                     <View style={styles.contactInfo}>
                                         <Text style={styles.contactName}>{resolveBi(char.name, language)}</Text>
                                         <View style={styles.statusRow}>
@@ -244,6 +257,11 @@ const styles = StyleSheet.create({
         height: 38,
         borderRadius: 19,
         backgroundColor: '#1a1a2e',
+    },
+    avatarPlaceholder: {
+        backgroundColor: '#0f2010',
+        borderWidth: 1,
+        borderColor: '#4ade8033',
     },
     contactInfo: {
         flex: 1,

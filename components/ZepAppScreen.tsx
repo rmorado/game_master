@@ -16,7 +16,7 @@ import { resolveBi } from '../utils/dialogue';
 
 // Contact order mirrors the mockup
 const CONTACT_ORDER = [
-    'drugdealer', 'hacker', 'judge', 'deputy', 'lawyer', 'madame', 'anonimo', 'investigador',
+    'drugdealer', 'hacker', 'contador', 'judge', 'deputy', 'lawyer', 'madame', 'anonimo', 'investigador',
 ];
 
 interface ContactRowProps {
@@ -48,10 +48,10 @@ function ContactRow({ contactId, lastMessage, isMe, unread, hasPending, onPress,
         >
             {/* Avatar */}
             <View style={styles.avatarWrap}>
-                <Image
-                    source={(char as any).avatar}
-                    style={styles.avatar}
-                />
+                {(char as any).avatar
+                    ? <Image source={(char as any).avatar} style={styles.avatar} />
+                    : <View style={[styles.avatar, styles.avatarPlaceholder]} />
+                }
                 {showBadge && (
                     <View style={styles.activeDot} />
                 )}
@@ -259,6 +259,11 @@ const styles = StyleSheet.create({
         height: 50,
         borderRadius: 25,
         backgroundColor: '#222',
+    },
+    avatarPlaceholder: {
+        backgroundColor: '#0f2010',
+        borderWidth: 1,
+        borderColor: '#4ade8033',
     },
     activeDot: {
         position: 'absolute',

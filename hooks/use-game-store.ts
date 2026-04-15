@@ -1,7 +1,7 @@
 // hooks/use-game-store.ts
 import { create } from 'zustand';
 import { BANKS, DIALOGUES, LEVEL_EVENTS, SCRIPTED_EVENTS, TUTORIAL } from '../constants/dialogues';
-import { BAG_DIRTY_THRESHOLD, BATCH_DAYS, BATCH_PCT, CPF_COST, LEVELS, PRES_CRIT, PRES_DEFAULT, PRES_DRAIN, PRES_MANY, SUSP_CURVE, SUSP_RATE } from '../constants/game-data';
+import { BAG_DIRTY_THRESHOLD, BATCH_DAYS, BATCH_PCT, CPF_LOAN_VALUE, LEVELS, PRES_CRIT, PRES_DEFAULT, PRES_DRAIN, PRES_MANY, SUSP_CURVE, SUSP_RATE } from '../constants/game-data';
 
 function calcCreateSusp(cpfCount: number): number {
     return Math.round(Math.pow(cpfCount, 1 + SUSP_CURVE) * SUSP_RATE / Math.pow(100, SUSP_CURVE));
@@ -133,6 +133,7 @@ type GameStore = GameState & {
         goBack: () => void;
         toggleAppOverview: () => void;
         payPCC: (amount: number) => void;
+        hideClean: (amount: number) => void;
         setLanguage: (lang: Lang) => void;
         debugForceLevel: (idx: number) => void;
         debugAddResources: (dirty: number, clean: number, cpfs: number) => void;
@@ -161,8 +162,9 @@ const initialState: GameState = {
     totalWashed: 0,
     totalReceived: 5_000_000,
     totalPaid: 0,
+    swissAccount: 0,
     transfersByContact: {},
-    contacts: { drugdealer: true, hacker: true, lawyer: true },
+    contacts: { drugdealer: true, hacker: true, lawyer: true, contador: false },
     eventsTriggered: [],
     isPaused: true,
     isTyping: false,
@@ -422,7 +424,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
         goBack: () => {
             const { navHistory, tutStep, actions } = get();
-            if (tutStep === 5) actions.advanceTutorial();
+            if (tutStep === 5) {
+                actions.advanceTutorial();
+                set({ activeApp: 'home', navHistory: [], isPaused: false, showAppOverview: false });
+                return;
+            }
             if (navHistory.length === 0) {
                 actions.setActiveApp('home');
                 return;
@@ -440,13 +446,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
             const { clean, batches, tutStep } = get();
             if (amount <= 0 || clean < amount) return;
             let remaining = amount;
-            const newBatches = [...batches].sort((a, b) => a.id - b.id);
             const kept: typeof batches = [];
-            for (const batch of newBatches) {
+            for (const batch of batches) {
                 if (remaining >= batch.due) {
                     remaining -= batch.due;
                 } else {
-                    kept.push(batch);
+                    kept.push(remaining > 0 ? { ...batch, due: batch.due - remaining } : batch);
+                    remaining = 0;
                 }
             }
             set(s => ({
@@ -460,13 +466,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
             trackedTimeout(() => set({ showNewMessagePopup: false }), MSG_POPUP_DURATION);
         },
 
+        hideClean: (amount: number) => {
+            const { clean } = get();
+            if (amount <= 0 || clean < amount) return;
+            set(s => ({ clean: s.clean - amount, swissAccount: s.swissAccount + amount }));
+        },
+
         setModal: (modal) => {
             set({ modal, isPaused: modal !== 'none' });
         },
 
         startLoan: (cpfCount: number, durationMs: number) => {
             const { dirty, cpfs, tutStep, pendingLoan } = get();
-            const cost = cpfCount * CPF_COST;
+            const cost = cpfCount * CPF_LOAN_VALUE;
             if (dirty < cost || cpfs < cpfCount || pendingLoan !== null) return;
 
             const inTutorial = tutStep > 0 && tutStep < TUTORIAL.length;
@@ -495,7 +507,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             const { pendingLoan, day } = get();
             if (!pendingLoan) return;
             const { cpfCount } = pendingLoan;
-            const newPack: DebtPack = { id: Date.now(), value: cpfCount * CPF_COST, cpfsUsed: cpfCount, dayCreated: day };
+            const newPack: DebtPack = { id: Date.now(), value: cpfCount * CPF_LOAN_VALUE, cpfsUsed: cpfCount, dayCreated: day };
             set(s => ({
                 pendingLoan: null,
                 debtPacks: [...s.debtPacks, newPack],

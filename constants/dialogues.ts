@@ -1,9 +1,9 @@
 // constants/dialogues.ts
 // Centralized dialogue and text content for O Mestre
 
+import { CPF_COST, LAWYER_SUSP } from '../constants/game-data';
 import { Bi, CharacterDialogue, GameState, LevelEvent, ScriptedEvent, TutorialStep } from '../types/game';
 import { formatMoney as fmt } from '../utils/format';
-import { LAWYER_SUSP } from '../constants/game-data';
 
 // Bilingual string helper
 export const bi = (pt: string, en: string): Bi => ({ pt, en });
@@ -265,6 +265,19 @@ export const CHARACTERS = {
         greeting: bi("Vamos resolver isso.", "Let's sort this out."),
     },
 
+    contador: {
+        id: "contador",
+        name: bi("Contador", "Accountant"),
+        sub: bi("Finanças Offshore", "Offshore Finance"),
+        borderColor: "#4ade80",
+        avatar: null,
+        intro: bi(
+            "ja montei as contas anonimas. agora vc pode mandar dinheiro limpo pra elas.",
+            "the anonymous accounts are set up. you can now send clean money to them.",
+        ),
+        greeting: bi("contas prontas.", "accounts ready."),
+    },
+
     druglord: {
         id: "druglord",
         name: "Hector",
@@ -458,7 +471,7 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
         options: [
             {
                 id: 'buy_100_cpfs',
-                text: bi(`manda mais 100 CPFs [R$${fmt(500000)}]`, `send me 100 CPFs [R$${fmt(500000)}]`),
+                text: bi(`manda mais 100 CPFs [R$${fmt(100 * CPF_COST)}]`, `send me 100 CPFs [R$${fmt(100 * CPF_COST)}]`),
                 response: bi('transferido', 'transferred'),
                 disabledResponse: (s: GameState) => {
                     const days = s.cpfCooldownUntilDay - s.day;
@@ -471,19 +484,19 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                     return bi('perai que tenho que pegar mais dados', 'hang on, need to grab more data');
                 },
                 effects: [
-                    { type: 'spend', resource: 'dirty', amount: 500000 },
+                    { type: 'spend', resource: 'dirty', amount: 100 * CPF_COST },
                     { type: 'gain', resource: 'cpfs', amount: 100 },
-                    { type: 'trackTransfer', contactId: 'hacker', amount: 500000 },
+                    { type: 'trackTransfer', contactId: 'hacker', amount: 100 * CPF_COST },
                     { type: 'setDay', field: 'cpfCooldownUntilDay', offset: 3 },
                 ],
                 enabled: [
-                    { type: 'resource', resource: 'dirty', op: 'gte', value: 500000 },
+                    { type: 'resource', resource: 'dirty', op: 'gte', value: 100 * CPF_COST },
                     { type: 'custom', fn: (s: GameState) => s.debugNoCooldowns || s.day >= s.cpfCooldownUntilDay, description: 'cooldown expired' },
                 ],
             },
             {
                 id: 'buy_500_cpfs',
-                text: bi(`manda mais 500 CPFs [R$${fmt(2500000)}]`, `send me 500 CPFs [R$${fmt(2500000)}]`),
+                text: bi(`manda mais 500 CPFs [R$${fmt(500 * CPF_COST)}]`, `send me 500 CPFs [R$${fmt(500 * CPF_COST)}]`),
                 response: bi('transferido', 'transferred'),
                 disabledResponse: (s: GameState) => {
                     const days = s.cpfCooldownUntilDay - s.day;
@@ -496,13 +509,13 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                     return bi('perai que tenho que pegar mais dados', 'hang on, need to grab more data');
                 },
                 effects: [
-                    { type: 'spend', resource: 'dirty', amount: 2500000 },
+                    { type: 'spend', resource: 'dirty', amount: 500 * CPF_COST },
                     { type: 'gain', resource: 'cpfs', amount: 500 },
-                    { type: 'trackTransfer', contactId: 'hacker', amount: 2500000 },
+                    { type: 'trackTransfer', contactId: 'hacker', amount: 500 * CPF_COST },
                     { type: 'setDay', field: 'cpfCooldownUntilDay', offset: 9 },
                 ],
                 enabled: [
-                    { type: 'resource', resource: 'dirty', op: 'gte', value: 2500000 },
+                    { type: 'resource', resource: 'dirty', op: 'gte', value: 500 * CPF_COST },
                     { type: 'custom', fn: (s: GameState) => s.debugNoCooldowns || s.day >= s.cpfCooldownUntilDay, description: 'cooldown expired' },
                 ],
             },
@@ -630,6 +643,18 @@ export const DIALOGUES: { [characterId: string]: CharacterDialogue } = {
                     { type: 'adjust', resource: 'pressure', delta: -20 },
                     { type: 'trackTransfer', contactId: 'deputy', amount: DEPUTY_COST },
                 ],
+            },
+        ],
+    },
+
+    // ── Contador ─────────────────────────────────────────────────────────
+    contador: {
+        characterId: 'contador',
+        options: [
+            {
+                id: 'contador_ja_era_hora',
+                text: bi('ja era hora', 'about time'),
+                response: bi('é isso.', 'exactly.'),
             },
         ],
     },
@@ -929,8 +954,26 @@ export const SCRIPTED_EVENTS: ScriptedEvent[] = [
         },
     },
     {
+        id: 'contador_unlock',
+        trigger: (s) => s.totalPaid > 0,
+        payload: {
+            type: 'multi',
+            payloads: [
+                { type: 'unlock_contact', contactId: 'contador' },
+                {
+                    type: 'incoming_message',
+                    contactId: 'contador',
+                    text: bi(
+                        'ja montei as contas anonimas. agora vc pode mandar dinheiro limpo pra elas.',
+                        'the anonymous accounts are set up. you can now send clean money to them.',
+                    ),
+                },
+            ],
+        },
+    },
+    {
         id: 'pressure_warning_police',
-        trigger: (s) => s.suspicion >= 75,
+        trigger: (s) => s.suspicion >= 20,
         payload: {
             type: 'incoming_message',
             contactId: 'drugdealer',
@@ -942,7 +985,7 @@ export const SCRIPTED_EVENTS: ScriptedEvent[] = [
     },
     {
         id: 'pressure_warning_cartel',
-        trigger: (s) => s.pressure >= 75,
+        trigger: (s) => s.pressure >= 30,
         payload: {
             type: 'incoming_message',
             contactId: 'drugdealer',

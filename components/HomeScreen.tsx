@@ -80,12 +80,13 @@ function AppIcon({ label, gradient, image, emoji, letter, letterColor, badge, on
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function HomeScreen() {
-    const { unreadCounts, hasPendingBag, cpfs, batches, day, tutStep, language, actions } =
+    const { unreadCounts, hasPendingBag, cpfs, debtPacks, completedAuctions, day, tutStep, language, actions } =
         useGameStore(useShallow(s => ({
             unreadCounts: s.unreadCounts,
             hasPendingBag: s.hasPendingBag,
             cpfs: s.cpfs,
-            batches: s.batches,
+            debtPacks: s.debtPacks,
+            completedAuctions: s.completedAuctions,
             day: s.day,
             tutStep: s.tutStep,
             language: s.language,
@@ -94,7 +95,7 @@ export function HomeScreen() {
     const str = useStrings();
 
     const zepBadge = (hasPendingBag || Object.values(unreadCounts).some(n => n > 0)) ? 1 : 0;
-    const bacenBadge = batches.some(b => b.days < 30) ? batches.filter(b => b.days < 30).length : 0;
+    const bacenBadge = (debtPacks.length > 0 || completedAuctions.length > 0) ? 1 : 0;
     const laranjasBadge = cpfs > 0 ? 1 : 0;
     const isTutorial = tutStep < TUTORIAL.length;
     const highlightZep = tutStep === 2;
